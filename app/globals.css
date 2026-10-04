@@ -12,7 +12,7 @@ body {
 /* Vlastní třídy patří do vrstvy "components", aby je šlo v konkrétním místě
    přebít běžnou Tailwind třídou (např. bg-coral u aktivní pilulky). */
 @layer components {
-  /* Pilulkový badge pro kategorie/notifikace, v duchu vizuálního stylu AI dětem */
+  /* Pilulkový badge pro kategorie/notifikace, v duchu vizuálního stylu AI for children */
   .badge-pill {
     @apply inline-flex items-center rounded-pill bg-haze px-3 py-1 text-xs font-medium text-ink;
   }
