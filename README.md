@@ -108,8 +108,8 @@ Appka na začátku nemá žádného uživatele. Postup:
 Postup je stejný jako u předchozí appky v tomhle repu:
 1. vercel.com → Add New → Project → vybrat tenhle repo (větev `main`).
 2. V Environment Variables vyplnit stejné proměnné jako v `.env.local`
-   (Supabase URL/klíče, Resend klíč, `NEXT_PUBLIC_SITE_URL` = URL, kterou
-   ti Vercel přidělí).
+   (Supabase URL/klíče, Resend klíč a `RESEND_FROM_EMAIL`, případně
+   `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_SITE_URL` = URL, kterou ti Vercel přidělí).
 3. Deploy.
 
 Na co si dát pozor v Environment Variables na Vercelu:
