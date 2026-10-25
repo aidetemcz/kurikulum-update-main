@@ -9,6 +9,7 @@ import { getNotificationsForCurrentUser } from "@/lib/notifications-data";
 import { AppShell } from "@/components/AppShell";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getSupportUnread } from "@/lib/support";
+import { translateMissingLater } from "@/lib/translate-missing";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const TITLE = "AI kurikulum";
@@ -54,6 +55,9 @@ export default async function RootLayout({
 
   // Zemi si resolveActiveCountry přečte z cookie – layout parametry
   // z adresy nedostává.
+  // Poznámky, které se při zveřejnění nepřeložily, se dopřeloží na pozadí.
+  translateMissingLater();
+
   // Pruh o náhledu. getCurrentUser v náhledu vrací editora, takže se
   // pozná podle cookie, ne podle role.
   const previewCountryId = await readPreviewCountry();
