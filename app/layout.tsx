@@ -8,6 +8,7 @@ import { resolveActiveCountry } from "@/lib/active-country";
 import { getNotificationsForCurrentUser } from "@/lib/notifications-data";
 import { AppShell } from "@/components/AppShell";
 import { NotificationBell } from "@/components/NotificationBell";
+import { getSupportUnread } from "@/lib/support";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const TITLE = "AI kurikulum";
@@ -54,7 +55,10 @@ export default async function RootLayout({
   // Zemi si resolveActiveCountry přečte z cookie – layout parametry
   // z adresy nedostává.
   const { t } = await resolveActiveCountry(user);
-  const notifications = await getNotificationsForCurrentUser(user.id);
+  const [notifications, supportUnread] = await Promise.all([
+    getNotificationsForCurrentUser(user.id),
+    getSupportUnread(user),
+  ]);
 
   // Pruh o náhledu. getCurrentUser v náhledu vrací editora, takže se
   // pozná podle cookie, ne podle role.
@@ -76,6 +80,7 @@ export default async function RootLayout({
         <AppShell
           user={user}
           t={t}
+          supportUnread={supportUnread}
           bell={<NotificationBell initialNotifications={notifications} t={t} />}
           banner={
             previewCountryName && <PreviewBanner countryName={previewCountryName} t={t} />

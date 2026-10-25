@@ -61,7 +61,7 @@ supabase/migrations/0001_init.sql
 1. Jdi na [supabase.com](https://supabase.com) → New project (zdarma).
 2. Po vytvoření jdi do **SQL Editor** → New query, vlož celý obsah souboru
    `supabase/setup_all.sql` a klikni **Run**. Jsou v něm všechny migrace
-   `0001`–`0012` za sebou, takže se založí všechny tabulky a pravidla.
+   `0001`–`0013` za sebou, takže se založí všechny tabulky a pravidla.
    Když přibude nová migrace, pusť v SQL Editoru jen ji (a doplň ji i do
    `setup_all.sql`).
 3. V **Authentication → Providers** zkontroluj, že je zapnuté přihlášení

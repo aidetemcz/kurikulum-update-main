@@ -106,6 +106,34 @@ export async function sendChangeNotificationEmail(params: {
   });
 }
 
+// Zpráva ve vlákně „Napsat adminovi“: adminům, když napíše uživatel,
+// uživateli, když mu admin odpoví. Text zprávy jde celý, ať se dá přečíst
+// i bez otevření appky.
+export async function sendSupportEmail(params: {
+  to: string;
+  /** Kdo píše – e-mail uživatele, nebo „admin“. */
+  from: string;
+  body: string;
+  /** Kam odkaz v e-mailu vede (vlákno v appce). */
+  path: string;
+}): Promise<SendResult> {
+  const { to, from, body, path } = params;
+  if (!mailConfigured()) return { sent: false, notConfigured: true };
+
+  const odkaz = `${siteUrl()}${path}`;
+  return send({
+    to,
+    subject: `Nová zpráva v AI kurikulu od ${from}`,
+    text: `${from} píše:\n\n${body}\n\nOdpovědět: ${odkaz}`,
+    html: emailLayout(
+      `<p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
+        `<strong>${escapeHtml(from)}</strong> píše:</p>` +
+        `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:${TMAVA};white-space:pre-line">${escapeHtml(body)}</p>` +
+        `<p style="margin:0 0 16px;font-size:14px"><a href="${odkaz}" style="color:${KORALOVA}">Odpovědět v appce</a></p>`
+    ),
+  });
+}
+
 // Autorovi předchozí verze dáme vědět, že na ni někdo navázal.
 export async function sendNewerVersionEmail(params: {
   to: string;

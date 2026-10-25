@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, BookOpen, UploadCloud, Settings, LogOut, Menu, X } from "lucide-react";
+import { LayoutGrid, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import type { AppUser } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
@@ -12,14 +12,23 @@ import type { Dictionary } from "@/lib/i18n";
 // pod ní se schová pod tlačítko s ikonou a vysune se přes obsah – jinak
 // by na mobilu ukrojilo 256 px z 390 a karty by se neměly kam vejít.
 
-export function Sidebar({ user, t }: { user: AppUser; t: Dictionary }) {
+export function Sidebar({
+  user,
+  t,
+  supportUnread = 0,
+}: {
+  user: AppUser;
+  t: Dictionary;
+  /** Nepřečtené zprávy – adminovi od lidí, ostatním odpovědi adminů. */
+  supportUnread?: number;
+}) {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-haze bg-white px-4 py-6 nav:flex">
       <div className="mb-8 px-2">
         <HomeLogo t={t} />
       </div>
 
-      <NavItems user={user} t={t} />
+      <NavItems user={user} t={t} supportUnread={supportUnread} />
       <SignOut user={user} t={t} />
     </aside>
   );
@@ -27,7 +36,15 @@ export function Sidebar({ user, t }: { user: AppUser; t: Dictionary }) {
 
 // Horní pruh pro úzké okno: ikona nabídky a logo. Patří do hlavičky vedle
 // zvonečku, proto je to vlastní komponenta a ne součást <aside>.
-export function MobileNav({ user, t }: { user: AppUser; t: Dictionary }) {
+export function MobileNav({
+  user,
+  t,
+  supportUnread = 0,
+}: {
+  user: AppUser;
+  t: Dictionary;
+  supportUnread?: number;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -86,7 +103,7 @@ export function MobileNav({ user, t }: { user: AppUser; t: Dictionary }) {
               </button>
             </div>
 
-            <NavItems user={user} t={t} />
+            <NavItems user={user} t={t} supportUnread={supportUnread} />
             <SignOut user={user} t={t} />
           </div>
         </div>
@@ -95,7 +112,15 @@ export function MobileNav({ user, t }: { user: AppUser; t: Dictionary }) {
   );
 }
 
-function NavItems({ user, t }: { user: AppUser; t: Dictionary }) {
+function NavItems({
+  user,
+  t,
+  supportUnread,
+}: {
+  user: AppUser;
+  t: Dictionary;
+  supportUnread: number;
+}) {
   const canManage = user.role === "admin" || user.role === "editor";
 
   return (
@@ -107,6 +132,22 @@ function NavItems({ user, t }: { user: AppUser; t: Dictionary }) {
       )}
       {user.role === "admin" && (
         <SidebarLink href="/admin" icon={<Settings size={18} />} label={t.admin} />
+      )}
+      {/* Admin má schránku od všech, ostatní své vlákno s adminy. */}
+      {user.role === "admin" ? (
+        <SidebarLink
+          href="/admin/messages"
+          icon={<MessageCircle size={18} />}
+          label={t.messagesNav}
+          badge={supportUnread}
+        />
+      ) : (
+        <SidebarLink
+          href="/help"
+          icon={<MessageCircle size={18} />}
+          label={t.helpNav}
+          badge={supportUnread}
+        />
       )}
     </nav>
   );
@@ -134,10 +175,13 @@ function SidebarLink({
   href,
   icon,
   label,
+  badge = 0,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  /** Počet nepřečtených; nula se nezobrazuje. */
+  badge?: number;
 }) {
   return (
     <Link
@@ -146,6 +190,11 @@ function SidebarLink({
     >
       <span className="shrink-0">{icon}</span>
       {label}
+      {badge > 0 && (
+        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-coral px-1.5 text-[11px] font-semibold text-white">
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
