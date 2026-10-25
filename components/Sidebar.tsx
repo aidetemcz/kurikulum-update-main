@@ -16,7 +16,7 @@ export function Sidebar({ user, t }: { user: AppUser; t: Dictionary }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-haze bg-white px-4 py-6 nav:flex">
       <div className="mb-8 px-2">
-        <Logo />
+        <HomeLogo t={t} />
       </div>
 
       <NavItems user={user} t={t} />
@@ -63,7 +63,7 @@ export function MobileNav({ user, t }: { user: AppUser; t: Dictionary }) {
       >
         <Menu size={20} />
       </button>
-      <Logo />
+      <HomeLogo t={t} />
 
       {open && (
         <div
@@ -75,7 +75,7 @@ export function MobileNav({ user, t }: { user: AppUser; t: Dictionary }) {
         >
           <div className="flex h-full w-72 max-w-[85vw] flex-col border-r border-haze bg-white px-4 py-6">
             <div className="mb-8 flex items-center justify-between gap-2 px-2">
-              <Logo />
+              <HomeLogo t={t} />
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -146,6 +146,15 @@ function SidebarLink({
     >
       <span className="shrink-0">{icon}</span>
       {label}
+    </Link>
+  );
+}
+
+// Logo s názvem appky vede vždy na úvodní stránku (Změny).
+function HomeLogo({ t }: { t: Dictionary }) {
+  return (
+    <Link href="/" aria-label={t.overview} className="inline-flex rounded-lg hover:opacity-80">
+      <Logo name={t.appName} />
     </Link>
   );
 }

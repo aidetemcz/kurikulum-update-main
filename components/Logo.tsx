@@ -5,10 +5,13 @@ import Image from "next/image";
 export function Logo({
   size = 32,
   showName = true,
+  name = "AI kurikulum",
 }: {
   /** Výška i šířka loga v pixelech. Obrázek je čtvercový. */
   size?: number;
   showName?: boolean;
+  /** Název appky v jazyce rozhraní (t.appName). */
+  name?: string;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -22,7 +25,7 @@ export function Logo({
       />
       {showName && (
         <span className="font-heading text-xl font-bold tracking-tight text-ink">
-          AI kurikulum
+          {name}
         </span>
       )}
     </div>

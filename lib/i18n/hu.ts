@@ -5,6 +5,9 @@ export const hu: Dictionary = {
   locale: "hu",
   dateLocale: "hu-HU",
 
+  // název appky v levém horním rohu a na přihlášení
+  appName: "AI-tanterv",
+
   overview: "Változások",
   upload: "Feltöltés",
   admin: "Adminisztráció",

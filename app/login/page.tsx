@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="mb-8 flex flex-col items-center gap-3">
           <Logo size={64} showName={false} />
           <span className="font-heading text-2xl font-bold tracking-tight text-ink">
-            AI kurikulum
+            {t.appName}
           </span>
           <LanguageFlags current={locale} label={t.language} onChange={setLocale} />
         </div>

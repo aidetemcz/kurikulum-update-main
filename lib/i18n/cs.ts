@@ -9,6 +9,9 @@ export const cs = {
   locale: "cs" as "cs" | "sk" | "en" | "hu",
   dateLocale: "cs-CZ",
 
+  // název appky v levém horním rohu a na přihlášení
+  appName: "AI kurikulum",
+
   // navigace
   // Klíč se jmenuje "overview" historicky, stránka ale od přesunu
   // katalogu na /modules ukazuje jen změny od ostatních zemí.
