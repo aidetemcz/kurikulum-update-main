@@ -39,12 +39,12 @@ export type Module = {
 };
 
 /** Co verze obsahuje: metodiku lekce, nebo prezentaci k ní. Verzují se zvlášť. */
-export type DocumentKind = "methodology" | "presentation";
+export type DocumentKind = "teaching_material" | "presentation";
 
-export const DOCUMENT_KINDS: DocumentKind[] = ["methodology", "presentation"];
+export const DOCUMENT_KINDS: DocumentKind[] = ["teaching_material", "presentation"];
 
 export function toDocumentKind(value: unknown): DocumentKind {
-  return value === "presentation" ? "presentation" : "methodology";
+  return value === "presentation" ? "presentation" : "teaching_material";
 }
 
 /** Klíč do mapy semaforů: metodika a prezentace téže lekce svítí zvlášť. */

@@ -26,7 +26,7 @@ export async function ensureDraftVersion(
   moduleId: string,
   countryId: string,
   driveLink: string,
-  kind: DocumentKind = "methodology"
+  kind: DocumentKind = "teaching_material"
 ): Promise<{ draftId: string; savedAt: string } | { error: string }> {
   const user = await requireUser();
   const { t } = await resolveActiveCountry(user, countryId);

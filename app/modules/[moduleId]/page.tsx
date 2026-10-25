@@ -32,15 +32,15 @@ export default async function ModuleDetailPage({
   // Metodika a prezentace téže lekce mají každá svou řadu verzí. Bez
   // výslovné volby se ukáže metodika – leda by lekce měla jen prezentaci.
   const pocty = {
-    methodology: versions.filter((v) => v.kind === "methodology").length,
+    teaching_material: versions.filter((v) => v.kind === "teaching_material").length,
     presentation: versions.filter((v) => v.kind === "presentation").length,
   };
   const kind =
     kindParam !== undefined
       ? toDocumentKind(kindParam)
-      : pocty.methodology === 0 && pocty.presentation > 0
+      : pocty.teaching_material === 0 && pocty.presentation > 0
         ? "presentation"
-        : "methodology";
+        : "teaching_material";
   const zobrazene = versions.filter((v) => v.kind === kind);
 
   return (

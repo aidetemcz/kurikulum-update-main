@@ -32,7 +32,7 @@ export default async function ModulesPage({
   // Metodika i prezentace mají každá svůj semafor (klíč dává lightKey).
   const stavy: Record<string, CountryLight> = {};
   for (const module of modules) {
-    const metodika = lightKey(module.id, "methodology");
+    const metodika = lightKey(module.id, "teaching_material");
     const prezentace = lightKey(module.id, "presentation");
     stavy[metodika] = lights[metodika] ?? (module.latest_version ? "green" : "none");
     stavy[prezentace] = lights[prezentace] ?? (module.latest_presentation ? "green" : "none");

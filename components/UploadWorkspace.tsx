@@ -71,7 +71,7 @@ export function UploadWorkspace({
   const [moduleId, setModuleId] = useState("");
   const [countryId, setCountryId] = useState(defaultCountryId ?? "");
   // Metodika, nebo prezentace k lekci – verzují se každá zvlášť.
-  const [kind, setKind] = useState<DocumentKind>("methodology");
+  const [kind, setKind] = useState<DocumentKind>("teaching_material");
   const [driveLink, setDriveLink] = useState("");
   const [linkForPreview, setLinkForPreview] = useState("");
   const [marks, setMarks] = useState<Mark[]>([]);

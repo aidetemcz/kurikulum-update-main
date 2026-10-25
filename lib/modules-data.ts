@@ -33,7 +33,7 @@ export async function getModulesForCountry(
   return modules.map((module) => {
     const moduleVersions = (versions ?? []).filter((v) => v.module_id === module.id);
     // Starší verze bez sloupce kind (před migrací 0012) jsou metodiky.
-    const metodiky = moduleVersions.filter((v) => toDocumentKind(v.kind) === "methodology");
+    const metodiky = moduleVersions.filter((v) => toDocumentKind(v.kind) === "teaching_material");
     const prezentace = moduleVersions.filter((v) => toDocumentKind(v.kind) === "presentation");
 
     return {

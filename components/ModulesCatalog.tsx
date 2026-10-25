@@ -89,7 +89,7 @@ export function ModulesCatalog({
 
               <div className="mt-4 grid grid-cols-1 gap-5 nav:grid-cols-2 min-[1400px]:grid-cols-3">
                 {seznam.map((module) => {
-                  const light = lights[lightKey(module.id, "methodology")] ?? "none";
+                  const light = lights[lightKey(module.id, "teaching_material")] ?? "none";
                   const presentationLight =
                     lights[lightKey(module.id, "presentation")] ?? "none";
                   return (

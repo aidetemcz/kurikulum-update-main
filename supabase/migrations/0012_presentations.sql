@@ -8,11 +8,11 @@
 -- zvlášť: v3 metodiky a v1 prezentace téže lekce vedle sebe klidně žijí.
 -- Dosavadní verze jsou všechno metodiky.
 alter table document_versions
-  add column if not exists kind text not null default 'methodology';
+  add column if not exists kind text not null default 'teaching_material';
 
 alter table document_versions drop constraint if exists document_versions_kind_check;
 alter table document_versions
-  add constraint document_versions_kind_check check (kind in ('methodology', 'presentation'));
+  add constraint document_versions_kind_check check (kind in ('teaching_material', 'presentation'));
 
 -- Čísla verzí jsou unikátní zvlášť pro metodiku a zvlášť pro prezentaci.
 alter table document_versions

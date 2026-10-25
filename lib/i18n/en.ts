@@ -12,16 +12,16 @@ export const en: Dictionary = {
   notifications: "Notifications",
   noNotifications: "No notifications yet.",
 
-  methodologies: "Methodologies",
+  methodologies: "Teaching materials",
   noModules: "No modules yet",
   currentVersion: "Current version",
   totalVersions: "Total versions",
   noVersionYet: "No version uploaded yet.",
   kindQuestion: "What are you uploading?",
-  kindMethodology: "Methodology",
+  kindMethodology: "Teaching material",
   kindPresentation: "Presentation",
   noPresentationYet: "No presentation uploaded yet.",
-  kindHint: "A presentation belongs to the same lesson as the methodology but has its own versions. Upload it as a PDF (export from Google Slides, Canva or PowerPoint).",
+  kindHint: "A presentation belongs to the same lesson as the teaching material but has its own versions. Upload it as a PDF (export from Google Slides, Canva or PowerPoint).",
   noCategory: "No category",
 
   version: "Version",
@@ -166,7 +166,7 @@ export const en: Dictionary = {
   lightOk: "all clear",
   lightWaiting: "waiting",
   lightAct: "needs a response",
-  moduleColumn: "Methodology",
+  moduleColumn: "Teaching material",
   changeNotFound: "This change could not be found.",
   publishBlocked:
     "The database refused the write. Check that every migration from supabase/migrations has been run in Supabase.",
@@ -182,13 +182,13 @@ export const en: Dictionary = {
   recognizedAs: "Recognised: {name}",
   change: "change",
   maybeOneOf: "This looks like one of these:",
-  searchModule: "Search methodologies",
+  searchModule: "Search teaching materials",
   nothingFound: "Nothing found",
   ungrouped: "Unsorted",
 
-  catalogTitle: "Methodology catalogue",
+  catalogTitle: "Teaching materials catalogue",
   catalogHint:
-    "kurikulum.aidetem.cz is the source of truth. The import never deletes anything — a methodology that disappears from the website is only archived. Manually added methodologies are left alone.",
+    "kurikulum.aidetem.cz is the source of truth. The import never deletes anything — a teaching material that disappears from the website is only archived. Manually added teaching materials are left alone.",
   catalogLoad: "Load catalogue from kurikulum.aidetem.cz",
   catalogLoading: "Loading catalogue…",
   catalogPreviewTitle: "What the import will do",
@@ -202,7 +202,7 @@ export const en: Dictionary = {
   catalogPunctuationOnly: "differs only in punctuation",
   catalogNotInCatalog: "Not in the website catalogue ({count})",
   catalogNotInCatalogHint:
-    "Manually created methodologies. The import leaves them alone — delete or archive them yourself.",
+    "Manually created teaching materials. The import leaves them alone — delete or archive them yourself.",
   catalogUnmatchedEnglish: "English names without a match ({count})",
   manualModule: "added manually",
   catalogUnchanged: "Unchanged: {count} of {total}",
@@ -211,8 +211,8 @@ export const en: Dictionary = {
   catalogNothingToDo: "The catalogue is up to date, nothing to change.",
   catalogDone:
     "Done — {added} added, {renamed} renamed, {linked} linked, {recategorized} moved, {english} English names, {archived} archived.",
-  addModule: "Add methodology",
-  moduleName: "Methodology name",
+  addModule: "Add teaching material",
+  moduleName: "Teaching material name",
   moduleSection: "Section",
   moduleNameEn: "English name",
   archiveModule: "Archive",
@@ -224,7 +224,7 @@ export const en: Dictionary = {
   testEmailHint: "Sends a sample notification to your address, using the same template as the real one.",
   testEmailSent: "The test email was sent. Check your inbox and spam folder.",
   testEmailFailed: "Sending failed:",
-  noUpdatesTitle: "No new methodology updates.",
+  noUpdatesTitle: "No new teaching material updates.",
   noUpdatesHint: "When a country changes something, you will see it here.",
   publishedAt: "published",
   machineTranslatedFrom: "Machine translation from {language} — show the original",
@@ -246,8 +246,8 @@ export const en: Dictionary = {
   mailNotConfigured:
     "Email sending is not configured — SMTP_USER / SMTP_PASSWORD are missing in Vercel. The app keeps working, notifications just don't go out.",
   schemaOutdated: "The database is out of date, migrations {files} are missing. Run them in Supabase (SQL Editor).",
-  allModules: "All methodologies",
-  hideAllModules: "Hide the other methodologies",
+  allModules: "All teaching materials",
+  hideAllModules: "Hide the other teaching materials",
   uiLanguage: "Interface language",
   byCountry: "by country",
 
@@ -256,13 +256,13 @@ export const en: Dictionary = {
   confirmHideTitle: "Hide this change?",
   confirmHideExplain:
     "The change will stop showing among the current ones. You will find it under the Hidden tab and can bring it back at any time.",
-  confirmArchiveTitle: "Archive this methodology?",
+  confirmArchiveTitle: "Archive this teaching material?",
   confirmArchiveExplain:
-    "The methodology will no longer be offered when uploading and will disappear from the Overview. Uploaded versions and marked changes stay, and archiving can be undone at any time.",
+    "The teaching material will no longer be offered when uploading and will disappear from the Overview. Uploaded versions and marked changes stay, and archiving can be undone at any time.",
   confirmArchiveYes: "Yes, archive it",
-  confirmDeleteModuleTitle: "Delete this methodology?",
+  confirmDeleteModuleTitle: "Delete this teaching material?",
   confirmDeleteModuleExplain:
-    "The methodology has no uploaded version, so it will be deleted completely. This cannot be undone.",
+    "The teaching material has no uploaded version, so it will be deleted completely. This cannot be undone.",
   confirmDeleteYes: "Yes, delete it",
   confirmDiscardDraftTitle: "Discard the draft version?",
   confirmDiscardDraftExplain:
