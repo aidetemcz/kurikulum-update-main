@@ -210,7 +210,7 @@ export const en: Dictionary = {
   adminBackToReading: "Back to reading",
 
   mailNotConfigured:
-    "Email sending is not configured — RESEND_API_KEY is missing in Vercel. The app keeps working, notifications just don't go out.",
+    "Email sending is not configured — SMTP_USER / SMTP_PASSWORD are missing in Vercel. The app keeps working, notifications just don't go out.",
   schemaOutdated: "The database is out of date, migrations {files} are missing. Run them in Supabase (SQL Editor).",
   allModules: "All methodologies",
   hideAllModules: "Hide the other methodologies",

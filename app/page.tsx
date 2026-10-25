@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/current-user";
 import { missingMigrations } from "@/lib/schema-check";
-import { mailConfigured } from "@/lib/resend";
+import { mailConfigured } from "@/lib/mail";
 import { AdminNotices } from "@/components/AdminNotices";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { getChanges } from "@/lib/country-status";

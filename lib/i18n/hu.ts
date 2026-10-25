@@ -212,7 +212,7 @@ export const hu: Dictionary = {
   adminBackToReading: "Vissza az olvasáshoz",
 
   mailNotConfigured:
-    "Az e-mail-küldés nincs beállítva — a RESEND_API_KEY hiányzik a Vercelben. Az alkalmazás működik tovább, csak az értesítések nem mennek ki.",
+    "Az e-mail-küldés nincs beállítva — az SMTP_USER / SMTP_PASSWORD hiányzik a Vercelben. Az alkalmazás működik tovább, csak az értesítések nem mennek ki.",
   schemaOutdated: "Az adatbázis nem naprakész, hiányoznak a következő migrációk: {files}. Futtasd őket a Supabase SQL Editorban.",
   allModules: "Összes módszertan",
   hideAllModules: "A többi módszertan elrejtése",

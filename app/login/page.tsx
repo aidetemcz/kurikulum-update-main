@@ -23,7 +23,7 @@ export default function LoginPage() {
       },
     });
 
-    // Vestavěná pošta Supabase pustí jen pár zpráv za hodinu. Bez téhle
+    // Supabase pustí jen omezený počet e-mailů za hodinu. Bez téhle
     // hlášky uživatel zkouší znovu a limit tím jen drží.
     if (isRateLimit(error)) setStatus("rateLimit");
     else setStatus(error ? "error" : "sent");

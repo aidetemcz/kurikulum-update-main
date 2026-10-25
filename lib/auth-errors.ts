@@ -1,7 +1,7 @@
 // Rozpoznání chyb z přihlašování a pozvánek.
 //
-// Supabase posílá e-maily přes vestavěnou poštu, která má přísný limit
-// (ve výchozím nastavení pár zpráv za hodinu). Uživateli se to musí
+// Supabase hlídá, kolik e-mailů za hodinu pošle. Bez vlastního SMTP je to
+// jen pár zpráv, s vlastním SMTP se limit nastaví v Rate Limits. Uživateli se to musí
 // říct srozumitelně, jinak zkouší znovu a znovu a limit tím jen drží.
 
 type AuthLikeError = { message?: string; status?: number; code?: string } | null | undefined;

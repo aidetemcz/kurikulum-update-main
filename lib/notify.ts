@@ -2,7 +2,7 @@
 // země a pošle jim e-mail. Voláno ze server akce po nahrání nové verze
 // (viz app/admin/upload/actions.ts).
 import { createAdminClient } from "@/lib/supabase/server";
-import { sendChangeNotificationEmail, sendNewerVersionEmail } from "@/lib/resend";
+import { sendChangeNotificationEmail, sendNewerVersionEmail } from "@/lib/mail";
 
 export async function notifyCountryAboutChange(params: {
   changeId: string;
@@ -64,11 +64,11 @@ export async function notifyCountryAboutChange(params: {
       });
 
       // Čas odeslání se zapíše, jen když e-mail opravdu odešel. Když
-      // chybí klíč k Resendu, notifikace v appce zůstává, e-mail ne.
+      // chybí přístup ke schránce, notifikace v appce zůstává, e-mail ne.
       if (!odeslani.sent) {
         console.warn(
           `E-mail na ${recipient.email} neodešel:`,
-          "notConfigured" in odeslani ? "RESEND_API_KEY není nastavený" : odeslani.error
+          "notConfigured" in odeslani ? "SMTP_USER / SMTP_PASSWORD nejsou nastavené" : odeslani.error
         );
       } else if (notification) {
         await supabase

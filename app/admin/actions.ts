@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin, getRealUser } from "@/lib/current-user";
-import { sendChangeNotificationEmail } from "@/lib/resend";
+import { sendChangeNotificationEmail } from "@/lib/mail";
 import { isRateLimit } from "@/lib/auth-errors";
 import { PREVIEW_COOKIE } from "@/lib/preview";
 import { setUserCountries, type UserCountriesClient } from "@/lib/user-countries";
@@ -16,7 +16,7 @@ import type { UserRole } from "@/lib/types";
 export type ActionState = { error: string } | { ok: string } | null;
 
 const RATE_LIMIT =
-  "Vyčerpaný hodinový limit odesílání e-mailů (vestavěná pošta Supabase pustí jen pár zpráv za hodinu). Zkus to prosím za hodinu znovu.";
+  "Vyčerpaný hodinový limit odesílání e-mailů v Supabase (bez vlastního SMTP jen pár zpráv za hodinu, limit se mění v Authentication → Rate Limits). Zkus to prosím za hodinu znovu.";
 
 export async function addCountry(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
