@@ -275,12 +275,13 @@ export async function publishVersion(
   // jestli už na ni zareagovaly. Země se berou z tabulky, ne z pevného
   // seznamu, takže nově přidaná země se zapojí sama.
   //
-  // Vlastní změna se nevrací do žádné ze zemí, které nahrávající spravuje:
-  // kdo má Česko i angličtinu, nemá co odbavovat sám po sobě.
+  // Změna jde všem zemím kromě té, za kterou se nahrává. Dřív se vynechávaly
+  // všechny země nahrávajícího – jenže kdo spravuje Česko i angličtinu,
+  // musí změnu z české verze zapracovat i do anglické, a admin s přiřazenými
+  // všemi zeměmi by změnu neposlal nikomu.
   const { data: allCountries } = await supabase.from("countries").select("id, locale");
 
-  const vlastni = new Set([countryId, ...user.country_ids]);
-  const prijemci = (allCountries ?? []).filter((country) => !vlastni.has(country.id));
+  const prijemci = (allCountries ?? []).filter((country) => country.id !== countryId);
 
   const statusRows = prijemci.flatMap((country) =>
     (marks ?? []).map((mark) => ({ annotation_id: mark.id, country_id: country.id }))
