@@ -22,13 +22,13 @@ export default async function ModuleDetailPage({
   const user = await requireUser();
   const { moduleId } = await params;
   const { country, kind: kindParam } = await searchParams;
-  const { activeCountryId, countries, t } = await resolveActiveCountry(user, country);
+  const { activeCountryId, countries, t, locale } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
     return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
-  const { module, versions, marksByVersion } = await getModuleDetail(moduleId, activeCountryId);
+  const { module, versions, marksByVersion } = await getModuleDetail(moduleId, activeCountryId, locale);
 
   if (!module) notFound();
 

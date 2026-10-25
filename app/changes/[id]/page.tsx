@@ -5,6 +5,9 @@ import { resolveActiveCountry } from "@/lib/active-country";
 import { createClient } from "@/lib/supabase/server";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill } from "@/lib/format";
+import { getLocalNames } from "@/lib/local-names";
+import { markTranslation } from "@/lib/mark-translation";
+import { moduleName } from "@/lib/module-name";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { SharedVersionView } from "@/components/SharedVersionView";
 import type { Mark } from "@/lib/types";
@@ -25,7 +28,7 @@ export default async function ChangeDetailPage({
 }) {
   const user = await requireUser();
   const { id } = await params;
-  const { t } = await resolveActiveCountry(user);
+  const { t, locale, activeCountryId } = await resolveActiveCountry(user);
 
   const supabase = await createClient();
 
@@ -38,7 +41,7 @@ export default async function ChangeDetailPage({
          document_version_id,
          document_versions (
            id, file_url, version_number, kind,
-           modules (name),
+           modules (*),
            countries (name)
          )
        )`
@@ -56,7 +59,12 @@ export default async function ChangeDetailPage({
         file_url: string;
         version_number: number | null;
         kind: string | null;
-        modules: Nested<{ name: string }>;
+        modules: Nested<{
+          id: string;
+          name: string;
+          name_en?: string | null;
+          name_translations?: Record<string, string> | null;
+        }>;
         countries: Nested<{ name: string }>;
       }>;
     }>
@@ -68,10 +76,11 @@ export default async function ChangeDetailPage({
   }
 
   // Ostatní značky téže verze, aby změna seděla v kontextu celého dokumentu.
-  const { data: annotations } = await supabase
-    .from("annotations")
-    .select("*")
-    .eq("document_version_id", annotation.document_version_id);
+  const [{ data: annotations }, vlastniNazvy] = await Promise.all([
+    supabase.from("annotations").select("*").eq("document_version_id", annotation.document_version_id),
+    activeCountryId ? getLocalNames(activeCountryId) : Promise.resolve(new Map<string, string>()),
+  ]);
+  const modul = one(version.modules);
 
   const marks: Mark[] = (annotations ?? []).map((row) => ({
     id: row.id,
@@ -83,6 +92,7 @@ export default async function ChangeDetailPage({
     note: row.note,
     category: row.category,
     quote: row.quote ?? null,
+    translated: markTranslation(row, locale),
   }));
 
   const fileId = extractDriveFileId(version.file_url);
@@ -98,7 +108,7 @@ export default async function ChangeDetailPage({
       </Link>
 
       <h1 className="font-heading text-3xl font-bold text-ink">
-        {one(version.modules)?.name ?? ""}
+        {modul ? moduleName({ ...modul, local_name: vlastniNazvy.get(modul.id) ?? null }, t) : ""}
         {version.kind === "presentation" && (
           <span className="badge-pill ml-3 align-middle bg-coral text-white">{t.kindPresentation}</span>
         )}

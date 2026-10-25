@@ -9,6 +9,7 @@ import {
   parseCategories,
   serializeCategories,
 } from "@/lib/annotations";
+import { fill } from "@/lib/format";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { suggestMarkCategory } from "@/app/admin/upload/suggest-actions";
@@ -56,7 +57,48 @@ export function MarkCard({
     );
   }
 
+  return (
+    <MarkView
+      mark={mark}
+      number={number}
+      editable={editable}
+      dimmed={dimmed}
+      t={t}
+      onHover={onHover}
+      onOpen={onOpen}
+      onDelete={onDelete}
+    />
+  );
+}
+
+function MarkView({
+  mark,
+  number,
+  editable,
+  dimmed,
+  t,
+  onHover,
+  onOpen,
+  onDelete,
+}: {
+  mark: Mark;
+  number: number;
+  editable: boolean;
+  dimmed: boolean;
+  t: Dictionary;
+  onHover: (id: string | null) => void;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const [originalOpen, setOriginalOpen] = useState(false);
   const labels = categoryLabels(mark.category, t);
+
+  // Cizí změna se čte v jazyce země, která si ji otevřela – poznámka
+  // i text pod zvýrazněním (PDF samo zůstává v jazyce originálu).
+  // Při úpravách se pracuje vždy s originálem.
+  const preklad = editable ? null : (mark.translated ?? null);
+  const poznamka = !originalOpen && preklad?.note ? preklad.note : mark.note;
+  const citace = preklad?.quote ? (originalOpen ? mark.quote : preklad.quote) : null;
 
   return (
     <div
@@ -71,7 +113,7 @@ export function MarkCard({
         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-white">
           {number}
         </span>
-        <p className="flex-1 text-sm text-ink">{mark.note}</p>
+        <p className="flex-1 text-sm text-ink">{poznamka}</p>
 
         {editable && (
           <button
@@ -88,6 +130,28 @@ export function MarkCard({
         )}
       </div>
 
+      {citace && (
+        <div className="ml-7 mt-2 border-l-2 border-dashed border-coral/50 pl-3">
+          <p className="text-xs font-medium text-ink/50">{t.highlightedText}</p>
+          <p className="text-sm italic text-ink/80">„{citace}“</p>
+        </div>
+      )}
+
+      {preklad && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setOriginalOpen((open) => !open);
+          }}
+          className="ml-7 mt-1 text-left text-xs text-ink/40 hover:text-coral"
+        >
+          {originalOpen
+            ? t.showTranslation
+            : fill(t.machineTranslatedFrom, { language: jazykOriginalu(preklad.fromLocale, t) })}
+        </button>
+      )}
+
       <div className="mt-2 flex flex-wrap gap-1">
         {labels.length > 0 ? (
           labels.map((label) => (
@@ -101,6 +165,13 @@ export function MarkCard({
       </div>
     </div>
   );
+}
+
+function jazykOriginalu(locale: string, t: Dictionary): string {
+  if (locale === "sk") return t.langSk;
+  if (locale === "en") return t.langEn;
+  if (locale === "hu") return t.langHu;
+  return t.langCs;
 }
 
 // Psaní popisu. Bez popisu se značka při zavření zahodí.

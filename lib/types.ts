@@ -119,6 +119,15 @@ export type Mark = {
   category: string | null;
   /** Text z PDF pod značkou (viz lib/pdf-quote.ts). Undefined = ještě nepřečtený. */
   quote?: string | null;
+  /** Překlad pro zemi, která si cizí změnu čte (viz lib/mark-translation.ts). */
+  translated?: MarkTranslation | null;
+};
+
+export type MarkTranslation = {
+  note: string | null;
+  quote: string | null;
+  /** Jazyk originálu. */
+  fromLocale: string;
 };
 
 // Stav metodiky pro jednu zemi: šedá = země k ní zatím nemá verzi,

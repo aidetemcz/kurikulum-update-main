@@ -1,5 +1,6 @@
 // Načtení modulů pro danou zemi včetně nejnovější verze a jejích poznámek,
 // pro zobrazení v mřížce karet na hlavní stránce.
+import { markTranslation } from "@/lib/mark-translation";
 import { createClient } from "@/lib/supabase/server";
 import { getLocalNames } from "@/lib/local-names";
 import { toDocumentKind, type Change, type Mark, type ModuleWithLatestVersion } from "@/lib/types";
@@ -50,7 +51,7 @@ export async function getModulesForCountry(
   });
 }
 
-export async function getModuleDetail(moduleId: string, countryId: string) {
+export async function getModuleDetail(moduleId: string, countryId: string, locale: string) {
   const supabase = await createClient();
 
   // Dotazy na sobě nezávisí, takže běží souběžně – každý je cesta do
@@ -101,6 +102,7 @@ export async function getModuleDetail(moduleId: string, countryId: string) {
       note: annotation.note,
       category: annotation.category,
       quote: annotation.quote ?? null,
+      translated: markTranslation(annotation, locale),
     };
     marksByVersion[annotation.document_version_id] = [
       ...(marksByVersion[annotation.document_version_id] ?? []),
