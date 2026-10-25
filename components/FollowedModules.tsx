@@ -92,7 +92,6 @@ export function FollowedModules({
   }
 
   const pocet = chosen ? followedIds.length : modules.length;
-  const podil = modules.length > 0 ? Math.round((pocet / modules.length) * 100) : 0;
 
   return (
     <section id={FOLLOW_SECTION_ID} className="mt-10 overflow-hidden rounded-3xl border border-haze bg-white">
@@ -112,11 +111,6 @@ export function FollowedModules({
               ? fill(t.followCount, { count: pocet, total: modules.length })
               : t.followNotChosen}
           </span>
-          {chosen && (
-            <span className="mt-2 block h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-haze">
-              <span className="block h-full rounded-full bg-coral" style={{ width: `${podil}%` }} />
-            </span>
-          )}
         </span>
         <ChevronDown
           size={20}
