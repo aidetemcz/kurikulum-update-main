@@ -93,12 +93,11 @@ function MarkView({
   const [originalOpen, setOriginalOpen] = useState(false);
   const labels = categoryLabels(mark.category, t);
 
-  // Cizí změna se čte v jazyce země, která si ji otevřela – poznámka
-  // i text pod zvýrazněním (PDF samo zůstává v jazyce originálu).
+  // Cizí změna se čte v jazyce země, která si ji otevřela. Přeložený
+  // text pod zvýrazněním leží přímo v dokumentu (viz MarkLayer).
   // Při úpravách se pracuje vždy s originálem.
   const preklad = editable ? null : (mark.translated ?? null);
   const poznamka = !originalOpen && preklad?.note ? preklad.note : mark.note;
-  const citace = preklad?.quote ? (originalOpen ? mark.quote : preklad.quote) : null;
 
   return (
     <div
@@ -130,14 +129,7 @@ function MarkView({
         )}
       </div>
 
-      {citace && (
-        <div className="ml-7 mt-2 border-l-2 border-dashed border-coral/50 pl-3">
-          <p className="text-xs font-medium text-ink/50">{t.highlightedText}</p>
-          <p className="text-sm italic text-ink/80">„{citace}“</p>
-        </div>
-      )}
-
-      {preklad && (
+      {preklad?.note && (
         <button
           type="button"
           onClick={(event) => {

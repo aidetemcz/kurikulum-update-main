@@ -300,6 +300,7 @@ export const hu: Dictionary = {
   publishedAt: "közzétéve",
   machineTranslatedFrom: "Gépi fordítás erről: {language} — eredeti megjelenítése",
   highlightedText: "A kiemelt rész szövege",
+  hoverForOriginal: "Vidd fölé az egeret az eredetihez",
   showTranslation: "Fordítás megjelenítése",
   translationFailed: "A fordítás nem sikerült, alább az eredeti szöveg.",
   langCs: "cseh",

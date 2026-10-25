@@ -298,6 +298,7 @@ export const sk: Dictionary = {
   publishedAt: "zverejnené",
   machineTranslatedFrom: "Automatický preklad {language} — zobraziť originál",
   highlightedText: "Text vo zvýraznenej časti",
+  hoverForOriginal: "Prejdením myšou zobrazíte originál",
   showTranslation: "Zobraziť preklad",
   translationFailed: "Preklad sa nepodaril, nižšie je pôvodné znenie.",
   langCs: "z češtiny",

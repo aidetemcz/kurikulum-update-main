@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
@@ -260,7 +260,20 @@ function MarkBox({
         backgroundColor: "rgba(220,91,91,.14)",
       }}
     >
-      <span className="absolute -left-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-white">
+      {/* Cizí změna: přeložený text leží přímo ve zvýraznění, přes originál.
+          Najetím myší se ukáže originál pod ním. */}
+      {!editable && mark.translated?.quote && (
+        <div
+          title={t.hoverForOriginal}
+          className={`absolute inset-0 overflow-hidden rounded-[2px] bg-[#fdf1f1] px-1.5 py-1 text-ink transition-opacity ${
+            hover ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <FitText text={mark.translated.quote} />
+        </div>
+      )}
+
+      <span className="absolute -left-2 -top-2 z-[1] flex h-5 w-5 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-white">
         {number}
       </span>
 
@@ -288,6 +301,44 @@ function MarkBox({
           ))}
         </>
       )}
+    </div>
+  );
+}
+
+// Text, který se zmenší, dokud se nevejde do rámečku. Rámeček má velikost
+// původního textu v PDF a překlad bývá jinak dlouhý.
+const MAX_PISMO = 18;
+const MIN_PISMO = 6;
+
+function FitText({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const prizpusobit = () => {
+      let velikost = MAX_PISMO;
+      el.style.fontSize = `${velikost}px`;
+      while (
+        velikost > MIN_PISMO &&
+        (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)
+      ) {
+        velikost -= 0.5;
+        el.style.fontSize = `${velikost}px`;
+      }
+    };
+
+    prizpusobit();
+    // Při změně šířky okna se mění i velikost stránky a s ní rámečku.
+    const pozorovatel = new ResizeObserver(prizpusobit);
+    pozorovatel.observe(el);
+    return () => pozorovatel.disconnect();
+  }, [text]);
+
+  return (
+    <div ref={ref} className="h-full w-full leading-snug">
+      {text}
     </div>
   );
 }

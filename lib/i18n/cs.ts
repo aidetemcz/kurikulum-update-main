@@ -314,6 +314,7 @@ export const cs = {
   publishedAt: "zveřejněno",
   machineTranslatedFrom: "Automatický překlad {language} — zobrazit originál",
   highlightedText: "Text ve zvýrazněné části",
+  hoverForOriginal: "Najetím myší zobrazíte originál",
   showTranslation: "Zobrazit překlad",
   translationFailed: "Překlad se nepovedl, níže je původní znění.",
   langCs: "z češtiny",

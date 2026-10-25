@@ -298,6 +298,7 @@ export const en: Dictionary = {
   publishedAt: "published",
   machineTranslatedFrom: "Machine translation from {language} — show the original",
   highlightedText: "Text in the highlighted area",
+  hoverForOriginal: "Hover to see the original",
   showTranslation: "Show the translation",
   translationFailed: "The translation failed, the original wording is below.",
   langCs: "Czech",
