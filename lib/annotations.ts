@@ -22,6 +22,36 @@ export function categoryLabel(key: string | null, t: Dictionary): string | null 
   }
 }
 
+// Jedna značka může mít víc druhů změny. Ukládají se do jediného sloupce
+// category: žádný = null, jeden = jeho klíč (jako dřív), víc = pole v JSONu.
+// Starší značky s jedním druhem tak zůstávají, jak jsou.
+export function parseCategories(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  if (raw.startsWith("[")) {
+    try {
+      const pole = JSON.parse(raw);
+      if (Array.isArray(pole)) {
+        return pole.filter((item): item is string => typeof item === "string" && item.trim() !== "");
+      }
+    } catch {
+      // Ruční kategorie, která jen náhodou začíná hranatou závorkou.
+    }
+  }
+  return [raw];
+}
+
+export function serializeCategories(list: string[]): string | null {
+  const unikatni = [...new Set(list.map((item) => item.trim()).filter(Boolean))];
+  if (unikatni.length === 0) return null;
+  if (unikatni.length === 1) return unikatni[0];
+  return JSON.stringify(unikatni);
+}
+
+/** Popisky všech druhů změny u značky v jazyce rozhraní. */
+export function categoryLabels(raw: string | null | undefined, t: Dictionary): string[] {
+  return parseCategories(raw).map((key) => categoryLabel(key, t) ?? key);
+}
+
 // Pořadí čtení: stránka, pak shora dolů, pak zleva doprava.
 export function sortMarks(marks: Mark[]): Mark[] {
   return [...marks].sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);

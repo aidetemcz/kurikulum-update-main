@@ -111,6 +111,11 @@ export const cs = {
   catLocalization: "Lokalizace",
   catNewPart: "Nová část",
   catFormal: "Formální úprava",
+  filterByType: "Filtrovat podle druhu změny",
+  allChanges: "Vše",
+  previousChange: "Předchozí změna",
+  nextChange: "Další změna",
+  noChangesOfType: "Žádná změna tohoto druhu",
 
   // nahrání nové verze
   uploadNewVersion: "Nahrát novou verzi",

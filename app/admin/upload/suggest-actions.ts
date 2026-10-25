@@ -15,7 +15,7 @@ const JAZYKY: Record<string, string> = {
 export async function suggestMarkCategory(
   note: string,
   quote: string | null
-): Promise<SuggestResult<string>> {
+): Promise<SuggestResult<string[]>> {
   const user = await requireUser();
   if (!canUpload(user)) return { value: null, reason: "forbidden" };
   return suggestCategory(note.slice(0, 2000), quote ? quote.slice(0, 2000) : null);

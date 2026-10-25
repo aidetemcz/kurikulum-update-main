@@ -101,6 +101,11 @@ export const hu: Dictionary = {
   catLocalization: "Lokalizáció",
   catNewPart: "Új rész",
   catFormal: "Formai módosítás",
+  filterByType: "Szűrés a változás típusa szerint",
+  allChanges: "Mind",
+  previousChange: "Előző változás",
+  nextChange: "Következő változás",
+  noChangesOfType: "Nincs ilyen típusú változás",
 
   uploadNewVersion: "Új verzió feltöltése",
   module: "Modul",

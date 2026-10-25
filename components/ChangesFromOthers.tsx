@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { dismissChange, restoreChange } from "@/app/changes/actions";
-import { categoryLabel } from "@/lib/annotations";
+import { categoryLabels } from "@/lib/annotations";
 import { fill } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -239,7 +239,7 @@ function ChangeCard({
   onDismiss: () => void;
   onRestore: () => void;
 }) {
-  const label = categoryLabel(item.category, t);
+  const labels = categoryLabels(item.category, t);
 
   return (
     <li
@@ -257,9 +257,15 @@ function ChangeCard({
         {item.kind === "presentation" && (
           <span className="badge-pill bg-coral text-white">{t.kindPresentation}</span>
         )}
-        <span className={`badge-pill ${label ? "" : "text-ink/40"}`}>
-          {label ?? t.noCategory2}
-        </span>
+        {labels.length > 0 ? (
+          labels.map((label) => (
+            <span key={label} className="badge-pill">
+              {label}
+            </span>
+          ))
+        ) : (
+          <span className="badge-pill text-ink/40">{t.noCategory2}</span>
+        )}
       </div>
 
       <Note item={item} locale={locale} t={t} />

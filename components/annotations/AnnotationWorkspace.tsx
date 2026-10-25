@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Eye, EyeOff } from "lucide-react";
 import { MarkLayer } from "@/components/annotations/MarkLayer";
 import { MarkCard } from "@/components/annotations/MarkCard";
+import { MarkFilterBar, scrollToMarkPosition, useMarkFilter } from "@/components/annotations/MarkFilter";
 import { numberMarks, sortMarks } from "@/lib/annotations";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
@@ -59,6 +60,9 @@ export function AnnotationWorkspace({
   const draftIds = useRef<Set<string>>(new Set());
 
   const numbers = numberMarks(marks);
+  // Při čtení (ne při úpravách) jde značky filtrovat podle druhu změny.
+  const filter = useMarkFilter(marks);
+  const mutedIds = editable ? undefined : filter.mutedIds;
   const sorted = sortMarks(marks);
 
   const showToast = useCallback((text: string, undo?: Mark) => {
@@ -257,6 +261,7 @@ export function AnnotationWorkspace({
               editable={editable}
               hidden={hidden}
               hoveredId={hoveredId}
+              mutedIds={mutedIds}
               showDemo={showDemo && pageIndex === 0}
               t={t}
               onCreate={(rect) => handleCreate(pageIndex, rect)}
@@ -276,6 +281,18 @@ export function AnnotationWorkspace({
       <aside className="rounded-2xl border border-haze p-5 doc:sticky doc:top-8 doc:max-h-[calc(100vh-4rem)] doc:overflow-y-auto">
         <h2 className="font-heading text-lg font-bold text-ink">{t.changesPanelTitle}</h2>
 
+        {!editable && (
+          <MarkFilterBar
+            marks={marks}
+            filter={filter}
+            t={t}
+            onGo={(mark) => {
+              // Jen odrolovat – viz VersionBrowser.
+              scrollToMarkPosition(mark);
+            }}
+          />
+        )}
+
         {sorted.length === 0 ? (
           <p className="mt-2 text-sm text-ink/50">{t.changesPanelEmpty}</p>
         ) : (
@@ -293,7 +310,10 @@ export function AnnotationWorkspace({
                       number={numbers[mark.id]}
                       editable={editable}
                       editing={editingId === mark.id}
-                      dimmed={hoveredId !== null && hoveredId !== mark.id}
+                      dimmed={
+                        (hoveredId !== null && hoveredId !== mark.id) ||
+                        Boolean(mutedIds?.has(mark.id))
+                      }
                       t={t}
                       onHover={setHoveredId}
                       onOpen={() => openMark(mark.id)}

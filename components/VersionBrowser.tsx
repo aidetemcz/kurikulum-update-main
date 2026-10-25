@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Download } from "lucide-react";
 import { MarkLayer } from "@/components/annotations/MarkLayer";
 import { MarkCard } from "@/components/annotations/MarkCard";
+import { MarkFilterBar, scrollToMarkPosition, useMarkFilter } from "@/components/annotations/MarkFilter";
 import { numberMarks, sortMarks } from "@/lib/annotations";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill, pluralCount } from "@/lib/format";
@@ -42,6 +43,11 @@ export function VersionBrowser({
   const [selectedId, setSelectedId] = useState(versions[0]?.id ?? "");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  // Filtr podle druhu změny platí pro právě otevřenou verzi. Hook musí
+  // běžet vždy, proto si značky vybrané verze dohledá ještě před návratem.
+  const filter = useMarkFilter(
+    marksByVersion[(versions.find((v) => v.id === selectedId) ?? versions[0])?.id ?? ""] ?? []
+  );
 
   if (versions.length === 0) {
     return <p className="text-sm text-ink/50">{t.noVersions}</p>;
@@ -162,6 +168,7 @@ export function VersionBrowser({
                   editable={false}
                   hidden={false}
                   hoveredId={hoveredId}
+                  mutedIds={filter.mutedIds}
                   showDemo={false}
                   t={t}
                   onCreate={() => {}}
@@ -196,6 +203,17 @@ export function VersionBrowser({
                   {pluralCount(marks.length, t.markedPlacesForms, t.dateLocale)}
                 </p>
 
+                <MarkFilterBar
+                  marks={marks}
+                  filter={filter}
+                  t={t}
+                  onGo={(mark) => {
+                    // Jen odrolovat – zvýraznění jedné značky by upozadilo
+                    // i ostatní vybrané a filtr by pak působil zmateně.
+                    scrollToMarkPosition(mark);
+                  }}
+                />
+
                 {sorted.length === 0 ? (
                   <p className="mt-3 text-sm text-ink/50">{t.changesPanelEmpty}</p>
                 ) : (
@@ -213,10 +231,13 @@ export function VersionBrowser({
                               number={numbers[mark.id]}
                               editable={false}
                               editing={false}
-                              dimmed={hoveredId !== null && hoveredId !== mark.id}
+                              dimmed={
+                                (hoveredId !== null && hoveredId !== mark.id) ||
+                                filter.mutedIds.has(mark.id)
+                              }
                               t={t}
                               onHover={setHoveredId}
-                              onOpen={() => scrollToMark(mark)}
+                              onOpen={() => scrollToMarkPosition(mark)}
                               onDelete={() => {}}
                               onSubmit={() => {}}
                               onCancel={() => {}}

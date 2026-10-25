@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { CATEGORY_KEYS, categoryLabel } from "@/lib/annotations";
+import {
+  CATEGORY_KEYS,
+  categoryLabel,
+  categoryLabels,
+  parseCategories,
+  serializeCategories,
+} from "@/lib/annotations";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { suggestMarkCategory } from "@/app/admin/upload/suggest-actions";
@@ -50,7 +56,7 @@ export function MarkCard({
     );
   }
 
-  const label = categoryLabel(mark.category, t);
+  const labels = categoryLabels(mark.category, t);
 
   return (
     <div
@@ -82,9 +88,17 @@ export function MarkCard({
         )}
       </div>
 
-      <span className={`badge-pill mt-2 ${label ? "" : "text-ink/40"}`}>
-        {label ?? t.noCategory2}
-      </span>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {labels.length > 0 ? (
+          labels.map((label) => (
+            <span key={label} className="badge-pill">
+              {label}
+            </span>
+          ))
+        ) : (
+          <span className="badge-pill text-ink/40">{t.noCategory2}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -104,12 +118,14 @@ function MarkEditor({
   onCancel: () => void;
 }) {
   const [note, setNote] = useState(mark.note);
-  // Vlastní kategorie je všechno, co není z pevné nabídky.
-  const isCustom =
-    mark.category !== null && !CATEGORY_KEYS.includes(mark.category as (typeof CATEGORY_KEYS)[number]);
-  const [category, setCategory] = useState<string | null>(isCustom ? null : mark.category);
-  const [customOpen, setCustomOpen] = useState(isCustom);
-  const [custom, setCustom] = useState(isCustom ? mark.category ?? "" : "");
+  // Druhů změny může být víc. Vlastní (ruční) je všechno, co není
+  // z pevné nabídky – smí být nejvýš jeden a stojí vedle vybraných.
+  const puvodni = parseCategories(mark.category);
+  const jePevny = (key: string) => CATEGORY_KEYS.includes(key as (typeof CATEGORY_KEYS)[number]);
+  const puvodniVlastni = puvodni.find((key) => !jePevny(key)) ?? "";
+  const [categories, setCategories] = useState<string[]>(puvodni.filter(jePevny));
+  const [customOpen, setCustomOpen] = useState(puvodniVlastni !== "");
+  const [custom, setCustom] = useState(puvodniVlastni);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -119,7 +135,7 @@ function MarkEditor({
   // Návrh druhu změny: chvíli po dopsání poznámky ho appka předvybere.
   // Jen dokud si editor druh nevybral sám – jeho volbu nikdy nepřepíše.
   const categoryTouched = useRef(mark.category !== null);
-  const [suggested, setSuggested] = useState<string | null>(null);
+  const [suggested, setSuggested] = useState<string[]>([]);
   useEffect(() => {
     if (categoryTouched.current || note.trim().length < 8) return;
 
@@ -131,9 +147,8 @@ function MarkEditor({
       }));
       if (cancelled || categoryTouched.current) return;
       // Nepovedený návrh štítku se nehlásí – editor si štítek vybere sám.
-      if (!navrh.value) return;
-      setCustomOpen(false);
-      setCategory(navrh.value);
+      if (!navrh.value || navrh.value.length === 0) return;
+      setCategories(navrh.value);
       setSuggested(navrh.value);
     }, SUGGEST_DEBOUNCE_MS);
 
@@ -144,8 +159,7 @@ function MarkEditor({
   }, [note, mark.quote]);
 
   function chosenCategory(): string | null {
-    if (customOpen) return custom.trim() || null;
-    return category;
+    return serializeCategories([...categories, ...(customOpen ? [custom] : [])]);
   }
 
   // Kliknutí na jinou kartičku tuhle zavře – rozepsaný popis se přitom
@@ -206,16 +220,18 @@ function MarkEditor({
           <button
             key={key}
             type="button"
+            aria-pressed={categories.includes(key)}
             onClick={() => {
               categoryTouched.current = true;
-              setSuggested(null);
-              setCustomOpen(false);
-              setCategory(category === key ? null : key);
+              setSuggested([]);
+              setCategories((current) =>
+                current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+              );
             }}
-            className={`badge-pill ${category === key && !customOpen ? "bg-coral text-white" : ""}`}
+            className={`badge-pill ${categories.includes(key) ? "bg-coral text-white" : ""}`}
           >
             {categoryLabel(key, t)}
-            {suggested === key && category === key && !customOpen && (
+            {suggested.includes(key) && categories.includes(key) && (
               <span className="ml-1 text-[10px] font-normal opacity-80">✦ {t.aiSuggested}</span>
             )}
           </button>
@@ -223,11 +239,11 @@ function MarkEditor({
 
         <button
           type="button"
+          aria-pressed={customOpen}
           onClick={() => {
             categoryTouched.current = true;
-            setSuggested(null);
+            setSuggested([]);
             setCustomOpen((open) => !open);
-            setCategory(null);
           }}
           className={`badge-pill ${customOpen ? "bg-coral text-white" : ""}`}
         >

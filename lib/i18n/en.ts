@@ -101,6 +101,11 @@ export const en: Dictionary = {
   catLocalization: "Localisation",
   catNewPart: "New section",
   catFormal: "Formatting",
+  filterByType: "Filter by type of change",
+  allChanges: "All",
+  previousChange: "Previous change",
+  nextChange: "Next change",
+  noChangesOfType: "No change of this type",
 
   uploadNewVersion: "Upload new version",
   module: "Module",

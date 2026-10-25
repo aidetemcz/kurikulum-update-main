@@ -25,6 +25,7 @@ export function MarkLayer({
   editable,
   hidden,
   hoveredId,
+  mutedIds,
   showDemo,
   t,
   onCreate,
@@ -39,6 +40,8 @@ export function MarkLayer({
   editable: boolean;
   hidden: boolean;
   hoveredId: string | null;
+  /** Značky upozaděné filtrem podle druhu změny – zůstávají vidět, jen bledě. */
+  mutedIds?: Set<string>;
   showDemo: boolean;
   t: Dictionary;
   onCreate: (rect: Rect) => void;
@@ -149,7 +152,9 @@ export function MarkLayer({
             mark={mark}
             number={numbers[mark.id]}
             editable={editable}
-            dimmed={hoveredId !== null && hoveredId !== mark.id}
+            dimmed={
+              (hoveredId !== null && hoveredId !== mark.id) || Boolean(mutedIds?.has(mark.id))
+            }
             highlighted={hoveredId === mark.id}
             t={t}
             onHover={onHover}

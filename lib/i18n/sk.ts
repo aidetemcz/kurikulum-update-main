@@ -101,6 +101,11 @@ export const sk: Dictionary = {
   catLocalization: "Lokalizácia",
   catNewPart: "Nová časť",
   catFormal: "Formálna úprava",
+  filterByType: "Filtrovať podľa druhu zmeny",
+  allChanges: "Všetko",
+  previousChange: "Predchádzajúca zmena",
+  nextChange: "Ďalšia zmena",
+  noChangesOfType: "Žiadna zmena tohto druhu",
 
   uploadNewVersion: "Nahrať novú verziu",
   module: "Modul",

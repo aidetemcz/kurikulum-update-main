@@ -64,31 +64,36 @@ async function zeptejSe(
   }
 }
 
-// Druh změny podle poznámky (a textu pod značkou, pokud je).
+// Druhy změny podle poznámky (a textu pod značkou, pokud je). Obvykle
+// jeden, víc jen tehdy, když poznámka opravdu popisuje víc věcí.
 export async function suggestCategory(
   note: string,
   quote: string | null
-): Promise<SuggestResult<CategoryKey>> {
+): Promise<SuggestResult<CategoryKey[]>> {
   if (!note.trim()) return { value: null, reason: "empty" };
 
   const vysledek = await zeptejSe(
-    "Třídíš poznámky o změnách ve školních metodikách do jednoho z druhů změn:\n" +
+    "Třídíš poznámky o změnách ve školních metodikách podle druhu změny:\n" +
       CATEGORY_KEYS.map((key) => `- ${key}: ${POPIS_KATEGORII[key]}`).join("\n") +
-      "\nVyber jeden druh, který nejlépe sedí.",
+      "\nVyber druh, který nejlépe sedí. Víc druhů (nejvýš tři) vyber jen tehdy, " +
+      "když poznámka zjevně popisuje víc různých změn.",
     `Poznámka editora: ${note}` + (quote ? `\n\nText ve zvýrazněné části dokumentu: ${quote}` : ""),
     {
       type: "object",
-      properties: { category: { type: "string", enum: [...CATEGORY_KEYS] } },
-      required: ["category"],
+      properties: {
+        categories: { type: "array", items: { type: "string", enum: [...CATEGORY_KEYS] } },
+      },
+      required: ["categories"],
       additionalProperties: false,
     }
   );
   if (vysledek.value === null) return vysledek;
 
-  const category = vysledek.value.category;
-  return CATEGORY_KEYS.includes(category as CategoryKey)
-    ? { value: category as CategoryKey }
-    : { value: null, reason: "unexpected_answer" };
+  const pole = Array.isArray(vysledek.value.categories) ? vysledek.value.categories : [];
+  const platne = [...new Set(pole)]
+    .filter((key): key is CategoryKey => CATEGORY_KEYS.includes(key as CategoryKey))
+    .slice(0, 3);
+  return platne.length > 0 ? { value: platne } : { value: null, reason: "unexpected_answer" };
 }
 
 // Celkové shrnutí verze z poznámek u jednotlivých značek.
