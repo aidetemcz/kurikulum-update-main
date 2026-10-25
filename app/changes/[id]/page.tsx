@@ -81,6 +81,7 @@ export default async function ChangeDetailPage({
     h: row.h,
     note: row.note,
     category: row.category,
+    quote: row.quote ?? null,
   }));
 
   const fileId = extractDriveFileId(version.file_url);

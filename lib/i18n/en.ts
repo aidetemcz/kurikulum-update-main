@@ -208,6 +208,7 @@ export const en: Dictionary = {
   noUpdatesHint: "When a country changes something, you will see it here.",
   publishedAt: "published",
   machineTranslatedFrom: "Machine translation from {language} — show the original",
+  highlightedText: "Text in the highlighted area",
   showTranslation: "Show the translation",
   translationFailed: "The translation failed, the original wording is below.",
   langCs: "Czech",

@@ -95,6 +95,8 @@ export type Mark = {
   h: number;
   note: string;
   category: string | null;
+  /** Text z PDF pod značkou (viz lib/pdf-quote.ts). Undefined = ještě nepřečtený. */
+  quote?: string | null;
 };
 
 // Stav metodiky pro jednu zemi: šedá = země k ní zatím nemá verzi,
@@ -127,4 +129,7 @@ export type PendingChange = {
   page: number;
   note: string;
   category: string | null;
+  /** Text z PDF pod značkou v jazyce originálu a jeho překlady. */
+  quote: string | null;
+  quoteTranslations: Record<string, string>;
 };

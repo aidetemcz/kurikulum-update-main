@@ -208,6 +208,7 @@ export const sk: Dictionary = {
   noUpdatesHint: "Keď niektorá krajina niečo zmení, uvidíte to tu.",
   publishedAt: "zverejnené",
   machineTranslatedFrom: "Automatický preklad {language} — zobraziť originál",
+  highlightedText: "Text vo zvýraznenej časti",
   showTranslation: "Zobraziť preklad",
   translationFailed: "Preklad sa nepodaril, nižšie je pôvodné znenie.",
   langCs: "z češtiny",

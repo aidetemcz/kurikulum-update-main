@@ -105,6 +105,7 @@ export default async function UploadPage({
         h: annotation.h,
         note: annotation.note,
         category: annotation.category,
+        quote: annotation.quote ?? null,
       })),
     };
   }

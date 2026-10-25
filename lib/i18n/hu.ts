@@ -210,6 +210,7 @@ export const hu: Dictionary = {
   noUpdatesHint: "Ha valamelyik ország módosít valamit, itt fog megjelenni.",
   publishedAt: "közzétéve",
   machineTranslatedFrom: "Gépi fordítás erről: {language} — eredeti megjelenítése",
+  highlightedText: "A kiemelt rész szövege",
   showTranslation: "Fordítás megjelenítése",
   translationFailed: "A fordítás nem sikerült, alább az eredeti szöveg.",
   langCs: "cseh",

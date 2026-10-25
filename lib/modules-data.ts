@@ -92,6 +92,7 @@ export async function getModuleDetail(moduleId: string, countryId: string) {
       h: annotation.h,
       note: annotation.note,
       category: annotation.category,
+      quote: annotation.quote ?? null,
     };
     marksByVersion[annotation.document_version_id] = [
       ...(marksByVersion[annotation.document_version_id] ?? []),

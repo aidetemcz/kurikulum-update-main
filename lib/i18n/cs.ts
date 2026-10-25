@@ -224,6 +224,7 @@ export const cs = {
   noUpdatesHint: "Až některá země něco změní, uvidíte to tady.",
   publishedAt: "zveřejněno",
   machineTranslatedFrom: "Automatický překlad {language} — zobrazit originál",
+  highlightedText: "Text ve zvýrazněné části",
   showTranslation: "Zobrazit překlad",
   translationFailed: "Překlad se nepovedl, níže je původní znění.",
   langCs: "z češtiny",

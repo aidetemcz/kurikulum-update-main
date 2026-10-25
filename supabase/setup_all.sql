@@ -1,4 +1,4 @@
--- Celá databáze appky najednou: migrace 0001–0010 za sebou.
+-- Celá databáze appky najednou: migrace 0001–0011 za sebou.
 -- Vlož do Supabase → SQL Editor → New query a klikni na Run.
 -- Je určená pro prázdný projekt. Kde už migrace běžely, pouštěj jen ty chybějící.
 
@@ -856,6 +856,18 @@ end $$;
 alter table users
   add column if not exists locale text;
 
+-- ====================================================================
+-- 0011_mark_quote.sql
+-- ====================================================================
+-- Text pod vyznačenou značkou a jeho překlad pro ostatní země.
+-- Spustit v Supabase: SQL Editor -> New query -> vlož celý soubor -> Run
+
+-- Značka je obdélník přes PDF. Text, který pod ní leží, si appka přečte
+-- při kreslení značky a při zveřejnění ho nechá přeložit stejně jako
+-- poznámku. U naskenovaných PDF a obrázků zůstává prázdný.
+alter table annotations
+  add column if not exists quote text,
+  add column if not exists quote_translations jsonb not null default '{}'::jsonb;
 
 -- ====================================================================
 -- Doplnit řádky pro účty, které se přihlásily dřív, než tabulka users

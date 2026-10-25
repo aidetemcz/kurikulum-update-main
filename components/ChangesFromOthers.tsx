@@ -333,6 +333,9 @@ function ChangeCard({
 
 // Poznámka v jazyce zobrazené země. Originál je vždy po ruce – překlad
 // dělá stroj a u odborného textu se může minout.
+//
+// Pod poznámkou je text, který leží ve zvýrazněné části PDF – taky
+// přeložený, protože PDF samo zůstává v jazyce země, která ho nahrála.
 function Note({
   item,
   locale,
@@ -344,35 +347,38 @@ function Note({
 }) {
   const [originalOpen, setOriginalOpen] = useState(false);
 
-  const preklad = item.translations[locale];
   const jazykOriginalu = jazykNazev(item.sourceLocale, t);
   const jeVlastni = !item.sourceLocale || item.sourceLocale === locale;
+  const preklad = jeVlastni ? undefined : item.translations[locale];
+  const citacePreklad = jeVlastni ? undefined : item.quoteTranslations[locale];
+  const maPreklad = Boolean(preklad || citacePreklad);
 
-  if (jeVlastni || (!preklad && !item.translationFailed)) {
-    return <p className="mt-2 text-sm text-ink">{item.note}</p>;
-  }
-
-  if (!preklad) {
-    return (
-      <div className="mt-2">
-        <p className="text-sm text-ink">{item.note}</p>
-        <p className="mt-0.5 text-xs text-coral">{t.translationFailed}</p>
-      </div>
-    );
-  }
+  const poznamka = !originalOpen && preklad ? preklad : item.note;
+  const citace = !originalOpen && citacePreklad ? citacePreklad : item.quote;
 
   return (
     <div className="mt-2">
-      <p className="text-sm text-ink">{originalOpen ? item.note : preklad}</p>
-      <button
-        type="button"
-        onClick={() => setOriginalOpen((open) => !open)}
-        className="mt-0.5 text-xs text-ink/40 hover:text-coral"
-      >
-        {originalOpen
-          ? t.showTranslation
-          : fill(t.machineTranslatedFrom, { language: jazykOriginalu })}
-      </button>
+      <p className="text-sm text-ink">{poznamka}</p>
+      {citace && (
+        <div className="mt-2 border-l-2 border-dashed border-coral/50 pl-3">
+          <p className="text-xs font-medium text-ink/50">{t.highlightedText}</p>
+          <p className="text-sm italic text-ink/80">„{citace}“</p>
+        </div>
+      )}
+      {!jeVlastni && !maPreklad && item.translationFailed && (
+        <p className="mt-0.5 text-xs text-coral">{t.translationFailed}</p>
+      )}
+      {maPreklad && (
+        <button
+          type="button"
+          onClick={() => setOriginalOpen((open) => !open)}
+          className="mt-0.5 text-xs text-ink/40 hover:text-coral"
+        >
+          {originalOpen
+            ? t.showTranslation
+            : fill(t.machineTranslatedFrom, { language: jazykOriginalu })}
+        </button>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import type { Dictionary } from "@/lib/i18n";
+import type { PDFDocumentProxy } from "pdfjs-dist";
 
 // Vykreslování běží ve vlastním vlákně prohlížeče, aby stránka neztuhla.
 // Soubor s vláknem se do /public kopíruje při instalaci (viz postinstall
@@ -20,6 +21,7 @@ export function PdfViewer({
   t,
   renderPageOverlay,
   onFirstPageText,
+  onDocumentLoad,
 }: {
   src: string;
   /** Odkaz na soubor v Drive pro případ, že se vykreslení nepovede. */
@@ -29,6 +31,8 @@ export function PdfViewer({
   renderPageOverlay?: (pageIndex: number) => ReactNode;
   /** Text první strany. Podle něj se pozná, o kterou metodiku jde. */
   onFirstPageText?: (text: string) => void;
+  /** Načtený dokument – značkování si z něj čte text pod značkami. */
+  onDocumentLoad?: (pdf: PDFDocumentProxy) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -52,6 +56,7 @@ export function PdfViewer({
         file={src}
         onLoadSuccess={async (pdf) => {
           setPageCount(pdf.numPages);
+          onDocumentLoad?.(pdf);
           if (!onFirstPageText || pdf.numPages === 0) return;
 
           // Rozpoznávání metodiky je jen pomůcka, kvůli němu nemá smysl

@@ -8,6 +8,8 @@ import { MarkCard } from "@/components/annotations/MarkCard";
 import { numberMarks, sortMarks } from "@/lib/annotations";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
+import type { PDFDocumentProxy } from "pdfjs-dist";
+import { textInRect, type PdfTextItem, type PdfViewport } from "@/lib/pdf-quote";
 
 const PdfViewer = dynamic(
   () => import("@/components/PdfViewer").then((m) => m.PdfViewer),
@@ -71,6 +73,50 @@ export function AnnotationWorkspace({
     },
     [setMarks]
   );
+
+  // Text pod značkou: přečte se při nakreslení a při každém posunu nebo
+  // změně velikosti. Uložené značky, které text už mají, se nepřepočítávají,
+  // ať pouhé otevření dokumentu nevypadá jako úprava.
+  const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
+  const pageTexts = useRef(
+    new Map<number, Promise<{ items: PdfTextItem[]; viewport: PdfViewport }>>()
+  );
+  const quotedRects = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    if (!pdf || !editable) return;
+
+    for (const mark of marks) {
+      const key = `${mark.page}:${mark.x}:${mark.y}:${mark.w}:${mark.h}`;
+      const known = quotedRects.current.get(mark.id);
+      if (known === key) continue;
+      quotedRects.current.set(mark.id, key);
+      if (known === undefined && mark.quote !== undefined) continue;
+
+      let page = pageTexts.current.get(mark.page);
+      if (!page) {
+        page = pdf.getPage(mark.page + 1).then(async (p) => {
+          const items: PdfTextItem[] = [];
+          for (const item of (await p.getTextContent()).items) {
+            if ("str" in item) items.push(item);
+          }
+          return { items, viewport: p.getViewport({ scale: 1 }) };
+        });
+        pageTexts.current.set(mark.page, page);
+      }
+
+      page
+        .then(({ items, viewport }) => textInRect(items, viewport, mark))
+        .catch(() => "")
+        .then((quote) => {
+          // Mezitím se značka mohla znovu posunout; pak platí novější výsledek.
+          if (quotedRects.current.get(mark.id) !== key) return;
+          setMarks((current) =>
+            current.map((item) => (item.id === mark.id ? { ...item, quote } : item))
+          );
+        });
+    }
+  }, [pdf, editable, marks, setMarks]);
 
   // Otevření na konkrétní značce (příchod ze seznamu změn od ostatních zemí).
   // Čeká se na vykreslení stránky PDF, dřív není kam rolovat.
@@ -203,6 +249,7 @@ export function AnnotationWorkspace({
           driveUrl={driveUrl}
           t={t}
           onFirstPageText={onFirstPageText}
+          onDocumentLoad={setPdf}
           renderPageOverlay={(pageIndex) => (
             <MarkLayer
               marks={marks.filter((mark) => mark.page === pageIndex)}

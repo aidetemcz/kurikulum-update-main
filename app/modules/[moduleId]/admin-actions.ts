@@ -71,6 +71,7 @@ export async function adminSaveVersionEdits(
           h: mark.h,
           note: mark.note,
           category: mark.category,
+          quote: mark.quote ?? null,
         }))
       )
       .select();
@@ -93,6 +94,7 @@ export async function adminSaveVersionEdits(
         h: mark.h,
         note: mark.note,
         category: mark.category,
+        quote: mark.quote ?? null,
       })
       .eq("id", mark.id)
       .select()
@@ -227,12 +229,15 @@ async function prelozZnovu(
 
   const { data: annotations } = await supabase
     .from("annotations")
-    .select("id, note")
+    .select("id, note, quote")
     .eq("document_version_id", versionId);
 
+  const sShrnutim = shrnutiZmeneno && summary.trim().length > 0;
+  const citace = (annotations ?? []).filter((row) => row.quote?.trim());
   const texty = [
     ...(annotations ?? []).map((row) => row.note),
-    ...(shrnutiZmeneno && summary.trim() ? [summary] : []),
+    ...(sShrnutim ? [summary] : []),
+    ...citace.map((row) => row.quote as string),
   ];
   if (texty.length === 0) return;
 
@@ -251,7 +256,17 @@ async function prelozZnovu(
       .eq("id", row.id);
   }
 
-  const proShrnuti = shrnutiZmeneno && summary.trim() ? prelozene[(annotations ?? []).length] : null;
+  const prvniCitace = (annotations ?? []).length + (sShrnutim ? 1 : 0);
+  for (const [index, row] of citace.entries()) {
+    const vysledek = prelozene[prvniCitace + index];
+    if (!vysledek) continue;
+    await supabase
+      .from("annotations")
+      .update({ quote_translations: vysledek.translations })
+      .eq("id", row.id);
+  }
+
+  const proShrnuti = sShrnutim ? prelozene[(annotations ?? []).length] : null;
   if (proShrnuti) {
     await supabase
       .from("changes")
@@ -272,7 +287,8 @@ function lisiSe(stara: Record<string, unknown>, mark: Mark): boolean {
     !blizko(stara.w as number, mark.w) ||
     !blizko(stara.h as number, mark.h) ||
     stara.note !== mark.note ||
-    (stara.category ?? null) !== (mark.category ?? null)
+    (stara.category ?? null) !== (mark.category ?? null) ||
+    (mark.quote !== undefined && (stara.quote ?? null) !== (mark.quote ?? null))
   );
 }
 

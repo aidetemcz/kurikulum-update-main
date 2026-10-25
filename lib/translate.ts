@@ -50,9 +50,10 @@ export async function translateNotes(
 
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 4000,
+      max_tokens: 16000,
       system:
-        "Překládáš krátké poznámky o změnách ve školních metodikách. " +
+        "Překládáš krátké poznámky o změnách ve školních metodikách a úryvky textu " +
+        "z těchto metodik. Úryvek může začínat nebo končit uprostřed věty – přelož ho tak, jak je. " +
         "Překládej věcně a stručně, zachovej odborné termíny. " +
         "Odpověz výhradně platným JSONem, bez jakéhokoli dalšího textu.",
       messages: [

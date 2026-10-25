@@ -118,6 +118,7 @@ export async function saveDraftMarks(
         h: mark.h,
         note: mark.note,
         category: mark.category,
+        quote: mark.quote ?? null,
       }))
     );
 
@@ -381,7 +382,7 @@ export async function publishVersion(
 // nepovede, uloží se jen příznak a v appce se ukáže originál.
 async function translatePublished(params: {
   supabase: Awaited<ReturnType<typeof createClient>>;
-  marks: { id: string; note: string }[];
+  marks: { id: string; note: string; quote?: string | null }[];
   changeId: string;
   summary: string | null;
   sourceLocale: ReturnType<typeof toLocale>;
@@ -389,7 +390,13 @@ async function translatePublished(params: {
 }) {
   const { supabase, marks, changeId, summary, sourceLocale, targetLocales } = params;
 
-  const texts = [...marks.map((mark) => mark.note), ...(summary ? [summary] : [])];
+  // Text pod značkami jde do téhož překladu, jen za poznámky a shrnutí.
+  const citace = marks.filter((mark) => mark.quote?.trim());
+  const texts = [
+    ...marks.map((mark) => mark.note),
+    ...(summary ? [summary] : []),
+    ...citace.map((mark) => mark.quote as string),
+  ];
   if (texts.length === 0) return;
 
   const prelozene = await translateNotes(texts, sourceLocale, [...new Set(targetLocales)]);
@@ -404,6 +411,16 @@ async function translatePublished(params: {
         translations: vysledek.translations,
         translation_failed: vysledek.failed,
       })
+      .eq("id", mark.id);
+  }
+
+  const prvniCitace = marks.length + (summary ? 1 : 0);
+  for (const [index, mark] of citace.entries()) {
+    const vysledek = prelozene[prvniCitace + index];
+    if (!vysledek) continue;
+    await supabase
+      .from("annotations")
+      .update({ quote_translations: vysledek.translations })
       .eq("id", mark.id);
   }
 

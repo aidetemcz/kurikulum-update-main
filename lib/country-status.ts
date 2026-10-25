@@ -18,6 +18,8 @@ type StatusRow = {
     source_locale: string | null;
     translations: Record<string, string> | null;
     translation_failed: boolean | null;
+    quote: string | null;
+    quote_translations: Record<string, string> | null;
     document_versions: {
       module_id: string;
       version_number: number | null;
@@ -49,6 +51,7 @@ export async function getChanges(
       `id, created_at, dismissed_at,
        annotations (
          id, page, note, category, source_locale, translations, translation_failed,
+         quote, quote_translations,
          document_versions (
            module_id, version_number, published_at,
            users:uploaded_by (email),
@@ -88,6 +91,8 @@ export async function getChanges(
         page: annotation.page,
         note: annotation.note,
         category: annotation.category,
+        quote: annotation.quote ?? null,
+        quoteTranslations: annotation.quote_translations ?? {},
       },
     ];
   });
