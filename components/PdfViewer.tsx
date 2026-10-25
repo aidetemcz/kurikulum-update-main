@@ -110,13 +110,23 @@ function PdfSkeleton({ text }: { text: string }) {
 
 function PdfError({ t, driveUrl }: { t: Dictionary; driveUrl: string }) {
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-2 bg-haze/40 py-12">
-      <p className="text-sm text-ink/60">{t.pdfLoadFailed}</p>
+    <div className="flex w-full flex-col gap-3 bg-haze/40 px-6 py-8 text-sm text-ink/70">
+      <p className="font-medium text-ink">{t.pdfLoadFailed}</p>
+      <p>{t.pdfLoadTry}</p>
+      <ul className="flex flex-col gap-1.5">
+        {t.pdfLoadReasons.map((reason) => (
+          <li key={reason} className="flex gap-2">
+            <span className="font-bold text-coral">+</span>
+            <span>{reason}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-ink/50">{t.pdfLoadAfterFix}</p>
       <a
         href={driveUrl}
         target="_blank"
         rel="noreferrer"
-        className="text-sm font-medium text-coral hover:underline"
+        className="font-medium text-coral hover:underline"
       >
         {t.openInDrive}
       </a>

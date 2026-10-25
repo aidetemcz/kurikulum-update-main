@@ -17,6 +17,11 @@ export const hu: Dictionary = {
   currentVersion: "Jelenlegi verzió",
   totalVersions: "Verziók száma",
   noVersionYet: "Még nincs feltöltött verzió.",
+  kindQuestion: "Mit töltesz fel?",
+  kindMethodology: "Módszertan",
+  kindPresentation: "Prezentáció",
+  noPresentationYet: "Még nincs feltöltött prezentáció.",
+  kindHint: "A prezentáció ugyanahhoz az órához tartozik, mint a módszertan, de külön verziói vannak. PDF-ként töltsd fel (exportálva Google Diákból, Canvából vagy PowerPointból).",
   noCategory: "Nincs kategória",
 
   version: "Verzió",
@@ -29,6 +34,14 @@ export const hu: Dictionary = {
   fileUnavailable: "A fájlt nem sikerült betölteni.",
   loadingPdf: "PDF betöltése...",
   pdfLoadFailed: "A PDF-et nem sikerült betölteni",
+  pdfLoadTry: "Kérlek, ellenőrizd:",
+  pdfLoadReasons: [
+    "A fájl megosztása a Google Drive-on „Bárki, aki rendelkezik a linkkel” (Megtekintő) beállítású. Enélkül az alkalmazás nem tudja letölteni a fájlt – ez a leggyakoribb ok.",
+    "A link fájlra mutat, nem mappára.",
+    "A fájl PDF. Google-dokumentumot, Google Diákat, Word- vagy PowerPoint-fájlt előbb töltsd le PDF-ként, és azt a PDF-et töltsd fel a Drive-ra.",
+    "A fájl nincs a kukában, és senki nem helyezte át.",
+  ],
+  pdfLoadAfterFix: "Javítás után illeszd be újra a linket, vagy frissítsd az oldalt.",
   openInDrive: "Megnyitás a Google Drive-ban",
   changesPanelTitle: "Mi változott ebben a verzióban",
   changesPanelEmpty: "Még nincs megjelölve semmi.",
@@ -93,6 +106,9 @@ export const hu: Dictionary = {
   uploadMissingFields:
     "Töltsd ki a modult, az országot, a PDF-linket és a változás leírását.",
   uploadForeignCountry: "Csak a saját országod nevében tölthetsz fel.",
+  uploadForWhichCountry: "Melyik ország nevében töltesz fel?",
+  uploadForWhichCountryHint:
+    "Több ország van hozzád rendelve, ezért itt választasz. Akinek csak egy országa van, nem látja ezt a választást, és automatikusan annak nevében tölt fel.",
   uploadingFor: "Feltöltés – {country}",
   uploadNotAllowed: "Nincs jogosultságod új verziót hozzáadni.",
   saveFailed: "A mentés nem sikerült.",

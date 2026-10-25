@@ -25,6 +25,11 @@ export const cs = {
   currentVersion: "Aktuální verze",
   totalVersions: "Celkem verzí",
   noVersionYet: "Zatím žádná nahraná verze.",
+  kindQuestion: "Co nahráváš?",
+  kindMethodology: "Metodika",
+  kindPresentation: "Prezentace",
+  noPresentationYet: "Prezentace zatím není nahraná.",
+  kindHint: "Prezentace patří ke stejné lekci jako metodika, ale verzuje se zvlášť. Nahraj ji jako PDF (export z Google Slides, Canvy nebo PowerPointu).",
   noCategory: "Bez kategorie",
 
   // detail modulu a verze
@@ -38,6 +43,14 @@ export const cs = {
   fileUnavailable: "Soubor se nepodařilo načíst.",
   loadingPdf: "Načítám PDF...",
   pdfLoadFailed: "PDF se nepodařilo načíst",
+  pdfLoadTry: "Zkontroluj prosím:",
+  pdfLoadReasons: [
+    "Sdílení souboru v Google Drive je nastavené na „Kdokoli s odkazem“ (Prohlížející). Bez toho appka soubor nestáhne – to je nejčastější příčina.",
+    "Odkaz vede na soubor, ne na složku.",
+    "Soubor je PDF. Google Dokument, Prezentaci Google, Word nebo PowerPoint nejdřív stáhni jako PDF a na Drive nahraj to PDF.",
+    "Soubor není v koši a nikdo ho mezitím nepřesunul.",
+  ],
+  pdfLoadAfterFix: "Po opravě vlož odkaz znovu nebo obnov stránku.",
   openInDrive: "Otevřít v Google Drive",
   changesPanelTitle: "Co se v této verzi změnilo",
   changesPanelEmpty: "Zatím nic označeného.",
@@ -103,6 +116,9 @@ export const cs = {
     "Nepodařilo se rozpoznat odkaz na Google Drive, zkontroluj prosím formát.",
   uploadMissingFields: "Vyplň prosím modul, zemi, odkaz na PDF i poznámku ke změně.",
   uploadForeignCountry: "Nahrávat jde jen za vlastní zemi.",
+  uploadForWhichCountry: "Za kterou zemi nahráváš?",
+  uploadForWhichCountryHint:
+    "Máš přiřazených víc zemí, proto vybíráš. Kdo má jen jednu zemi, tuhle volbu nevidí a nahrává automaticky za ni.",
   uploadingFor: "Nahráváte za zemi {country}",
   uploadNotAllowed: "Nemáš oprávnění přidávat nové verze.",
   saveFailed: "Uložení se nepodařilo.",
