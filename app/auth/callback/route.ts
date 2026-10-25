@@ -7,9 +7,13 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
-  // Bez kódu nebo s propadlým kódem by middleware uživatele potichu vrátil
-  // na přihlášení. Radši mu řekneme proč.
-  if (!code) return NextResponse.redirect(`${origin}/login?error=link`);
+  // Propadlý nebo už použitý odkaz vrací Supabase s ?error=... Bez téhle
+  // větve by middleware uživatele potichu vrátil na přihlášení.
+  if (searchParams.get("error")) return NextResponse.redirect(`${origin}/login?error=link`);
+
+  // Pozvánka z administrace nenese ?code, ale přihlašovací údaje za # –
+  // ty přečte až prohlížeč. Prohlížeč část za # při přesměrování zachová.
+  if (!code) return NextResponse.redirect(`${origin}/auth/finish`);
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
