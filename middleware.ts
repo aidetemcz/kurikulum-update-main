@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Middleware se spustí pro vše kromě statických souborů Next.js
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // (ani pro pdf.worker.min.mjs, který je veřejný a stahuje se s každým PDF).
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mjs)$).*)",
   ],
 };

@@ -5,6 +5,7 @@
 // Mezi svými zeměmi se přepíná parametrem ?country=... v adrese. Cizí zemi
 // si ručním přepsáním adresy zobrazit nejde: hledá se jen mezi povolenými.
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary, toLocale, type Dictionary, type Locale } from "@/lib/i18n";
 import { VIEW_COUNTRY_COOKIE } from "@/lib/view-country";
@@ -25,9 +26,7 @@ export async function resolveActiveCountry(
   user: AppUser,
   requestedCountryId?: string
 ): Promise<ActiveCountry> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("countries").select("*").order("name");
-  const vsechny = data ?? [];
+  const vsechny = await loadCountries();
 
   // Admin vidí všechny země, ostatní jen ty svoje.
   const countries = user.role === "admin"
@@ -77,3 +76,10 @@ function uiLocale(user: AppUser, countries: Country[]): Locale {
   const vlastni = countries.find((country) => user.country_ids.includes(country.id));
   return toLocale(vlastni?.locale);
 }
+
+// Seznam zemí chce layout i stránka; v rámci jednoho načtení stačí jednou.
+const loadCountries = cache(async (): Promise<Country[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("countries").select("*").order("name");
+  return data ?? [];
+});

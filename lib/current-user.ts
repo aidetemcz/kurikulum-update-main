@@ -4,10 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { readPreviewCountry } from "@/lib/preview";
 import type { AppUser } from "@/lib/types";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 // Uživatel tak, jak je zapsaný v databázi – bez ohledu na náhled.
 // Používej jen tam, kde se o náhledu rozhoduje (pruh nahoře, jeho ukončení).
-export async function getRealUser(): Promise<AppUser | null> {
+//
+// Layout i stránka se na uživatele ptají v rámci jednoho načtení zvlášť.
+// cache() zajistí, že se do Supabase (často přes oceán) jde jen jednou.
+export const getRealUser = cache(async (): Promise<AppUser | null> => {
   const supabase = await createClient();
   const {
     data: { user: authUser },
@@ -15,30 +19,25 @@ export async function getRealUser(): Promise<AppUser | null> {
 
   if (!authUser) return null;
 
-  const { data: appUser } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", authUser.id)
-    .single();
+  // Oba dotazy potřebují jen id, takže běží souběžně.
+  // Uživatel může spravovat víc zemí (viz migrace 0008).
+  const [{ data: appUser }, { data: countries }] = await Promise.all([
+    supabase.from("users").select("*").eq("id", authUser.id).single(),
+    supabase.from("user_countries").select("country_id").eq("user_id", authUser.id),
+  ]);
 
   if (!appUser) return null;
-
-  // Uživatel může spravovat víc zemí (viz migrace 0008).
-  const { data: countries } = await supabase
-    .from("user_countries")
-    .select("country_id")
-    .eq("user_id", authUser.id);
 
   return {
     ...appUser,
     country_ids: (countries ?? []).map((row) => row.country_id),
   } as AppUser;
-}
+});
 
 // Uživatel tak, jak ho má vidět zbytek appky. Když má admin zapnutý
 // náhled, tváří se jako editor jedné země – a protože z téhle funkce
 // vychází všechno ostatní, chová se tak celá appka včetně zápisů.
-export async function getCurrentUser(): Promise<AppUser | null> {
+export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
   const user = await getRealUser();
   if (!user || user.role !== "admin") return user;
 
@@ -56,7 +55,7 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   if (!country) return user;
 
   return { ...user, role: "editor", country_ids: [previewCountryId] };
-}
+});
 
 // Použij na stránkách, které vyžadují přihlášení. Pokud uživatel není
 // přihlášený, přesměruje na /login.
