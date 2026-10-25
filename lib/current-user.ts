@@ -62,8 +62,15 @@ export async function getCurrentUser(): Promise<AppUser | null> {
 // přihlášený, přesměruje na /login.
 export async function requireUser(): Promise<AppUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  return user;
+  if (user) return user;
+
+  // Přihlášený v Supabase, ale bez řádku v public.users: obyčejné
+  // přesměrování na /login by vypadalo, jako by přihlášení nefungovalo.
+  const supabase = await createClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  redirect(authUser ? "/login?error=account" : "/login");
 }
 
 // Použij na stránkách jen pro adminy (např. /admin).

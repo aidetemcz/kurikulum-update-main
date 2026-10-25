@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isRateLimit } from "@/lib/auth-errors";
 import { Logo } from "@/components/Logo";
@@ -10,7 +10,15 @@ export default function LoginPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error" | "rateLimit">(
     "idle"
   );
+  // Chyba, se kterou sem appku vrátil přihlašovací odkaz (viz auth/callback
+  // a requireUser). Čteme ji až v prohlížeči, ať stránka zůstane statická.
+  const [linkError, setLinkError] = useState<"link" | "account" | null>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    const error = new URLSearchParams(window.location.search).get("error");
+    if (error === "link" || error === "account") setLinkError(error);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +73,18 @@ export default function LoginPage() {
             >
               {status === "loading" ? "Posílám odkaz..." : "Poslat přihlašovací odkaz"}
             </button>
+            {status === "idle" && linkError === "link" && (
+              <p className="text-sm text-coral">
+                Přihlašovací odkaz nefungoval. Mohl vypršet nebo už byl použitý, případně
+                ses o něj řekla v jiném prohlížeči. Pošli si nový a otevři ho ve stejném
+                prohlížeči.
+              </p>
+            )}
+            {status === "idle" && linkError === "account" && (
+              <p className="text-sm text-coral">
+                Přihlášení proběhlo, ale tvůj účet v appce chybí. Ozvi se prosím adminovi.
+              </p>
+            )}
             {status === "rateLimit" && (
               <p className="text-sm text-coral">
                 Vyčerpaný hodinový limit odesílání e-mailů. Zkus to prosím za hodinu znovu —
