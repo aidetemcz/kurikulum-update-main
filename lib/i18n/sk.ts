@@ -210,7 +210,7 @@ export const sk: Dictionary = {
   adminBackToReading: "Späť na čítanie",
 
   mailNotConfigured:
-    "Odosielanie e-mailov nie je nastavené — vo Verceli chýba premenná RESEND_API_KEY. Aplikácia beží ďalej, len notifikácie neodchádzajú.",
+    "Odosielanie e-mailov nie je nastavené — vo Verceli chýbajú premenné SMTP_USER / SMTP_PASSWORD. Aplikácia beží ďalej, len notifikácie neodchádzajú.",
   schemaOutdated: "Databáza nie je aktuálna, chýbajú migrácie {files}. Spusti ich v Supabase (SQL Editor).",
   allModules: "Všetky metodiky",
   hideAllModules: "Skryť ostatné metodiky",

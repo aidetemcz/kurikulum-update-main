@@ -1,5 +1,7 @@
-// Posílání e-mailových notifikací o nové verzi/změně metodiky přes Resend.
-import { Resend } from "resend";
+// Posílání e-mailových notifikací o nové verzi/změně metodiky přes SMTP
+// běžné e-mailové schránky (např. Gmail / Google Workspace s heslem pro
+// aplikace). Stejnou schránku používá i Supabase pro přihlašovací odkazy.
+import nodemailer from "nodemailer";
 
 // Firemní barvy AI for children. V e-mailu se styly píšou rovnou k prvkům,
 // poštovní klienti společný stylopis většinou zahodí.
@@ -11,10 +13,44 @@ function siteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
-// Bez klíče k Resendu se e-maily neposílají. Není to důvod cokoli shodit –
-// zveřejnění verze musí projít i tak, jen se o ní nikdo nedozví e-mailem.
+// Bez přihlašovacích údajů ke schránce se e-maily neposílají. Není to důvod
+// cokoli shodit – zveřejnění verze musí projít i tak, jen se o ní nikdo
+// nedozví e-mailem.
 export function mailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+}
+
+// Spojení se vytváří až při odeslání (ne při načtení souboru), aby appka šla
+// sestavit, i než jsou SMTP údaje nastavené (např. při prvním nasazení).
+// Výchozí server je Gmail; jiná pošta si nastaví SMTP_HOST a SMTP_PORT.
+function transport() {
+  const port = Number(process.env.SMTP_PORT ?? 465);
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
+    port,
+    secure: port === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+  });
+}
+
+// Gmail povolí odesílat jen za adresu schránky, proto odesílatel je vždy
+// SMTP_USER, měnit jde jen zobrazované jméno.
+function sender(): string {
+  return `"${process.env.SMTP_FROM_NAME ?? "AI kurikulum"}" <${process.env.SMTP_USER}>`;
+}
+
+async function send(message: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}): Promise<SendResult> {
+  try {
+    await transport().sendMail({ from: sender(), ...message });
+    return { sent: true };
+  } catch (chyba) {
+    return { sent: false, error: chyba instanceof Error ? chyba.message : String(chyba) };
+  }
 }
 
 export type SendResult =
@@ -36,12 +72,7 @@ export async function sendChangeNotificationEmail(params: {
 
   if (!mailConfigured()) return { sent: false, notConfigured: true };
 
-  // Klient se vytváří až tady (ne při načtení souboru), aby appka šla
-  // sestavit, i než je RESEND_API_KEY nastavený (např. při prvním nasazení).
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
-  const result = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "AI kurikulum <onboarding@resend.dev>",
+  return send({
     to,
     subject: `Nová verze metodiky: ${moduleName} (${countryName})`,
     text:
@@ -69,8 +100,6 @@ export async function sendChangeNotificationEmail(params: {
           : "")
     ),
   });
-
-  return odpoved(result);
 }
 
 // Autorovi předchozí verze dáme vědět, že na ni někdo navázal.
@@ -85,10 +114,7 @@ export async function sendNewerVersionEmail(params: {
 
   if (!mailConfigured()) return { sent: false, notConfigured: true };
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
-  const result = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "AI kurikulum <onboarding@resend.dev>",
+  return send({
     to,
     subject: `K tvé verzi metodiky přibyla novější: ${moduleName}`,
     text:
@@ -100,14 +126,6 @@ export async function sendNewerVersionEmail(params: {
         `přibyla novější verze v${newVersion}.</p>`
     ),
   });
-
-  return odpoved(result);
-}
-
-// Resend chybu nevyhazuje, vrací ji vedle dat.
-function odpoved(result: { error: { name: string; message: string } | null }): SendResult {
-  if (result.error) return { sent: false, error: `${result.error.name}: ${result.error.message}` };
-  return { sent: true };
 }
 
 // Společný rám e-mailu: logo nahoře, obsah, tlačítko do appky.

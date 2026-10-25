@@ -227,7 +227,7 @@ export const cs = {
   adminBackToReading: "Zpět na čtení",
 
   mailNotConfigured:
-    "Odesílání e-mailů není nastavené — ve Vercelu chybí proměnná RESEND_API_KEY. Appka běží dál, jen notifikace neodcházejí.",
+    "Odesílání e-mailů není nastavené — ve Vercelu chybí proměnné SMTP_USER / SMTP_PASSWORD. Appka běží dál, jen notifikace neodcházejí.",
   schemaOutdated: "Databáze není aktuální, chybí migrace {files}. Spusť je v Supabase (SQL Editor).",
   allModules: "Všechny metodiky",
   hideAllModules: "Skrýt ostatní metodiky",
