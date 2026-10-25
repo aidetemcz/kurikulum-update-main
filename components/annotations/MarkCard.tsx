@@ -5,6 +5,10 @@ import { Trash2 } from "lucide-react";
 import { CATEGORY_KEYS, categoryLabel } from "@/lib/annotations";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
+import { suggestMarkCategory } from "@/app/admin/upload/suggest-actions";
+
+// Jak dlouho po posledním úhozu do poznámky se appka zeptá na návrh druhu.
+const SUGGEST_DEBOUNCE_MS = 1200;
 
 // Kartička jednoho označeného místa v pravém panelu. Kliknutím kamkoli
 // na kartičku se otevře k psaní – tužka na to není potřeba.
@@ -112,6 +116,28 @@ function MarkEditor({
     inputRef.current?.focus();
   }, []);
 
+  // Návrh druhu změny: chvíli po dopsání poznámky ho appka předvybere.
+  // Jen dokud si editor druh nevybral sám – jeho volbu nikdy nepřepíše.
+  const categoryTouched = useRef(mark.category !== null);
+  const [suggested, setSuggested] = useState<string | null>(null);
+  useEffect(() => {
+    if (categoryTouched.current || note.trim().length < 8) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      const navrh = await suggestMarkCategory(note, mark.quote ?? null).catch(() => null);
+      if (cancelled || categoryTouched.current || !navrh) return;
+      setCustomOpen(false);
+      setCategory(navrh);
+      setSuggested(navrh);
+    }, SUGGEST_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [note, mark.quote]);
+
   function chosenCategory(): string | null {
     if (customOpen) return custom.trim() || null;
     return category;
@@ -176,18 +202,25 @@ function MarkEditor({
             key={key}
             type="button"
             onClick={() => {
+              categoryTouched.current = true;
+              setSuggested(null);
               setCustomOpen(false);
               setCategory(category === key ? null : key);
             }}
             className={`badge-pill ${category === key && !customOpen ? "bg-coral text-white" : ""}`}
           >
             {categoryLabel(key, t)}
+            {suggested === key && category === key && !customOpen && (
+              <span className="ml-1 text-[10px] font-normal opacity-80">✦ {t.aiSuggested}</span>
+            )}
           </button>
         ))}
 
         <button
           type="button"
           onClick={() => {
+            categoryTouched.current = true;
+            setSuggested(null);
             setCustomOpen((open) => !open);
             setCategory(null);
           }}

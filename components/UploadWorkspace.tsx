@@ -18,6 +18,7 @@ import { LocalDateTime } from "@/components/LocalDateTime";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DOCUMENT_KINDS, type Country, type DocumentKind, type Mark, type Module } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
+import { suggestVersionSummary } from "@/app/admin/upload/suggest-actions";
 
 export type LatestVersion = {
   module_id: string;
@@ -75,6 +76,8 @@ export function UploadWorkspace({
   const [linkForPreview, setLinkForPreview] = useState("");
   const [marks, setMarks] = useState<Mark[]>([]);
   const [summary, setSummary] = useState("");
+  const [navrhuji, setNavrhuji] = useState(false);
+  const [navrhSelhal, setNavrhSelhal] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
   // Podklady pro rozpoznání metodiky z nahrávaného dokumentu.
   const [firstPageText, setFirstPageText] = useState("");
@@ -370,6 +373,31 @@ export function UploadWorkspace({
                 className="input"
               />
             </Field>
+            {/* Návrh shrnutí z poznámek u značek – předvyplní pole, uloží
+                se ale až to, co v něm editor nechá. */}
+            {marks.some((mark) => mark.note.trim()) && (
+              <div className="-mt-1 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={navrhuji}
+                  onClick={async () => {
+                    setNavrhuji(true);
+                    setNavrhSelhal(false);
+                    const navrh = await suggestVersionSummary(
+                      marks.map((mark) => mark.note),
+                      t.locale
+                    ).catch(() => null);
+                    if (navrh) setSummary(navrh);
+                    else setNavrhSelhal(true);
+                    setNavrhuji(false);
+                  }}
+                  className="badge-pill hover:bg-mist/50 disabled:opacity-50"
+                >
+                  ✦ {navrhuji ? t.suggestingSummary : t.suggestSummary}
+                </button>
+                {navrhSelhal && <span className="text-xs text-coral">{t.suggestFailed}</span>}
+              </div>
+            )}
 
             {/* Stav průběžného ukládání rozpracované verze. */}
             <p id="draft-status" className="text-xs text-ink/50">
