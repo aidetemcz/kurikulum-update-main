@@ -21,7 +21,7 @@ const config: Config = {
         wide: "1380px",
       },
       colors: {
-        // barvy podle vizuálního stylu AI dětem
+        // barvy podle vizuálního stylu AI for children
         coral: "#DC5B5B", // primární akcentová barva
         mist: "#B3CDD6", // sekundární
         haze: "#DAE7EC", // světlé pozadí / karty

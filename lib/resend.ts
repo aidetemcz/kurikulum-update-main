@@ -1,7 +1,7 @@
 // Posílání e-mailových notifikací o nové verzi/změně metodiky přes Resend.
 import { Resend } from "resend";
 
-// Firemní barvy AI dětem. V e-mailu se styly píšou rovnou k prvkům,
+// Firemní barvy AI for children. V e-mailu se styly píšou rovnou k prvkům,
 // poštovní klienti společný stylopis většinou zahodí.
 const KORALOVA = "#DC5B5B";
 const SVETLA = "#DAE7EC";
@@ -125,7 +125,7 @@ export function emailLayout(obsah: string): string {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;padding:32px">
             <tr>
               <td style="padding-bottom:24px">
-                <img src="${url}/logo-aidetem-192.png" width="48" height="48" alt="AI dětem"
+                <img src="${url}/logo-aidetem-192.png" width="48" height="48" alt="AI for children"
                      style="display:block;border:0;width:48px;height:48px" />
               </td>
             </tr>

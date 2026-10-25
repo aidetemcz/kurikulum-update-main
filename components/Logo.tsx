@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-// Logo AI dětem. Samotná značka je korálové kolečko, takže patří vždy
+// Logo AI for children. Samotná značka je korálové kolečko, takže patří vždy
 // na bílý podklad – na barevné ploše by ztratila kontrast.
 export function Logo({
   size = 32,
@@ -14,7 +14,7 @@ export function Logo({
     <div className="flex items-center gap-2">
       <Image
         src="/logo-aidetem.png"
-        alt="AI dětem"
+        alt="AI for children"
         width={size}
         height={size}
         priority
