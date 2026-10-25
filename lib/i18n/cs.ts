@@ -208,6 +208,7 @@ export const cs = {
   nothingFound: "Nic nenalezeno",
   recognizedFromPdf: "rozpoznáno z PDF",
   moreResults: "a {count} dalších – upřesni hledání nebo vyber sekci",
+  publishNeedsCountry: "Nemáš přiřazenou žádnou zemi. Přiřadí ji admin v Administraci → Uživatelé.",
   publishNeedsLink: "Chybí odkaz na PDF.",
   publishNeedsModule: "Vyber, ke které metodice verze patří.",
   publishPreparing: "Připravuji verzi…",

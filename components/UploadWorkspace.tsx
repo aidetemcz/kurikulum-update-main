@@ -436,7 +436,9 @@ export function UploadWorkspace({
             {/* Proč zatím nejde zveřejnit – jinak tlačítko jen mlčky šedne. */}
             {!isPending && !canPublish && (
               <p className="text-xs text-ink/50">
-                {!fileId
+                {!countryId
+                  ? t.publishNeedsCountry
+                  : !fileId
                   ? t.publishNeedsLink
                   : !moduleId
                     ? t.publishNeedsModule

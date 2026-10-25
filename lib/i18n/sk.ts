@@ -194,6 +194,7 @@ export const sk: Dictionary = {
   nothingFound: "Nič sa nenašlo",
   recognizedFromPdf: "rozpoznané z PDF",
   moreResults: "a {count} ďalších – upresni hľadanie alebo vyber sekciu",
+  publishNeedsCountry: "Nemáš priradenú žiadnu krajinu. Priradí ti ju admin v Administrácii → Používatelia.",
   publishNeedsLink: "Chýba odkaz na PDF.",
   publishNeedsModule: "Vyber, ku ktorej metodike verzia patrí.",
   publishPreparing: "Pripravujem verziu…",

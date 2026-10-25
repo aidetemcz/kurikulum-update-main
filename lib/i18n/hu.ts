@@ -196,6 +196,7 @@ export const hu: Dictionary = {
   nothingFound: "Nincs találat",
   recognizedFromPdf: "a PDF alapján felismerve",
   moreResults: "és még {count} – pontosíts a keresésen vagy válassz szekciót",
+  publishNeedsCountry: "Nincs hozzád rendelt ország. Az admin rendelheti hozzád: Adminisztráció → Felhasználók.",
   publishNeedsLink: "Hiányzik a PDF linkje.",
   publishNeedsModule: "Válaszd ki, melyik módszertanhoz tartozik a verzió.",
   publishPreparing: "A verzió előkészítése…",

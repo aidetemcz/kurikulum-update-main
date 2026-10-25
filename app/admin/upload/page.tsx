@@ -29,11 +29,10 @@ export default async function UploadPage({
     .order("order_index")
     .order("name");
   const { data: vsechnyZeme } = await supabase.from("countries").select("*").order("name");
-  // Nahrávat jde jen pod zemi, kterou uživatel spravuje. Admin pod kteroukoli.
-  const countries =
-    user.role === "admin"
-      ? vsechnyZeme ?? []
-      : (vsechnyZeme ?? []).filter((country) => user.country_ids.includes(country.id));
+  // Nahrávat jde jen za zemi, kterou má uživatel přiřazenou – admin není
+  // výjimka (hlídá to i server a databáze). Nabízet mu cizí země by vedlo
+  // jen k chybě až po vyplnění celého formuláře.
+  const countries = writableCountries(user, vsechnyZeme ?? []);
 
   // Poslední zveřejněná verze pro každou dvojici modul + země, ať je vidět,
   // na co se navazuje a jaké číslo nová verze dostane.
