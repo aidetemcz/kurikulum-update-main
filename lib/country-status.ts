@@ -3,6 +3,7 @@
 // Barva semaforu se nikam neukládá – počítá ji pohled module_country_light
 // v databázi z data nejstarší nevyřešené změny (viz 0004_country_status.sql).
 import { createClient } from "@/lib/supabase/server";
+import { getFollowed, follows } from "@/lib/followed";
 import { lightKey, toDocumentKind, type CountryLight, type PendingChange } from "@/lib/types";
 
 // Tvar, v jakém řádky vrací PostgREST (vnořené tabulky jako objekt nebo pole).
@@ -75,10 +76,15 @@ export async function getChanges(
 
   if (error || !data) return [];
 
+  // Změny k metodikám, které země nesleduje, se neukazují (zůstávají ale
+  // v databázi – kdyby je země zase začala sledovat, objeví se znovu).
+  const followed = await getFollowed(countryId);
+
   return (data as unknown as StatusRow[]).flatMap((row) => {
     const annotation = one(row.annotations);
     const version = one(annotation?.document_versions ?? null);
     if (!annotation || !version) return [];
+    if (!follows(followed, version.module_id)) return [];
 
     return [
       {
@@ -125,8 +131,10 @@ export async function getLightsForCountry(
     .select("module_id, kind, country_id, light")
     .eq("country_id", countryId);
 
+  const followed = await getFollowed(countryId);
   const lights: Record<string, CountryLight> = {};
   for (const row of (data ?? []) as LightRow[]) {
+    if (!follows(followed, row.module_id)) continue;
     lights[lightKey(row.module_id, toDocumentKind(row.kind))] = toLight(row.light);
   }
   return lights;

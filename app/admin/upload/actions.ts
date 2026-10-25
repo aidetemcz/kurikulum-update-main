@@ -9,6 +9,7 @@ import { extractDriveFileId, drivePreviewUrl } from "@/lib/drive";
 import { sortMarks } from "@/lib/annotations";
 import { notifyCountryAboutChange, notifyPreviousAuthor } from "@/lib/notify";
 import { translateNotes } from "@/lib/translate";
+import { countriesFollowing } from "@/lib/followed";
 import { toLocale } from "@/lib/i18n";
 import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
 
@@ -281,7 +282,14 @@ export async function publishVersion(
   // všemi zeměmi by změnu neposlal nikomu.
   const { data: allCountries } = await supabase.from("countries").select("id, locale");
 
-  const prijemci = (allCountries ?? []).filter((country) => country.id !== countryId);
+  // A jen zemím, které tuhle metodiku sledují (nebo si zatím nevybraly).
+  const sledujici = await countriesFollowing(
+    moduleId,
+    (allCountries ?? []).map((country) => country.id)
+  );
+  const prijemci = (allCountries ?? []).filter(
+    (country) => country.id !== countryId && sledujici.has(country.id)
+  );
 
   const statusRows = prijemci.flatMap((country) =>
     (marks ?? []).map((mark) => ({ annotation_id: mark.id, country_id: country.id }))

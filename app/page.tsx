@@ -1,4 +1,7 @@
-import { requireUser } from "@/lib/current-user";
+import { canWriteForCountry, requireUser } from "@/lib/current-user";
+import { createClient } from "@/lib/supabase/server";
+import { getFollowed } from "@/lib/followed";
+import { FollowedModules, FollowPrompt } from "@/components/FollowedModules";
 import { missingMigrations } from "@/lib/schema-check";
 import { mailConfigured } from "@/lib/mail";
 import { AdminNotices } from "@/components/AdminNotices";
@@ -24,9 +27,18 @@ export default async function DashboardPage({
     return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
-  const [pending, dismissed] = await Promise.all([
+  const supabase = await createClient();
+  const [pending, dismissed, followed, { data: modules }] = await Promise.all([
     getChanges(activeCountryId, "pending"),
     getChanges(activeCountryId, "dismissed"),
+    getFollowed(activeCountryId),
+    supabase
+      .from("modules")
+      .select("*")
+      .is("archived_at", null)
+      .order("category")
+      .order("order_index")
+      .order("name"),
   ]);
 
   return (
@@ -50,6 +62,8 @@ export default async function DashboardPage({
         />
       </div>
 
+      {!followed.chosen && <FollowPrompt t={t} />}
+
       <ChangesFromOthers
         pending={pending}
         dismissed={dismissed}
@@ -66,6 +80,17 @@ export default async function DashboardPage({
           <p className="mt-0.5 text-sm text-ink/60">{t.noUpdatesHint}</p>
         </div>
       )}
+
+      <FollowedModules
+        // Po uložení se stránka načte znovu; klíč založí výběr nanovo.
+        key={`${activeCountryId}:${followed.chosen}:${[...followed.moduleIds].sort().join(",")}`}
+        countryId={activeCountryId}
+        modules={modules ?? []}
+        followedIds={[...followed.moduleIds]}
+        chosen={followed.chosen}
+        canEdit={canWriteForCountry(user, activeCountryId)}
+        t={t}
+      />
     </div>
   );
 }
