@@ -118,6 +118,19 @@ export const sk: Dictionary = {
   roleEditor: "editor",
   roleAdmin: "admin",
 
+
+  // prihlásenie a voľba jazyka pred priradením krajiny
+  language: "Jazyk",
+  emailPlaceholder: "meno@organizacia.sk",
+  sendLoginLink: "Poslať prihlasovací odkaz",
+  sendingLoginLink: "Posielam odkaz...",
+  loginLinkSent: "Poslali sme ti odkaz na prihlásenie na {email}. Skontroluj e-mail (aj spam).",
+  loginRateLimit:
+    "Vyčerpaný hodinový limit odosielania e-mailov. Skús to prosím o hodinu znova. Nejde o chybu tvojho účtu.",
+  loginFailed: "Niečo sa nepodarilo, skús to prosím znova.",
+  loginLinkInvalid:
+    "Prihlasovací odkaz nefungoval. Mohol vypršať alebo už bol použitý, prípadne si oň požiadal/a v inom prehliadači. Pošli si nový a otvor ho v tom istom prehliadači.",
+  loginAccountMissing: "Prihlásenie prebehlo, ale tvoj účet v aplikácii chýba. Ozvi sa prosím administrátorovi.",
   noCountryAssigned:
     "Zatiaľ ti nie je priradená žiadna krajina. Ozvi sa administrátorovi aplikácie.",
   noCountriesYet: "Zatiaľ nie je založená žiadna krajina. Pridaj ju v Administrácii.",

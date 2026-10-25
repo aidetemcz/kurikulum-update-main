@@ -120,6 +120,19 @@ export const hu: Dictionary = {
   roleEditor: "szerkesztő",
   roleAdmin: "adminisztrátor",
 
+
+  // bejelentkezés és nyelvválasztás az ország hozzárendelése előtt
+  language: "Nyelv",
+  emailPlaceholder: "nev@szervezet.hu",
+  sendLoginLink: "Bejelentkezési link küldése",
+  sendingLoginLink: "Link küldése...",
+  loginLinkSent: "Bejelentkezési linket küldtünk a(z) {email} címre. Nézd meg a postafiókodat (a spamet is).",
+  loginRateLimit:
+    "Elértük az óránkénti e-mail-korlátot. Kérlek, próbáld újra egy óra múlva. A fiókoddal nincs probléma.",
+  loginFailed: "Valami hiba történt, kérlek, próbáld újra.",
+  loginLinkInvalid:
+    "A bejelentkezési link nem működött. Lehet, hogy lejárt vagy már felhasználták, vagy másik böngészőben kérted. Kérj újat, és ugyanabban a böngészőben nyisd meg.",
+  loginAccountMissing: "A bejelentkezés sikerült, de a fiókod hiányzik az alkalmazásból. Kérlek, fordulj az adminisztrátorhoz.",
   noCountryAssigned:
     "Még nincs hozzád rendelve ország. Fordulj az alkalmazás adminisztrátorához.",
   noCountriesYet: "Még nincs létrehozott ország. Add hozzá az Adminisztrációban.",

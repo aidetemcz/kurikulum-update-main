@@ -4,6 +4,7 @@ import { resolveActiveCountry } from "@/lib/active-country";
 import { getModuleDetail } from "@/lib/modules-data";
 import { VersionBrowser } from "@/components/VersionBrowser";
 import { CountrySwitcher } from "@/components/CountrySwitcher";
+import { NoCountryNotice } from "@/components/NoCountryNotice";
 import { moduleName } from "@/lib/module-name";
 
 export default async function ModuleDetailPage({
@@ -19,11 +20,7 @@ export default async function ModuleDetailPage({
   const { activeCountryId, countries, t } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
-    return (
-      <p className="text-sm text-ink/60">
-        {user.role === "admin" ? t.noCountriesYet : t.noCountryAssigned}
-      </p>
-    );
+    return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
   const { module, versions, marksByVersion } = await getModuleDetail(moduleId, activeCountryId);

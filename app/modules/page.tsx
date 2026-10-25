@@ -4,6 +4,7 @@ import { getModulesForCountry } from "@/lib/modules-data";
 import { getLightsForCountry } from "@/lib/country-status";
 import { ModulesCatalog } from "@/components/ModulesCatalog";
 import { CountrySwitcher } from "@/components/CountrySwitcher";
+import { NoCountryNotice } from "@/components/NoCountryNotice";
 import type { CountryLight } from "@/lib/types";
 
 // Katalog všech metodik pro vybranou zemi – včetně těch, ke kterým zatím
@@ -18,11 +19,7 @@ export default async function ModulesPage({
   const { activeCountryId, countries, t } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
-    return (
-      <p className="text-sm text-ink/60">
-        {user.role === "admin" ? t.noCountriesYet : t.noCountryAssigned}
-      </p>
-    );
+    return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
   const [modules, lights] = await Promise.all([

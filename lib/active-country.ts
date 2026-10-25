@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary, toLocale, type Dictionary, type Locale } from "@/lib/i18n";
 import { VIEW_COUNTRY_COOKIE } from "@/lib/view-country";
+import { UI_LOCALE_COOKIE } from "@/lib/ui-locale";
 import type { AppUser, Country } from "@/lib/types";
 
 export type ActiveCountry = {
@@ -34,11 +35,15 @@ export async function resolveActiveCountry(
     : vsechny.filter((country) => user.country_ids.includes(country.id));
 
   if (countries.length === 0) {
+    // Bez země nemá podle čeho jazyk určit, proto platí vlaječka, kterou
+    // si člověk sám vybral (NoCountryNotice), pak jeho nastavení.
+    const chosen = (await cookies()).get(UI_LOCALE_COOKIE)?.value;
+    const uiLocale = toLocale(chosen ?? user.locale);
     return {
       activeCountryId: null,
       countries: [],
-      t: getDictionary(user.locale ? toLocale(user.locale) : "cs"),
-      locale: "cs",
+      t: getDictionary(uiLocale),
+      locale: uiLocale,
     };
   }
 

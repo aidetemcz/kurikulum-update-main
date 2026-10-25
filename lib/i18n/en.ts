@@ -118,6 +118,19 @@ export const en: Dictionary = {
   roleEditor: "editor",
   roleAdmin: "admin",
 
+
+  // sign-in and language choice before a country is assigned
+  language: "Language",
+  emailPlaceholder: "name@organisation.org",
+  sendLoginLink: "Send sign-in link",
+  sendingLoginLink: "Sending link...",
+  loginLinkSent: "We sent a sign-in link to {email}. Check your inbox (and spam).",
+  loginRateLimit:
+    "The hourly email limit has been reached. Please try again in an hour. Nothing is wrong with your account.",
+  loginFailed: "Something went wrong, please try again.",
+  loginLinkInvalid:
+    "The sign-in link didn't work. It may have expired or already been used, or you requested it in a different browser. Request a new one and open it in the same browser.",
+  loginAccountMissing: "You signed in, but your account is missing from the app. Please contact the administrator.",
   noCountryAssigned:
     "You don't have a country assigned yet. Please contact the app administrator.",
   noCountriesYet: "No country has been created yet. Add one in Admin.",

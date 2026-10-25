@@ -6,6 +6,7 @@ import { resolveActiveCountry } from "@/lib/active-country";
 import { getChanges } from "@/lib/country-status";
 import { ChangesFromOthers } from "@/components/ChangesFromOthers";
 import { CountrySwitcher } from "@/components/CountrySwitcher";
+import { NoCountryNotice } from "@/components/NoCountryNotice";
 
 // Přehled je jen o změnách od ostatních zemí. Katalog metodik má vlastní
 // stránku /modules – appka slouží k oznamování aktualizací, ne k
@@ -20,11 +21,7 @@ export default async function DashboardPage({
   const { activeCountryId, countries, t, locale } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
-    return (
-      <p className="text-sm text-ink/60">
-        {user.role === "admin" ? t.noCountriesYet : t.noCountryAssigned}
-      </p>
-    );
+    return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
   const [pending, dismissed] = await Promise.all([

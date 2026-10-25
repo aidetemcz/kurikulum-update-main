@@ -131,6 +131,19 @@ export const cs = {
   roleAdmin: "admin",
 
   // stavy bez země
+
+  // přihlášení a volba jazyka před přiřazením země
+  language: "Jazyk",
+  emailPlaceholder: "jmeno@organizace.cz",
+  sendLoginLink: "Poslat přihlašovací odkaz",
+  sendingLoginLink: "Posílám odkaz...",
+  loginLinkSent: "Poslali jsme ti odkaz na přihlášení na {email}. Zkontroluj e-mail (i spam).",
+  loginRateLimit:
+    "Vyčerpaný hodinový limit odesílání e-mailů. Zkus to prosím za hodinu znovu. Nejde o chybu tvého účtu.",
+  loginFailed: "Něco se nepovedlo, zkus to prosím znovu.",
+  loginLinkInvalid:
+    "Přihlašovací odkaz nefungoval. Mohl vypršet nebo už byl použitý, případně ses o něj řekl/a v jiném prohlížeči. Pošli si nový a otevři ho ve stejném prohlížeči.",
+  loginAccountMissing: "Přihlášení proběhlo, ale tvůj účet v appce chybí. Ozvi se prosím administrátorovi.",
   noCountryAssigned: "Zatím ti není přiřazená žádná země. Ozvi se administrátorovi appky.",
   noCountriesYet: "Zatím není založená žádná země. Přidej ji v Administraci.",
 
