@@ -62,6 +62,9 @@ export function VersionBrowser({
   const sorted = sortMarks(marks);
   const fileId = extractDriveFileId(selected.file_url);
   const summary = selected.changes[0]?.note ?? "";
+  const jenPoznamky =
+    sorted.length > 0 &&
+    summary.trim() === sorted.map((mark, index) => `${index + 1}. ${mark.note}`).join("\n").trim();
 
   function scrollToMark(mark: Mark) {
     document.getElementById(`pdf-page-${mark.page}`)?.scrollIntoView({
@@ -72,47 +75,55 @@ export function VersionBrowser({
 
   return (
     <div>
-      {/* Záložky verzí, nejnovější vlevo. */}
-      <div role="tablist" className="dashed-divider flex flex-wrap gap-1 border-t-0">
-        {versions.map((version, index) => (
-          <button
-            key={version.id}
-            type="button"
-            role="tab"
-            aria-selected={version.id === selected.id}
-            onClick={() => setSelectedId(version.id)}
-            className={`relative px-4 py-2 text-left ${
-              version.id === selected.id ? "border-b-2 border-coral" : "border-b-2 border-transparent"
-            }`}
-          >
-            <span className="block text-sm font-medium text-ink">
-              {t.version} {version.version_number}
-              {index === 0 && <span className="text-ink/50"> · {t.latest}</span>}
-            </span>
-            <span className="block text-xs text-ink/40">
-              <LocalDateTime value={version.uploaded_at} locale={t.dateLocale} />
-            </span>
-            {version.unread && (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-coral" />
-            )}
-          </button>
-        ))}
-      </div>
+      {/* Záložky verzí, nejnovější vlevo. U jediné verze nejsou k ničemu. */}
+      {versions.length > 1 && (
+        <div role="tablist" aria-label={t.versionsLabel} className="mb-4 flex flex-wrap gap-1.5">
+          {versions.map((version, index) => (
+            <button
+              key={version.id}
+              type="button"
+              role="tab"
+              aria-selected={version.id === selected.id}
+              onClick={() => setSelectedId(version.id)}
+              className={`relative rounded-xl border px-3 py-1.5 text-left ${
+                version.id === selected.id ? "border-coral bg-white" : "border-haze hover:border-coral/50"
+              }`}
+            >
+              <span className="block text-sm font-medium text-ink">
+                v{version.version_number}
+                {index === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
+              </span>
+              <span className="block text-xs text-ink/40">
+                <LocalDateTime value={version.uploaded_at} locale={t.dateLocale} />
+              </span>
+              {version.unread && (
+                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-coral" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Metadata vybrané verze. */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-ink/60">
-        <p>
-          {fill(t.uploadedByWho, { who: selected.uploaded_by_email ?? "?" })} ·{" "}
-          <LocalDateTime value={selected.uploaded_at} locale={t.dateLocale} /> ·{" "}
-          {pluralCount(marks.length, t.markedChangesForms, t.dateLocale)}
-        </p>
+      {/* Karta vybrané verze: co to je, kdo a kdy, a co s ní jde dělat. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-haze/40 px-4 py-3">
+        <div className="text-sm">
+          <p className="font-medium text-ink">
+            {t.version} {selected.version_number}
+            {selectedIndex === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
+          </p>
+          <p className="text-xs text-ink/50">
+            <LocalDateTime value={selected.uploaded_at} locale={t.dateLocale} /> ·{" "}
+            {fill(t.uploadedByWho, { who: selected.uploaded_by_email ?? "?" })} ·{" "}
+            {pluralCount(marks.length, t.markedChangesForms, t.dateLocale)}
+          </p>
+        </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2">
           {canEdit && (
             <button
               type="button"
               onClick={() => setEditing((value) => !value)}
-              className="font-medium text-coral hover:underline"
+              className="rounded-xl px-3 py-1.5 text-sm font-medium text-ink/60 hover:bg-white hover:text-coral"
             >
               {editing ? t.adminBackToReading : t.adminEditMode}
             </button>
@@ -121,7 +132,7 @@ export function VersionBrowser({
             href={driveViewUrl(selected.file_url)}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 font-medium text-coral hover:underline"
+            className="flex items-center gap-1.5 rounded-xl bg-coral px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
           >
             <Download size={16} />
             {t.downloadPdf}
@@ -144,10 +155,14 @@ export function VersionBrowser({
         </div>
       )}
 
-      {summary && (
-        <p className="mt-2 whitespace-pre-line text-sm text-ink">
-          <span className="font-medium">{t.summaryLabel}:</span> {summary}
-        </p>
+      {/* Shrnutí jen tehdy, když ho autor opravdu napsal. Když ho nenapsal,
+          uloží se místo něj očíslované poznámky – ty jsou ale vpravo, takže
+          by se tu jen opakovaly. */}
+      {summary && !jenPoznamky && (
+        <div className="mt-4 border-l-2 border-dashed border-coral pl-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{t.whatsNew}</p>
+          <p className="mt-1 whitespace-pre-line text-sm text-ink">{summary}</p>
+        </div>
       )}
 
       {!(canEdit && editing) && (
