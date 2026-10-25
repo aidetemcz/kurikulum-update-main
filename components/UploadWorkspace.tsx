@@ -268,28 +268,10 @@ export function UploadWorkspace({
         t={t}
         formColumn={
           <div className="flex flex-col gap-4">
-            {/* Schválně ne <Field> – stejně jako u výběru země níž. */}
+            {/* Ne <Field>: ten je <label> a klik do nabídky by přesměroval
+                na první pole uvnitř – položky by pak nešly vybrat. */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-ink">{t.kindQuestion}</span>
-              <div role="group" aria-label={t.kindQuestion} className="flex flex-wrap gap-2">
-                {DOCUMENT_KINDS.map((druh) => (
-                  <button
-                    key={druh}
-                    type="button"
-                    onClick={() => setKind(druh)}
-                    aria-pressed={druh === kind}
-                    className={`badge-pill ${druh === kind ? "bg-coral text-white" : "hover:bg-mist/50"}`}
-                  >
-                    {druh === "presentation" ? t.kindPresentation : t.kindMethodology}
-                  </button>
-                ))}
-              </div>
-              {kind === "presentation" && (
-                <span className="text-xs text-ink/50">{t.kindHint}</span>
-              )}
-            </div>
-
-            <Field label={t.module}>
+              <span className="text-sm font-medium text-ink">{t.module}</span>
               <ModulePicker
                 modules={modules}
                 value={moduleId}
@@ -300,7 +282,7 @@ export function UploadWorkspace({
                 recognition={recognition}
                 t={t}
               />
-            </Field>
+            </div>
 
             {/* Nabízejí se jen vlastní země. S jedinou zemí není co vybírat,
                 takže místo pole stojí jen věta, za koho se nahrává. */}
@@ -405,6 +387,28 @@ export function UploadWorkspace({
               </div>
             )}
 
+            {/* Co se nahrává, stojí přímo nad tlačítkem, ať si toho každý všimne.
+                Schválně ne <Field> – stejně jako u výběru země. */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-ink">{t.kindQuestion}</span>
+              <div role="group" aria-label={t.kindQuestion} className="flex flex-wrap gap-2">
+                {DOCUMENT_KINDS.map((druh) => (
+                  <button
+                    key={druh}
+                    type="button"
+                    onClick={() => setKind(druh)}
+                    aria-pressed={druh === kind}
+                    className={`badge-pill ${druh === kind ? "bg-coral text-white" : "hover:bg-mist/50"}`}
+                  >
+                    {druh === "presentation" ? t.kindPresentation : t.kindMethodology}
+                  </button>
+                ))}
+              </div>
+              {kind === "presentation" && (
+                <span className="text-xs text-ink/50">{t.kindHint}</span>
+              )}
+            </div>
+
             {/* Stav průběžného ukládání rozpracované verze. */}
             <p id="draft-status" className="text-xs text-ink/50">
               {saveState.error
@@ -428,6 +432,19 @@ export function UploadWorkspace({
             >
               {isPending ? t.saving : `${t.uploadAndNotify} (${marks.length})`}
             </button>
+
+            {/* Proč zatím nejde zveřejnit – jinak tlačítko jen mlčky šedne. */}
+            {!isPending && !canPublish && (
+              <p className="text-xs text-ink/50">
+                {!fileId
+                  ? t.publishNeedsLink
+                  : !moduleId
+                    ? t.publishNeedsModule
+                    : !draftId
+                      ? saveState.error ?? t.publishPreparing
+                      : t.needMarkOrSummary}
+              </p>
+            )}
 
             {state && "error" in state && <p className="text-sm text-coral">{state.error}</p>}
 

@@ -192,6 +192,11 @@ export const en: Dictionary = {
   maybeOneOf: "This looks like one of these:",
   searchModule: "Search teaching materials",
   nothingFound: "Nothing found",
+  recognizedFromPdf: "recognised from the PDF",
+  moreResults: "and {count} more – refine the search or pick a section",
+  publishNeedsLink: "The link to the PDF is missing.",
+  publishNeedsModule: "Choose which teaching material this version belongs to.",
+  publishPreparing: "Preparing the version…",
   ungrouped: "Unsorted",
 
   catalogTitle: "Teaching materials catalogue",

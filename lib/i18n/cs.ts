@@ -206,6 +206,11 @@ export const cs = {
   maybeOneOf: "Vypadá to na jednu z těchto:",
   searchModule: "Hledat metodiku",
   nothingFound: "Nic nenalezeno",
+  recognizedFromPdf: "rozpoznáno z PDF",
+  moreResults: "a {count} dalších – upřesni hledání nebo vyber sekci",
+  publishNeedsLink: "Chybí odkaz na PDF.",
+  publishNeedsModule: "Vyber, ke které metodice verze patří.",
+  publishPreparing: "Připravuji verzi…",
   ungrouped: "Bez zařazení",
 
   // katalog metodik v administraci

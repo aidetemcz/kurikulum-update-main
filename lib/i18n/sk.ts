@@ -192,6 +192,11 @@ export const sk: Dictionary = {
   maybeOneOf: "Vyzerá to na jednu z týchto:",
   searchModule: "Hľadať metodiku",
   nothingFound: "Nič sa nenašlo",
+  recognizedFromPdf: "rozpoznané z PDF",
+  moreResults: "a {count} ďalších – upresni hľadanie alebo vyber sekciu",
+  publishNeedsLink: "Chýba odkaz na PDF.",
+  publishNeedsModule: "Vyber, ku ktorej metodike verzia patrí.",
+  publishPreparing: "Pripravujem verziu…",
   ungrouped: "Bez zaradenia",
 
   catalogTitle: "Katalóg metodík",

@@ -194,6 +194,11 @@ export const hu: Dictionary = {
   maybeOneOf: "Ezek egyike lehet:",
   searchModule: "Módszertan keresése",
   nothingFound: "Nincs találat",
+  recognizedFromPdf: "a PDF alapján felismerve",
+  moreResults: "és még {count} – pontosíts a keresésen vagy válassz szekciót",
+  publishNeedsLink: "Hiányzik a PDF linkje.",
+  publishNeedsModule: "Válaszd ki, melyik módszertanhoz tartozik a verzió.",
+  publishPreparing: "A verzió előkészítése…",
   ungrouped: "Besorolás nélkül",
 
   catalogTitle: "Módszertani katalógus",
