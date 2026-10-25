@@ -19,12 +19,19 @@ const POPIS_KATEGORII: Record<CategoryKey, string> = {
   formal: "formální úprava – vzhled, formátování, pořadí, bez změny obsahu",
 };
 
-async function zeptejSe(system: string, text: string, schema: Record<string, unknown>) {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
+/** Výsledek návrhu. Když se nepovede, reason říká proč – appka to ukáže editorovi. */
+export type SuggestResult<T> = { value: T } | { value: null; reason: string };
+
+async function zeptejSe(
+  system: string,
+  text: string,
+  schema: Record<string, unknown>
+): Promise<SuggestResult<Record<string, unknown>>> {
+  if (!process.env.ANTHROPIC_API_KEY) return { value: null, reason: "missing_key" };
 
   try {
     const client = new Anthropic();
-    const response = await client.beta.messages.create({
+    const response = await client.messages.create({
       model: MODEL,
       max_tokens: 2000,
       // Krátké a jednoduché rozhodnutí – stačí nejnižší úsilí.
@@ -32,22 +39,28 @@ async function zeptejSe(system: string, text: string, schema: Record<string, unk
         effort: "low",
         format: { type: "json_schema", schema },
       },
-      // Když bezpečnostní filtr požadavek odmítne, zkusí ho jiný model.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
       system,
       messages: [{ role: "user", content: text }],
     });
 
-    if (response.stop_reason === "refusal") return null;
+    if (response.stop_reason === "refusal") return { value: null, reason: "refusal" };
 
     const vystup = response.content
       .map((block) => (block.type === "text" ? block.text : ""))
       .join("");
-    return JSON.parse(vystup) as Record<string, unknown>;
+    return { value: JSON.parse(vystup) as Record<string, unknown> };
   } catch (chyba) {
     console.error("Návrh od AI se nepodařil:", chyba);
-    return null;
+    if (chyba instanceof Anthropic.AuthenticationError) return { value: null, reason: "bad_key" };
+    if (chyba instanceof Anthropic.PermissionDeniedError) return { value: null, reason: "bad_key" };
+    if (chyba instanceof Anthropic.RateLimitError) return { value: null, reason: "rate_limit" };
+    if (chyba instanceof Anthropic.APIError) {
+      // Došlý kredit vrací API jako 400 se zmínkou o „credit balance“.
+      const zprava = String(chyba.message ?? "");
+      if (/credit/i.test(zprava)) return { value: null, reason: "no_credit" };
+      return { value: null, reason: `api_${chyba.status ?? "error"}: ${zprava.slice(0, 200)}` };
+    }
+    return { value: null, reason: "network" };
   }
 }
 
@@ -55,8 +68,8 @@ async function zeptejSe(system: string, text: string, schema: Record<string, unk
 export async function suggestCategory(
   note: string,
   quote: string | null
-): Promise<CategoryKey | null> {
-  if (!note.trim()) return null;
+): Promise<SuggestResult<CategoryKey>> {
+  if (!note.trim()) return { value: null, reason: "empty" };
 
   const vysledek = await zeptejSe(
     "Třídíš poznámky o změnách ve školních metodikách do jednoho z druhů změn:\n" +
@@ -70,18 +83,21 @@ export async function suggestCategory(
       additionalProperties: false,
     }
   );
+  if (vysledek.value === null) return vysledek;
 
-  const category = vysledek?.category;
-  return CATEGORY_KEYS.includes(category as CategoryKey) ? (category as CategoryKey) : null;
+  const category = vysledek.value.category;
+  return CATEGORY_KEYS.includes(category as CategoryKey)
+    ? { value: category as CategoryKey }
+    : { value: null, reason: "unexpected_answer" };
 }
 
 // Celkové shrnutí verze z poznámek u jednotlivých značek.
 export async function suggestSummary(
   notes: string[],
   language: string
-): Promise<string | null> {
+): Promise<SuggestResult<string>> {
   const neprazdne = notes.map((note) => note.trim()).filter(Boolean);
-  if (neprazdne.length === 0) return null;
+  if (neprazdne.length === 0) return { value: null, reason: "empty" };
 
   const vysledek = await zeptejSe(
     "Píšeš krátké shrnutí nové verze školní metodiky pro učitele a partnery z jiných zemí. " +
@@ -96,7 +112,10 @@ export async function suggestSummary(
       additionalProperties: false,
     }
   );
+  if (vysledek.value === null) return vysledek;
 
-  const summary = vysledek?.summary;
-  return typeof summary === "string" && summary.trim() ? summary.trim() : null;
+  const summary = vysledek.value.summary;
+  return typeof summary === "string" && summary.trim()
+    ? { value: summary.trim() }
+    : { value: null, reason: "unexpected_answer" };
 }

@@ -19,6 +19,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DOCUMENT_KINDS, type Country, type DocumentKind, type Mark, type Module } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { suggestVersionSummary } from "@/app/admin/upload/suggest-actions";
+import { suggestFailureMessage } from "@/lib/suggest-message";
 
 export type LatestVersion = {
   module_id: string;
@@ -77,7 +78,8 @@ export function UploadWorkspace({
   const [marks, setMarks] = useState<Mark[]>([]);
   const [summary, setSummary] = useState("");
   const [navrhuji, setNavrhuji] = useState(false);
-  const [navrhSelhal, setNavrhSelhal] = useState(false);
+  // Proč se poslední návrh shrnutí nepovedl; null = nic nehlásit.
+  const [navrhSelhal, setNavrhSelhal] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
   // Podklady pro rozpoznání metodiky z nahrávaného dokumentu.
   const [firstPageText, setFirstPageText] = useState("");
@@ -382,20 +384,24 @@ export function UploadWorkspace({
                   disabled={navrhuji}
                   onClick={async () => {
                     setNavrhuji(true);
-                    setNavrhSelhal(false);
+                    setNavrhSelhal(null);
                     const navrh = await suggestVersionSummary(
                       marks.map((mark) => mark.note),
                       t.locale
-                    ).catch(() => null);
-                    if (navrh) setSummary(navrh);
-                    else setNavrhSelhal(true);
+                    ).catch(() => ({ value: null, reason: "network" }));
+                    if (navrh.value) setSummary(navrh.value);
+                    else
+                      setNavrhSelhal(
+                        ("reason" in navrh ? suggestFailureMessage(navrh.reason, t) : null) ??
+                          t.suggestFailed
+                      );
                     setNavrhuji(false);
                   }}
                   className="badge-pill hover:bg-mist/50 disabled:opacity-50"
                 >
                   ✦ {navrhuji ? t.suggestingSummary : t.suggestSummary}
                 </button>
-                {navrhSelhal && <span className="text-xs text-coral">{t.suggestFailed}</span>}
+                {navrhSelhal && <span className="text-xs text-coral">{navrhSelhal}</span>}
               </div>
             )}
 

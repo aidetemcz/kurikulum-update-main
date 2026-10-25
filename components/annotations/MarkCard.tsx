@@ -6,6 +6,7 @@ import { CATEGORY_KEYS, categoryLabel } from "@/lib/annotations";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { suggestMarkCategory } from "@/app/admin/upload/suggest-actions";
+import { suggestFailureMessage } from "@/lib/suggest-message";
 
 // Jak dlouho po posledním úhozu do poznámky se appka zeptá na návrh druhu.
 const SUGGEST_DEBOUNCE_MS = 1200;
@@ -120,23 +121,38 @@ function MarkEditor({
   // Jen dokud si editor druh nevybral sám – jeho volbu nikdy nepřepíše.
   const categoryTouched = useRef(mark.category !== null);
   const [suggested, setSuggested] = useState<string | null>(null);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
   useEffect(() => {
     if (categoryTouched.current || note.trim().length < 8) return;
 
     let cancelled = false;
     const timer = window.setTimeout(async () => {
-      const navrh = await suggestMarkCategory(note, mark.quote ?? null).catch(() => null);
-      if (cancelled || categoryTouched.current || !navrh) return;
+      const navrh = await suggestMarkCategory(note, mark.quote ?? null).catch(() => ({
+        value: null,
+        reason: "network",
+      }));
+      if (cancelled || categoryTouched.current) return;
+      if (!navrh.value) {
+        // Chybějící klíč nebo kredit je dobré vědět; běžný výpadek ne.
+        const proc = "reason" in navrh ? navrh.reason : "";
+        setSuggestError(
+          ["missing_key", "bad_key", "no_credit"].includes(proc)
+            ? suggestFailureMessage(proc, t)
+            : null
+        );
+        return;
+      }
+      setSuggestError(null);
       setCustomOpen(false);
-      setCategory(navrh);
-      setSuggested(navrh);
+      setCategory(navrh.value);
+      setSuggested(navrh.value);
     }, SUGGEST_DEBOUNCE_MS);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [note, mark.quote]);
+  }, [note, mark.quote, t]);
 
   function chosenCategory(): string | null {
     if (customOpen) return custom.trim() || null;
@@ -229,6 +245,8 @@ function MarkEditor({
           {t.otherCategory}
         </button>
       </div>
+
+      {suggestError && <p className="mt-1.5 text-xs text-coral">{suggestError}</p>}
 
       {customOpen && (
         <input
