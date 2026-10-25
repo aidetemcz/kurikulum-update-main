@@ -4,6 +4,7 @@
 // v databázi z data nejstarší nevyřešené změny (viz 0004_country_status.sql).
 import { createClient } from "@/lib/supabase/server";
 import { getFollowed, follows } from "@/lib/followed";
+import { getLocalNames } from "@/lib/local-names";
 import { lightKey, toDocumentKind, type CountryLight, type PendingChange } from "@/lib/types";
 
 // Tvar, v jakém řádky vrací PostgREST (vnořené tabulky jako objekt nebo pole).
@@ -78,7 +79,10 @@ export async function getChanges(
 
   // Změny k metodikám, které země nesleduje, se neukazují (zůstávají ale
   // v databázi – kdyby je země zase začala sledovat, objeví se znovu).
-  const followed = await getFollowed(countryId);
+  const [followed, vlastniNazvy] = await Promise.all([
+    getFollowed(countryId),
+    getLocalNames(countryId),
+  ]);
 
   return (data as unknown as StatusRow[]).flatMap((row) => {
     const annotation = one(row.annotations);
@@ -102,6 +106,7 @@ export async function getChanges(
           name: one(version.modules)?.name ?? "",
           name_en: one(version.modules)?.name_en ?? null,
           name_translations: one(version.modules)?.name_translations ?? null,
+          local_name: vlastniNazvy.get(version.module_id) ?? null,
         },
         fromCountryName: one(version.countries)?.name ?? "",
         uploadedByEmail: one(version.users)?.email ?? null,

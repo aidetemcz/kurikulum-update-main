@@ -1,6 +1,7 @@
 import { canWriteForCountry, requireUser } from "@/lib/current-user";
 import { createClient } from "@/lib/supabase/server";
 import { getFollowed } from "@/lib/followed";
+import { getLocalNames, withLocalNames } from "@/lib/local-names";
 import { FollowedModules, FollowPrompt } from "@/components/FollowedModules";
 import { missingMigrations } from "@/lib/schema-check";
 import { mailConfigured } from "@/lib/mail";
@@ -85,7 +86,7 @@ export default async function DashboardPage({
         // Po uložení se stránka načte znovu; klíč založí výběr nanovo.
         key={`${activeCountryId}:${followed.chosen}:${[...followed.moduleIds].sort().join(",")}`}
         countryId={activeCountryId}
-        modules={modules ?? []}
+        modules={withLocalNames(modules ?? [], await getLocalNames(activeCountryId))}
         followedIds={[...followed.moduleIds]}
         chosen={followed.chosen}
         canEdit={canWriteForCountry(user, activeCountryId)}

@@ -1,6 +1,7 @@
 // Načtení modulů pro danou zemi včetně nejnovější verze a jejích poznámek,
 // pro zobrazení v mřížce karet na hlavní stránce.
 import { createClient } from "@/lib/supabase/server";
+import { getLocalNames } from "@/lib/local-names";
 import { toDocumentKind, type Change, type Mark, type ModuleWithLatestVersion } from "@/lib/types";
 
 export async function getModulesForCountry(
@@ -30,6 +31,8 @@ export async function getModulesForCountry(
       ? { ...version, changes: [...version.changes].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)) }
       : null;
 
+  const vlastniNazvy = await getLocalNames(countryId);
+
   return modules.map((module) => {
     const moduleVersions = (versions ?? []).filter((v) => v.module_id === module.id);
     // Starší verze bez sloupce kind (před migrací 0012) jsou metodiky.
@@ -38,6 +41,7 @@ export async function getModulesForCountry(
 
     return {
       ...module,
+      local_name: vlastniNazvy.get(module.id) ?? null,
       latest_version: sChangesOdNejnovejsi(metodiky[0]),
       version_count: metodiky.length,
       latest_presentation: sChangesOdNejnovejsi(prezentace[0]),
@@ -107,10 +111,12 @@ export async function getModuleDetail(moduleId: string, countryId: string) {
     ];
   }
 
+  const vlastniNazvy = await getLocalNames(countryId);
+
   // file_url je hotový odkaz na náhled souboru v Google Drive, takže se
   // používá rovnou tak, jak je uložený.
   return {
-    module,
+    module: module ? { ...module, local_name: vlastniNazvy.get(module.id) ?? null } : module,
     versions: (versions ?? []).map((v) => {
       const uploader = Array.isArray(v.users) ? v.users[0] : v.users;
       return {

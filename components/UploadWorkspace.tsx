@@ -48,6 +48,7 @@ const MARKS_DEBOUNCE_MS = 800;
 
 export function UploadWorkspace({
   modules,
+  localNames = {},
   countries,
   defaultCountryId,
   canChooseCountry,
@@ -56,6 +57,8 @@ export function UploadWorkspace({
   t,
 }: {
   modules: Module[];
+  /** Vlastní názvy metodik podle země: {countryId: {moduleId: název}}. */
+  localNames?: Record<string, Record<string, string>>;
   countries: Country[];
   defaultCountryId: string | null;
   canChooseCountry: boolean;
@@ -273,7 +276,10 @@ export function UploadWorkspace({
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-medium text-ink">{t.module}</span>
               <ModulePicker
-                modules={modules}
+                modules={modules.map((module) => ({
+                  ...module,
+                  local_name: localNames[countryId]?.[module.id] ?? null,
+                }))}
                 value={moduleId}
                 onChange={(id) => {
                   moduleTouched.current = true;

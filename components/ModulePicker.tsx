@@ -57,6 +57,7 @@ export function ModulePicker({
       return (
         matchKey(module.name).includes(klic) ||
         matchKey(module.name_en ?? "").includes(klic) ||
+        matchKey(module.local_name ?? "").includes(klic) ||
         Object.values(module.name_translations ?? {}).some((nazev) =>
           matchKey(nazev).includes(klic)
         ) ||

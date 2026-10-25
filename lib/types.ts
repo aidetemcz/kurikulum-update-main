@@ -34,6 +34,8 @@ export type Module = {
   name_en: string | null;
   /** Názvy ve slovenštině a maďarštině (migrace 0014). */
   name_translations?: Record<string, string> | null;
+  /** Vlastní název zobrazené země (migrace 0016); doplňuje ho server. */
+  local_name?: string | null;
   order_index: number;
   /** Metodika, která z webu zmizela. Nemaže se, jen se schová. */
   archived_at: string | null;
@@ -142,7 +144,12 @@ export type PendingChange = {
   moduleId: string;
   /** Český název; pro zobrazení použij moduleName() s moduleNames. */
   moduleName: string;
-  moduleNames: { name: string; name_en: string | null; name_translations: Record<string, string> | null };
+  moduleNames: {
+    name: string;
+    name_en: string | null;
+    name_translations: Record<string, string> | null;
+    local_name: string | null;
+  };
   fromCountryName: string;
   /** Kdo verzi nahrál. U cizí země bývá prázdný – pravidla v databázi
    *  cizí e-maily neukazují. */

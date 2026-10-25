@@ -3,6 +3,7 @@ import { requireUser, canUpload, writableCountries } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { createClient } from "@/lib/supabase/server";
 import { toDocumentKind } from "@/lib/types";
+import { getLocalNamesForCountries } from "@/lib/local-names";
 import {
   UploadWorkspace,
   type ExistingDraft,
@@ -122,6 +123,7 @@ export default async function UploadPage({
 
       <UploadWorkspace
         modules={modules ?? []}
+        localNames={await getLocalNamesForCountries(countries.map((country) => country.id))}
         countries={countries}
         defaultCountryId={defaultCountryId}
         canChooseCountry={countries.length > 1}

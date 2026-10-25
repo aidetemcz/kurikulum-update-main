@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
-import { requireUser } from "@/lib/current-user";
+import { canWriteForCountry, requireUser } from "@/lib/current-user";
+import { createClient } from "@/lib/supabase/server";
+import { ModuleTitle } from "@/components/ModuleTitle";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { getModuleDetail } from "@/lib/modules-data";
 import { VersionBrowser } from "@/components/VersionBrowser";
@@ -44,6 +46,15 @@ export default async function ModuleDetailPage({
         : "teaching_material";
   const zobrazene = versions.filter((v) => v.kind === kind);
 
+  // Název zobrazené země do popisku přejmenování; seznam zemí přepínače
+  // bývá prázdný, proto zvlášť.
+  const supabase = await createClient();
+  const { data: zobrazenaZeme } = await supabase
+    .from("countries")
+    .select("name")
+    .eq("id", activeCountryId)
+    .maybeSingle();
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -64,9 +75,16 @@ export default async function ModuleDetailPage({
       </div>
 
       <p className="mb-1 text-sm text-ink/50">{module.category ?? t.noCategory}</p>
-      <h1 className="mb-6 font-heading text-3xl font-bold text-ink">
-        {moduleName(module, t)}
-      </h1>
+      <ModuleTitle
+        title={moduleName(module, t)}
+        standardName={moduleName({ ...module, local_name: null }, t)}
+        localName={module.local_name ?? null}
+        countryId={activeCountryId}
+        countryName={zobrazenaZeme?.name ?? ""}
+        moduleId={moduleId}
+        canRename={canWriteForCountry(user, activeCountryId)}
+        t={t}
+      />
 
       {/* Metodika a prezentace jako záložky – každá má svou řadu verzí. */}
       <div role="tablist" className="mb-6 flex gap-6 border-b border-haze">
