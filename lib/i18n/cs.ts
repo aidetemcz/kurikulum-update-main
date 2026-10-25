@@ -331,6 +331,8 @@ export const cs = {
 
   mailNotConfigured:
     "Odesílání e-mailů není nastavené — ve Vercelu chybí proměnné SMTP_USER / SMTP_PASSWORD. Appka běží dál, jen notifikace neodcházejí.",
+  aiNotConfigured:
+    "AI překlady a návrhy nejsou zapnuté — ve Vercelu chybí proměnná ANTHROPIC_API_KEY. Appka běží dál, jen se poznámky nepřekládají do jiných jazyků.",
   schemaOutdated: "Databáze není aktuální, chybí migrace {files}. Spusť je v Supabase (SQL Editor).",
   allModules: "Všechny metodiky",
   hideAllModules: "Skrýt ostatní metodiky",

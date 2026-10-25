@@ -314,6 +314,8 @@ export const en: Dictionary = {
 
   mailNotConfigured:
     "Email sending is not configured — SMTP_USER / SMTP_PASSWORD are missing in Vercel. The app keeps working, notifications just don't go out.",
+  aiNotConfigured:
+    "AI translations and suggestions are off — the ANTHROPIC_API_KEY variable is missing in Vercel. The app still works, notes just aren't translated into other languages.",
   schemaOutdated: "The database is out of date, migrations {files} are missing. Run them in Supabase (SQL Editor).",
   allModules: "All teaching materials",
   hideAllModules: "Hide the other teaching materials",

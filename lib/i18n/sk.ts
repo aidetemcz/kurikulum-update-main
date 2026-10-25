@@ -314,6 +314,8 @@ export const sk: Dictionary = {
 
   mailNotConfigured:
     "Odosielanie e-mailov nie je nastavené — vo Verceli chýbajú premenné SMTP_USER / SMTP_PASSWORD. Aplikácia beží ďalej, len notifikácie neodchádzajú.",
+  aiNotConfigured:
+    "AI preklady a návrhy nie sú zapnuté — vo Verceli chýba premenná ANTHROPIC_API_KEY. Appka beží ďalej, len sa poznámky neprekladajú do iných jazykov.",
   schemaOutdated: "Databáza nie je aktuálna, chýbajú migrácie {files}. Spusti ich v Supabase (SQL Editor).",
   allModules: "Všetky metodiky",
   hideAllModules: "Skryť ostatné metodiky",

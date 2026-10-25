@@ -316,6 +316,8 @@ export const hu: Dictionary = {
 
   mailNotConfigured:
     "Az e-mail-küldés nincs beállítva — az SMTP_USER / SMTP_PASSWORD hiányzik a Vercelben. Az alkalmazás működik tovább, csak az értesítések nem mennek ki.",
+  aiNotConfigured:
+    "Az MI-fordítás és -javaslatok ki vannak kapcsolva — a Vercelből hiányzik az ANTHROPIC_API_KEY változó. Az app működik, csak a megjegyzések nem fordítódnak le más nyelvekre.",
   schemaOutdated: "Az adatbázis nem naprakész, hiányoznak a következő migrációk: {files}. Futtasd őket a Supabase SQL Editorban.",
   allModules: "Összes módszertan",
   hideAllModules: "A többi módszertan elrejtése",
