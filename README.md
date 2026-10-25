@@ -60,8 +60,10 @@ supabase/migrations/0001_init.sql
 
 1. Jdi na [supabase.com](https://supabase.com) → New project (zdarma).
 2. Po vytvoření jdi do **SQL Editor** → New query, vlož celý obsah souboru
-   `supabase/migrations/0001_init.sql` a klikni **Run**. Tím se založí
-   všechny tabulky a pravidla.
+   `supabase/setup_all.sql` a klikni **Run**. Jsou v něm všechny migrace
+   `0001`–`0010` za sebou, takže se založí všechny tabulky a pravidla.
+   Když přibude nová migrace, pusť v SQL Editoru jen ji (a doplň ji i do
+   `setup_all.sql`).
 3. V **Authentication → Providers** zkontroluj, že je zapnuté přihlášení
    e-mailem (Email provider, "Enable email OTP / magic link" – bývá zapnuté
    ve výchozím nastavení).
