@@ -13,17 +13,17 @@ import { cache } from "react";
 // cache() zajistí, že se do Supabase (často přes oceán) jde jen jednou.
 export const getRealUser = cache(async (): Promise<AppUser | null> => {
   const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  // Ověření podpisem tokenu, bez cesty na přihlašovací server (viz middleware).
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
 
-  if (!authUser) return null;
+  if (!userId) return null;
 
   // Oba dotazy potřebují jen id, takže běží souběžně.
   // Uživatel může spravovat víc zemí (viz migrace 0008).
   const [{ data: appUser }, { data: countries }] = await Promise.all([
-    supabase.from("users").select("*").eq("id", authUser.id).single(),
-    supabase.from("user_countries").select("country_id").eq("user_id", authUser.id),
+    supabase.from("users").select("*").eq("id", userId).single(),
+    supabase.from("user_countries").select("country_id").eq("user_id", userId),
   ]);
 
   if (!appUser) return null;

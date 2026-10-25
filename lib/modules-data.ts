@@ -53,31 +53,28 @@ export async function getModulesForCountry(
 export async function getModuleDetail(moduleId: string, countryId: string) {
   const supabase = await createClient();
 
-  const { data: module } = await supabase
-    .from("modules")
-    .select("*")
-    .eq("id", moduleId)
-    .single();
-
-  const { data: versions } = await supabase
-    .from("document_versions")
-    .select("*, changes (*), users:uploaded_by (email)")
-    .eq("module_id", moduleId)
-    .eq("country_id", countryId)
-    .eq("status", "published")
-    .order("version_number", { ascending: false });
-
-  // Verze, u kterých má přihlášený uživatel nepřečtenou notifikaci, se
-  // v záložkách označí tečkou.
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
-  const { data: unread } = await supabase
-    .from("notifications")
-    .select("changes (document_version_id)")
-    .eq("user_id", authUser?.id ?? "")
-    .is("read_at", null);
+  // Dotazy na sobě nezávisí, takže běží souběžně – každý je cesta do
+  // databáze a zpátky.
+  const [{ data: module }, { data: versions }, { data: unread }, vlastniNazvy] = await Promise.all([
+    supabase.from("modules").select("*").eq("id", moduleId).single(),
+    supabase
+      .from("document_versions")
+      .select("*, changes (*), users:uploaded_by (email)")
+      .eq("module_id", moduleId)
+      .eq("country_id", countryId)
+      .eq("status", "published")
+      .order("version_number", { ascending: false }),
+    // Verze, u kterých má přihlášený uživatel nepřečtenou notifikaci, se
+    // v záložkách označí tečkou.
+    supabase.auth.getClaims().then(({ data }) =>
+      supabase
+        .from("notifications")
+        .select("changes (document_version_id)")
+        .eq("user_id", data?.claims?.sub ?? "")
+        .is("read_at", null)
+    ),
+    getLocalNames(countryId),
+  ]);
 
   const unreadVersionIds = new Set(
     (unread ?? []).flatMap((row) => {
@@ -110,8 +107,6 @@ export async function getModuleDetail(moduleId: string, countryId: string) {
       mark,
     ];
   }
-
-  const vlastniNazvy = await getLocalNames(countryId);
 
   // file_url je hotový odkaz na náhled souboru v Google Drive, takže se
   // používá rovnou tak, jak je uložený.

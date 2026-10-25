@@ -39,9 +39,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims ověří přihlášení podpisem tokenu přímo tady, bez cesty na
+  // přihlašovací server Supabase – ta by zdržela každé kliknutí. U starších
+  // projektů se symetrickým klíčem se sám vrátí ke getUser().
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims ?? null;
 
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth");

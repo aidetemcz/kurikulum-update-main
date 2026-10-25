@@ -29,10 +29,13 @@ export default async function DashboardPage({
   }
 
   const supabase = await createClient();
-  const [pending, dismissed, followed, { data: modules }] = await Promise.all([
+  // Všechno najednou: každý dotaz do databáze je cesta tam a zpátky.
+  const [pending, dismissed, followed, localNames, missing, { data: modules }] = await Promise.all([
     getChanges(activeCountryId, "pending"),
     getChanges(activeCountryId, "dismissed"),
     getFollowed(activeCountryId),
+    getLocalNames(activeCountryId),
+    user.role === "admin" ? missingMigrations() : Promise.resolve([]),
     supabase
       .from("modules")
       .select("*")
@@ -48,7 +51,7 @@ export default async function DashboardPage({
           se schovají spolu se vším ostatním. */}
       {user.role === "admin" && (
         <AdminNotices
-          missing={await missingMigrations()}
+          missing={missing}
           mailConfigured={mailConfigured()}
           t={t}
         />
@@ -86,7 +89,7 @@ export default async function DashboardPage({
         // Po uložení se stránka načte znovu; klíč založí výběr nanovo.
         key={`${activeCountryId}:${followed.chosen}:${[...followed.moduleIds].sort().join(",")}`}
         countryId={activeCountryId}
-        modules={withLocalNames(modules ?? [], await getLocalNames(activeCountryId))}
+        modules={withLocalNames(modules ?? [], localNames)}
         followedIds={[...followed.moduleIds]}
         chosen={followed.chosen}
         canEdit={canWriteForCountry(user, activeCountryId)}

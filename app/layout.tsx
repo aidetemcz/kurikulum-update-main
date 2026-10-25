@@ -54,25 +54,17 @@ export default async function RootLayout({
 
   // Zemi si resolveActiveCountry přečte z cookie – layout parametry
   // z adresy nedostává.
-  const { t } = await resolveActiveCountry(user);
-  const [notifications, supportUnread] = await Promise.all([
-    getNotificationsForCurrentUser(user.id),
-    getSupportUnread(user),
-  ]);
-
   // Pruh o náhledu. getCurrentUser v náhledu vrací editora, takže se
   // pozná podle cookie, ne podle role.
   const previewCountryId = await readPreviewCountry();
-  let previewCountryName: string | null = null;
-  if (previewCountryId) {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("countries")
-      .select("name")
-      .eq("id", previewCountryId)
-      .maybeSingle();
-    previewCountryName = data?.name ?? null;
-  }
+
+  // Dotazy na sobě nezávisí, takže běží souběžně.
+  const [{ t }, notifications, supportUnread, previewCountryName] = await Promise.all([
+    resolveActiveCountry(user),
+    getNotificationsForCurrentUser(user.id),
+    getSupportUnread(user),
+    previewCountryId ? loadCountryName(previewCountryId) : Promise.resolve(null),
+  ]);
 
   return (
     <html lang="cs">
@@ -91,4 +83,10 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
+
+async function loadCountryName(countryId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("countries").select("name").eq("id", countryId).maybeSingle();
+  return data?.name ?? null;
 }
