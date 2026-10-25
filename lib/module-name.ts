@@ -1,16 +1,22 @@
 import type { Dictionary } from "@/lib/i18n";
 
 /** Metodika tak, jak stačí k vypsání jejího názvu. */
-export type NamedModule = { name: string; name_en?: string | null };
+export type NamedModule = {
+  name: string;
+  name_en?: string | null;
+  /** Názvy v dalších jazycích, např. {"sk": "...", "hu": "..."}. */
+  name_translations?: Record<string, string> | null;
+};
 
-// Název metodiky pro zobrazení.
+// Název metodiky pro zobrazení v jazyce rozhraní.
 //
-// V anglickém rozhraní se použije přesný anglický název z webu, pokud ho
-// metodika má. Když ho nemá, ukáže se původní český název — nikdy se
-// nepřekládá automaticky a appka si vlastní znění nevymýšlí.
+// Angličtina bere přesný název z anglického webu (name_en), slovenština
+// a maďarština názvy z name_translations. Když překlad chybí, ukáže se
+// původní český název.
 export function moduleName(module: NamedModule, t: Dictionary): string {
-  if (t.locale !== "en") return module.name;
+  if (t.locale === "cs") return module.name;
 
-  const anglicky = module.name_en?.trim();
-  return anglicky ? anglicky : module.name;
+  const preklad =
+    t.locale === "en" ? module.name_en : module.name_translations?.[t.locale];
+  return preklad?.trim() ? preklad.trim() : module.name;
 }

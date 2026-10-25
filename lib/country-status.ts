@@ -26,10 +26,16 @@ type StatusRow = {
       version_number: number | null;
       published_at: string | null;
       users: { email: string } | { email: string }[] | null;
-      modules: { name: string } | { name: string }[] | null;
+      modules: ModuleNames | ModuleNames[] | null;
       countries: { name: string } | { name: string }[] | null;
     } | null;
   } | null;
+};
+
+type ModuleNames = {
+  name: string;
+  name_en: string | null;
+  name_translations: Record<string, string> | null;
 };
 
 function one<T>(value: T | T[] | null): T | null {
@@ -56,7 +62,7 @@ export async function getChanges(
          document_versions (
            module_id, kind, version_number, published_at,
            users:uploaded_by (email),
-           modules (name),
+           modules (*),
            countries (name)
          )
        )`
@@ -86,6 +92,11 @@ export async function getChanges(
         translationFailed: annotation.translation_failed ?? false,
         moduleId: version.module_id,
         moduleName: one(version.modules)?.name ?? "",
+        moduleNames: {
+          name: one(version.modules)?.name ?? "",
+          name_en: one(version.modules)?.name_en ?? null,
+          name_translations: one(version.modules)?.name_translations ?? null,
+        },
         fromCountryName: one(version.countries)?.name ?? "",
         uploadedByEmail: one(version.users)?.email ?? null,
         versionNumber: version.version_number,

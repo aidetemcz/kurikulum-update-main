@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { dismissChange, restoreChange } from "@/app/changes/actions";
 import { categoryLabels } from "@/lib/annotations";
+import { moduleName } from "@/lib/module-name";
 import { fill } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -253,7 +254,7 @@ function ChangeCard({
       } ${focus ? "border-coral ring-2 ring-coral/30" : "border-haze"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="min-w-0 break-words font-heading text-base font-bold text-ink">{item.moduleName}</h3>
+        <h3 className="min-w-0 break-words font-heading text-base font-bold text-ink">{moduleName(item.moduleNames, t)}</h3>
         {item.kind === "presentation" && (
           <span className="badge-pill bg-coral text-white">{t.kindPresentation}</span>
         )}
@@ -326,7 +327,7 @@ function ChangeCard({
         onConfirm={onDismiss}
         onCancel={onCancelDismiss}
       >
-        <p className="font-heading text-base font-bold text-ink">{item.moduleName}</p>
+        <p className="font-heading text-base font-bold text-ink">{moduleName(item.moduleNames, t)}</p>
         <p className="mt-0.5 text-xs text-ink/50">
           {fill(t.fromCountryVersion, {
             country: item.fromCountryName,

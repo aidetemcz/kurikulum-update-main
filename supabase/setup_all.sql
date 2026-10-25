@@ -1,4 +1,4 @@
--- Celá databáze appky najednou: migrace 0001–0013 za sebou.
+-- Celá databáze appky najednou: migrace 0001–0014 za sebou.
 -- Vlož do Supabase → SQL Editor → New query a klikni na Run.
 -- Je určená pro prázdný projekt. Kde už migrace běžely, pouštěj jen ty chybějící.
 
@@ -957,6 +957,17 @@ create policy "do vlakna pise majitel nebo admin" on support_messages
   );
 
 grant select, insert on support_messages to authenticated;
+-- ====================================================================
+-- 0014_module_name_translations.sql
+-- ====================================================================
+-- Názvy metodik ve slovenštině a maďarštině (angličtina má vlastní name_en).
+-- Spustit v Supabase: SQL Editor -> New query -> vlož celý soubor -> Run
+
+-- Všechny země vidí celý katalog. Aby mu rozuměly, má každá metodika
+-- název i v jejich jazyce: {"sk": "...", "hu": "..."}. Import z českého
+-- webu tenhle sloupec nepřepisuje.
+alter table modules
+  add column if not exists name_translations jsonb not null default '{}'::jsonb;
 
 -- ====================================================================
 -- Doplnit řádky pro účty, které se přihlásily dřív, než tabulka users

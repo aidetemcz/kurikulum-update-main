@@ -33,6 +33,9 @@ export function ModulesCatalog({
           (module) =>
             matchKey(module.name).includes(klic) ||
             matchKey(module.name_en ?? "").includes(klic) ||
+            Object.values(module.name_translations ?? {}).some((nazev) =>
+              matchKey(nazev).includes(klic)
+            ) ||
             matchKey(module.category ?? "").includes(klic)
         )
       : modules;
