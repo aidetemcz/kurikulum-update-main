@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser, canUpload, writableCountries } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { createClient } from "@/lib/supabase/server";
+import { toDocumentKind } from "@/lib/types";
 import {
   UploadWorkspace,
   type ExistingDraft,
@@ -38,20 +39,25 @@ export default async function UploadPage({
   // na co se navazuje a jaké číslo nová verze dostane.
   const { data: versions } = await supabase
     .from("document_versions")
-    .select("module_id, country_id, version_number, uploaded_at, users:uploaded_by (email)")
+    .select("module_id, country_id, kind, version_number, uploaded_at, users:uploaded_by (email)")
     .eq("status", "published")
     .order("version_number", { ascending: false });
 
   const latestVersions: LatestVersion[] = [];
   for (const version of versions ?? []) {
+    const kind = toDocumentKind(version.kind);
     const already = latestVersions.some(
-      (item) => item.module_id === version.module_id && item.country_id === version.country_id
+      (item) =>
+        item.module_id === version.module_id &&
+        item.country_id === version.country_id &&
+        item.kind === kind
     );
     if (already) continue;
     const uploader = Array.isArray(version.users) ? version.users[0] : version.users;
     latestVersions.push({
       module_id: version.module_id,
       country_id: version.country_id,
+      kind,
       version_number: version.version_number,
       uploaded_at: version.uploaded_at,
       uploaded_by_email: uploader?.email ?? null,
@@ -76,7 +82,7 @@ export default async function UploadPage({
   // Rozdělaná práce z minulé návštěvy.
   const { data: draft } = await supabase
     .from("document_versions")
-    .select("id, module_id, country_id, file_url, uploaded_at")
+    .select("id, module_id, country_id, kind, file_url, uploaded_at")
     .eq("uploaded_by", user.id)
     .eq("status", "draft")
     .order("uploaded_at", { ascending: false })
@@ -94,6 +100,7 @@ export default async function UploadPage({
       id: draft.id,
       module_id: draft.module_id,
       country_id: draft.country_id,
+      kind: toDocumentKind(draft.kind),
       file_url: draft.file_url,
       saved_at: draft.uploaded_at,
       marks: (annotations ?? []).map((annotation) => ({

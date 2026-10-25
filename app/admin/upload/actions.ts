@@ -10,7 +10,7 @@ import { sortMarks } from "@/lib/annotations";
 import { notifyCountryAboutChange, notifyPreviousAuthor } from "@/lib/notify";
 import { translateNotes } from "@/lib/translate";
 import { toLocale } from "@/lib/i18n";
-import type { Mark } from "@/lib/types";
+import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
 
 // Kolikrát zkusíme zveřejnění znovu, když nám někdo souběžně vezme číslo verze.
 const VERSION_ATTEMPTS = 5;
@@ -25,7 +25,8 @@ const VERSION_ATTEMPTS = 5;
 export async function ensureDraftVersion(
   moduleId: string,
   countryId: string,
-  driveLink: string
+  driveLink: string,
+  kind: DocumentKind = "methodology"
 ): Promise<{ draftId: string; savedAt: string } | { error: string }> {
   const user = await requireUser();
   const { t } = await resolveActiveCountry(user, countryId);
@@ -57,7 +58,12 @@ export async function ensureDraftVersion(
   if (existing) {
     const { data: updated, error } = await supabase
       .from("document_versions")
-      .update({ module_id: moduleId, country_id: countryId, file_url: fileUrl })
+      .update({
+        module_id: moduleId,
+        country_id: countryId,
+        kind: toDocumentKind(kind),
+        file_url: fileUrl,
+      })
       .eq("id", existing.id)
       .select("id")
       .maybeSingle();
@@ -73,6 +79,7 @@ export async function ensureDraftVersion(
     .insert({
       module_id: moduleId,
       country_id: countryId,
+      kind: toDocumentKind(kind),
       file_url: fileUrl,
       status: "draft",
       version_number: null,
@@ -182,7 +189,7 @@ export async function publishVersion(
 
   const { data: draft } = await supabase
     .from("document_versions")
-    .select("id, module_id, country_id")
+    .select("id, module_id, country_id, kind")
     .eq("id", draftId)
     .eq("status", "draft")
     .maybeSingle();
@@ -196,6 +203,7 @@ export async function publishVersion(
   }
 
   const { module_id: moduleId, country_id: countryId } = draft;
+  const kind = toDocumentKind(draft.kind);
 
   const { data: marks } = await supabase
     .from("annotations")
@@ -217,6 +225,7 @@ export async function publishVersion(
       .select("version_number, uploaded_at, uploaded_by")
       .eq("module_id", moduleId)
       .eq("country_id", countryId)
+      .eq("kind", kind)
       .eq("status", "published")
       .order("version_number", { ascending: false })
       .limit(1)
@@ -334,6 +343,7 @@ export async function publishVersion(
     uploaderId: user.id,
     countryName: countryData?.name ?? "",
     moduleName: moduleData?.name ?? "",
+    kind,
     versionNumber: published.version_number,
     uploadedAt: published.uploaded_at,
     summary,
@@ -345,6 +355,7 @@ export async function publishVersion(
       changeId: change.id,
       authorId: previous.uploaded_by,
       moduleName: moduleData?.name ?? "",
+      kind,
       theirVersion: previous.version_number,
       newVersion: published.version_number,
     });

@@ -2,6 +2,7 @@
 // běžné e-mailové schránky (např. Gmail / Google Workspace s heslem pro
 // aplikace). Stejnou schránku používá i Supabase pro přihlašovací odkazy.
 import nodemailer from "nodemailer";
+import type { DocumentKind } from "@/lib/types";
 
 // Firemní barvy AI for children. V e-mailu se styly píšou rovnou k prvkům,
 // poštovní klienti společný stylopis většinou zahodí.
@@ -61,22 +62,25 @@ export type SendResult =
 export async function sendChangeNotificationEmail(params: {
   to: string;
   moduleName: string;
+  kind?: DocumentKind;
   versionNumber: number;
   uploadedAt: string;
   summary: string;
   notes: string[];
   countryName: string;
 }): Promise<SendResult> {
-  const { to, moduleName, versionNumber, uploadedAt, summary, notes, countryName } = params;
+  const { to, moduleName, kind, versionNumber, uploadedAt, summary, notes, countryName } = params;
+  const coJe = kind === "presentation" ? "prezentace" : "metodiky";
+  const lekce = kind === "presentation" ? `${moduleName} (prezentace)` : moduleName;
   const url = siteUrl();
 
   if (!mailConfigured()) return { sent: false, notConfigured: true };
 
   return send({
     to,
-    subject: `Nová verze metodiky: ${moduleName} (${countryName})`,
+    subject: `Nová verze ${coJe}: ${moduleName} (${countryName})`,
     text:
-      `Modul "${moduleName}" má novou verzi (v${versionNumber}, ${formatUtc(uploadedAt)}).\n\n` +
+      `Modul "${lekce}" má novou verzi (v${versionNumber}, ${formatUtc(uploadedAt)}).\n\n` +
       (summary ? `Co se změnilo:\n${summary}\n\n` : "") +
       (notes.length
         ? `Označená místa v dokumentu:\n${notes
@@ -86,7 +90,7 @@ export async function sendChangeNotificationEmail(params: {
       `Otevřít appku: ${url}`,
     html: emailLayout(
       `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
-        `Modul <strong>${escapeHtml(moduleName)}</strong> má novou verzi ` +
+        `Modul <strong>${escapeHtml(lekce)}</strong> má novou verzi ` +
         `(v${versionNumber}, ${escapeHtml(formatUtc(uploadedAt))}).</p>` +
         (summary
           ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:${TMAVA}">Co se změnilo</p>` +
@@ -106,17 +110,21 @@ export async function sendChangeNotificationEmail(params: {
 export async function sendNewerVersionEmail(params: {
   to: string;
   moduleName: string;
+  kind?: DocumentKind;
   theirVersion: number;
   newVersion: number;
 }): Promise<SendResult> {
-  const { to, moduleName, theirVersion, newVersion } = params;
+  const { to, kind, theirVersion, newVersion } = params;
+  const coJe = kind === "presentation" ? "prezentace" : "metodiky";
+  const moduleName =
+    kind === "presentation" ? `${params.moduleName} (prezentace)` : params.moduleName;
   const url = siteUrl();
 
   if (!mailConfigured()) return { sent: false, notConfigured: true };
 
   return send({
     to,
-    subject: `K tvé verzi metodiky přibyla novější: ${moduleName}`,
+    subject: `K tvé verzi ${coJe} přibyla novější: ${params.moduleName}`,
     text:
       `K tvé verzi v${theirVersion} modulu "${moduleName}" přibyla novější verze v${newVersion}.\n\n` +
       `Otevřít appku: ${url}`,

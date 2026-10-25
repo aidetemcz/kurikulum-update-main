@@ -11,6 +11,8 @@ export function ModuleCard({
   countryId,
   light,
   lightTitle,
+  presentationLight,
+  presentationLightTitle,
   t,
 }: {
   module: ModuleWithLatestVersion;
@@ -18,9 +20,13 @@ export function ModuleCard({
   /** Semafor rozpracovanosti pro tuhle metodiku a zobrazenou zemi. */
   light: CountryLight;
   lightTitle: string;
+  /** Semafor prezentace k téže lekci – svítí zvlášť. */
+  presentationLight: CountryLight;
+  presentationLightTitle: string;
   t: Dictionary;
 }) {
   const latest = module.latest_version;
+  const presentation = module.latest_presentation;
 
   const telo = (
     <>
@@ -86,6 +92,33 @@ export function ModuleCard({
       ) : (
         <div className="flex flex-1 flex-col gap-3">{telo}</div>
       )}
+
+      {/* Prezentace k lekci: vlastní verze i vlastní semafor. Stojí mimo
+          odkaz karty, protože vede jinam (na záložku prezentace). */}
+      <div className="dashed-divider flex items-center justify-between gap-2 pt-2 text-sm">
+        {presentation ? (
+          <Link
+            href={`/modules/${module.id}?country=${countryId}&kind=presentation`}
+            className="flex min-w-0 flex-1 flex-col text-ink/60 hover:text-coral"
+          >
+            <span className="font-medium text-ink">
+              {t.kindPresentation} · v{presentation.version_number}
+            </span>
+            <span className="text-xs text-ink/40">
+              {t.uploaded}{" "}
+              <LocalDateTime value={presentation.uploaded_at} locale={t.dateLocale} />
+            </span>
+          </Link>
+        ) : (
+          <span className="text-ink/40">{t.noPresentationYet}</span>
+        )}
+        <ModuleLightDot
+          moduleId={module.id}
+          countryId={countryId}
+          light={presentationLight}
+          label={presentationLightTitle}
+        />
+      </div>
     </div>
   );
 }

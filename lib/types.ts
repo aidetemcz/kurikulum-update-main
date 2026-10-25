@@ -38,10 +38,25 @@ export type Module = {
   created_at: string;
 };
 
+/** Co verze obsahuje: metodiku lekce, nebo prezentaci k ní. Verzují se zvlášť. */
+export type DocumentKind = "methodology" | "presentation";
+
+export const DOCUMENT_KINDS: DocumentKind[] = ["methodology", "presentation"];
+
+export function toDocumentKind(value: unknown): DocumentKind {
+  return value === "presentation" ? "presentation" : "methodology";
+}
+
+/** Klíč do mapy semaforů: metodika a prezentace téže lekce svítí zvlášť. */
+export function lightKey(moduleId: string, kind: DocumentKind): string {
+  return `${moduleId}:${kind}`;
+}
+
 export type DocumentVersion = {
   id: string;
   module_id: string;
   country_id: string;
+  kind: DocumentKind;
   file_url: string;
   version_number: number;
   uploaded_at: string;
@@ -68,6 +83,9 @@ export type Notification = {
 export type ModuleWithLatestVersion = Module & {
   latest_version: (DocumentVersion & { changes: Change[] }) | null;
   version_count: number;
+  /** Nejnovější prezentace k lekci; verzuje se nezávisle na metodice. */
+  latest_presentation: (DocumentVersion & { changes: Change[] }) | null;
+  presentation_count: number;
 };
 
 export type Annotation = {
@@ -129,6 +147,8 @@ export type PendingChange = {
   page: number;
   note: string;
   category: string | null;
+  /** Jde o změnu v metodice, nebo v prezentaci. */
+  kind: DocumentKind;
   /** Text z PDF pod značkou v jazyce originálu a jeho překlady. */
   quote: string | null;
   quoteTranslations: Record<string, string>;

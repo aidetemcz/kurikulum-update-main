@@ -16,12 +16,13 @@ import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill, formatDateTime } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import type { Country, Mark, Module } from "@/lib/types";
+import { DOCUMENT_KINDS, type Country, type DocumentKind, type Mark, type Module } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
 export type LatestVersion = {
   module_id: string;
   country_id: string;
+  kind: DocumentKind;
   version_number: number;
   uploaded_at: string;
   uploaded_by_email: string | null;
@@ -32,6 +33,7 @@ export type ExistingDraft = {
   id: string;
   module_id: string;
   country_id: string;
+  kind: DocumentKind;
   file_url: string;
   saved_at: string;
   marks: Mark[];
@@ -67,6 +69,8 @@ export function UploadWorkspace({
   // Záměrně prázdné: metodiku buď rozpozná appka, nebo ji vybere uživatel.
   const [moduleId, setModuleId] = useState("");
   const [countryId, setCountryId] = useState(defaultCountryId ?? "");
+  // Metodika, nebo prezentace k lekci – verzují se každá zvlášť.
+  const [kind, setKind] = useState<DocumentKind>("methodology");
   const [driveLink, setDriveLink] = useState("");
   const [linkForPreview, setLinkForPreview] = useState("");
   const [marks, setMarks] = useState<Mark[]>([]);
@@ -89,6 +93,7 @@ export function UploadWorkspace({
     moduleTouched.current = true;
     setModuleId(draft.module_id);
     setCountryId(draft.country_id);
+    setKind(draft.kind);
     setDriveLink(draft.file_url);
     setLinkForPreview(draft.file_url);
     setMarks(draft.marks);
@@ -150,7 +155,7 @@ export function UploadWorkspace({
     let cancelled = false;
 
     (async () => {
-      const result = await ensureDraftVersion(moduleId, countryId, linkForPreview);
+      const result = await ensureDraftVersion(moduleId, countryId, linkForPreview, kind);
       if (cancelled) return;
       if ("error" in result) setSaveState((s) => ({ ...s, error: result.error }));
       else setDraftId(result.draftId);
@@ -159,7 +164,7 @@ export function UploadWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [fileId, moduleId, countryId, linkForPreview, draftChoice]);
+  }, [fileId, moduleId, countryId, linkForPreview, draftChoice, kind]);
 
   // Průběžné ukládání značek. Posun a zvětšování vyvolá spoustu změn za sebou,
   // proto se ukládá až chvíli po té poslední.
@@ -185,7 +190,8 @@ export function UploadWorkspace({
   }, [marks, draftId]);
 
   const latest = latestVersions.find(
-    (version) => version.module_id === moduleId && version.country_id === countryId
+    (version) =>
+      version.module_id === moduleId && version.country_id === countryId && version.kind === kind
   );
   const countryName = countries.find((country) => country.id === countryId)?.name ?? "";
   const canPublish = Boolean(draftId) && (marks.length > 0 || summary.trim().length > 0);
@@ -257,6 +263,27 @@ export function UploadWorkspace({
         t={t}
         formColumn={
           <div className="flex flex-col gap-4">
+            {/* Schválně ne <Field> – stejně jako u výběru země níž. */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-ink">{t.kindQuestion}</span>
+              <div role="group" aria-label={t.kindQuestion} className="flex flex-wrap gap-2">
+                {DOCUMENT_KINDS.map((druh) => (
+                  <button
+                    key={druh}
+                    type="button"
+                    onClick={() => setKind(druh)}
+                    aria-pressed={druh === kind}
+                    className={`badge-pill ${druh === kind ? "bg-coral text-white" : "hover:bg-mist/50"}`}
+                  >
+                    {druh === "presentation" ? t.kindPresentation : t.kindMethodology}
+                  </button>
+                ))}
+              </div>
+              {kind === "presentation" && (
+                <span className="text-xs text-ink/50">{t.kindHint}</span>
+              )}
+            </div>
+
             <Field label={t.module}>
               <ModulePicker
                 modules={modules}
@@ -278,8 +305,9 @@ export function UploadWorkspace({
               // obalující skupinu tlačítek se plete do jejich názvu
               // pro odečítače obrazovky („Země Velká Británie").
               <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-ink">{t.country}</span>
-                <div role="group" aria-label={t.country} className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-ink">{t.uploadForWhichCountry}</span>
+                <span className="text-xs text-ink/50">{t.uploadForWhichCountryHint}</span>
+                <div role="group" aria-label={t.uploadForWhichCountry} className="flex flex-wrap gap-2">
                   {countries.map((country) => (
                     <button
                       key={country.id}

@@ -254,6 +254,9 @@ function ChangeCard({
     >
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="min-w-0 break-words font-heading text-base font-bold text-ink">{item.moduleName}</h3>
+        {item.kind === "presentation" && (
+          <span className="badge-pill bg-coral text-white">{t.kindPresentation}</span>
+        )}
         <span className={`badge-pill ${label ? "" : "text-ink/40"}`}>
           {label ?? t.noCategory2}
         </span>

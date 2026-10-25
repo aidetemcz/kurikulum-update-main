@@ -3,6 +3,7 @@
 // (viz app/admin/upload/actions.ts).
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendChangeNotificationEmail, sendNewerVersionEmail } from "@/lib/mail";
+import type { DocumentKind } from "@/lib/types";
 
 export async function notifyCountryAboutChange(params: {
   changeId: string;
@@ -12,6 +13,8 @@ export async function notifyCountryAboutChange(params: {
   uploaderId: string;
   countryName: string;
   moduleName: string;
+  /** Metodika, nebo prezentace – podle toho se jmenuje e-mail. */
+  kind?: DocumentKind;
   versionNumber: number;
   uploadedAt: string;
   /** Celkové shrnutí, pokud ho editor napsal. */
@@ -19,7 +22,7 @@ export async function notifyCountryAboutChange(params: {
   /** Popisy jednotlivých označených míst v pořadí čtení. */
   notes: string[];
 }) {
-  const { changeId, recipientCountryIds, uploaderId, countryName, moduleName, versionNumber, uploadedAt, summary, notes } = params;
+  const { changeId, recipientCountryIds, uploaderId, countryName, moduleName, kind, versionNumber, uploadedAt, summary, notes } = params;
   const supabase = createAdminClient();
 
   if (recipientCountryIds.length === 0) return;
@@ -56,6 +59,7 @@ export async function notifyCountryAboutChange(params: {
       const odeslani = await sendChangeNotificationEmail({
         to: recipient.email,
         moduleName,
+        kind,
         versionNumber,
         uploadedAt,
         summary,
@@ -88,10 +92,11 @@ export async function notifyPreviousAuthor(params: {
   changeId: string;
   authorId: string;
   moduleName: string;
+  kind?: DocumentKind;
   theirVersion: number;
   newVersion: number;
 }) {
-  const { changeId, authorId, moduleName, theirVersion, newVersion } = params;
+  const { changeId, authorId, moduleName, kind, theirVersion, newVersion } = params;
   const supabase = createAdminClient();
 
   const { data: author } = await supabase
@@ -118,6 +123,7 @@ export async function notifyPreviousAuthor(params: {
     const odeslani = await sendNewerVersionEmail({
       to: author.email,
       moduleName,
+      kind,
       theirVersion,
       newVersion,
     });

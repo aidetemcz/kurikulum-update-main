@@ -37,7 +37,7 @@ export default async function ChangeDetailPage({
          id, page,
          document_version_id,
          document_versions (
-           id, file_url, version_number,
+           id, file_url, version_number, kind,
            modules (name),
            countries (name)
          )
@@ -55,6 +55,7 @@ export default async function ChangeDetailPage({
         id: string;
         file_url: string;
         version_number: number | null;
+        kind: string | null;
         modules: Nested<{ name: string }>;
         countries: Nested<{ name: string }>;
       }>;
@@ -98,6 +99,9 @@ export default async function ChangeDetailPage({
 
       <h1 className="font-heading text-3xl font-bold text-ink">
         {one(version.modules)?.name ?? ""}
+        {version.kind === "presentation" && (
+          <span className="badge-pill ml-3 align-middle bg-coral text-white">{t.kindPresentation}</span>
+        )}
       </h1>
       <p className="mb-6 mt-1 text-sm text-ink/50">
         {fill(t.fromCountryVersion, {

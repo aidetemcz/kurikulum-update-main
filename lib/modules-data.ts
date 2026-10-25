@@ -1,7 +1,7 @@
 // Načtení modulů pro danou zemi včetně nejnovější verze a jejích poznámek,
 // pro zobrazení v mřížce karet na hlavní stránce.
 import { createClient } from "@/lib/supabase/server";
-import type { Mark, ModuleWithLatestVersion } from "@/lib/types";
+import { toDocumentKind, type Change, type Mark, type ModuleWithLatestVersion } from "@/lib/types";
 
 export async function getModulesForCountry(
   countryId: string
@@ -25,16 +25,23 @@ export async function getModulesForCountry(
     .eq("status", "published")
     .order("version_number", { ascending: false });
 
+  const sChangesOdNejnovejsi = <T extends { changes: Change[] }>(version: T | undefined) =>
+    version
+      ? { ...version, changes: [...version.changes].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)) }
+      : null;
+
   return modules.map((module) => {
     const moduleVersions = (versions ?? []).filter((v) => v.module_id === module.id);
-    const latest = moduleVersions[0] ?? null;
+    // Starší verze bez sloupce kind (před migrací 0012) jsou metodiky.
+    const metodiky = moduleVersions.filter((v) => toDocumentKind(v.kind) === "methodology");
+    const prezentace = moduleVersions.filter((v) => toDocumentKind(v.kind) === "presentation");
 
     return {
       ...module,
-      latest_version: latest
-        ? { ...latest, changes: [...latest.changes].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)) }
-        : null,
-      version_count: moduleVersions.length,
+      latest_version: sChangesOdNejnovejsi(metodiky[0]),
+      version_count: metodiky.length,
+      latest_presentation: sChangesOdNejnovejsi(prezentace[0]),
+      presentation_count: prezentace.length,
     };
   });
 }
@@ -108,6 +115,7 @@ export async function getModuleDetail(moduleId: string, countryId: string) {
       const uploader = Array.isArray(v.users) ? v.users[0] : v.users;
       return {
         ...v,
+        kind: toDocumentKind(v.kind),
         changes: [...v.changes].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
         uploaded_by_email: uploader?.email ?? null,
         unread: unreadVersionIds.has(v.id),

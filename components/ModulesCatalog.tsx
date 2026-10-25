@@ -5,7 +5,7 @@ import { SECTION_ORDER } from "@/lib/catalog";
 import { matchKey } from "@/lib/match-module";
 import { ModuleCard } from "@/components/ModuleCard";
 import { StatusDot } from "@/components/StatusDot";
-import type { CountryLight, ModuleWithLatestVersion } from "@/lib/types";
+import { lightKey, type CountryLight, type ModuleWithLatestVersion } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
 // Celý katalog metodik rozdělený po sekcích z kurikulum.aidetem.cz.
@@ -18,7 +18,7 @@ export function ModulesCatalog({
   t,
 }: {
   modules: ModuleWithLatestVersion[];
-  /** Stav každé metodiky pro právě zobrazenou zemi. */
+  /** Stav metodiky i prezentace každé lekce pro zobrazenou zemi (klíč z lightKey). */
   lights: Record<string, CountryLight>;
   countryId: string;
   t: Dictionary;
@@ -89,7 +89,9 @@ export function ModulesCatalog({
 
               <div className="mt-4 grid grid-cols-1 gap-5 nav:grid-cols-2 min-[1400px]:grid-cols-3">
                 {seznam.map((module) => {
-                  const light = lights[module.id] ?? "none";
+                  const light = lights[lightKey(module.id, "methodology")] ?? "none";
+                  const presentationLight =
+                    lights[lightKey(module.id, "presentation")] ?? "none";
                   return (
                     <ModuleCard
                       key={module.id}
@@ -97,6 +99,8 @@ export function ModulesCatalog({
                       countryId={countryId}
                       light={light}
                       lightTitle={lightLabelFor(light, t)}
+                      presentationLight={presentationLight}
+                      presentationLightTitle={lightLabelFor(presentationLight, t)}
                       t={t}
                     />
                   );

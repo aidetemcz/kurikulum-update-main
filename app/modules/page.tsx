@@ -5,7 +5,7 @@ import { getLightsForCountry } from "@/lib/country-status";
 import { ModulesCatalog } from "@/components/ModulesCatalog";
 import { CountrySwitcher } from "@/components/CountrySwitcher";
 import { NoCountryNotice } from "@/components/NoCountryNotice";
-import type { CountryLight } from "@/lib/types";
+import { lightKey, type CountryLight } from "@/lib/types";
 
 // Katalog všech metodik pro vybranou zemi – včetně těch, ke kterým zatím
 // nikdo nic nenahrál.
@@ -29,9 +29,13 @@ export default async function ModulesPage({
 
   // Semafor v databázi zná jen to, co čeká na vyřízení; zbytek se pozná
   // podle toho, jestli země vůbec má nahranou verzi.
+  // Metodika i prezentace mají každá svůj semafor (klíč dává lightKey).
   const stavy: Record<string, CountryLight> = {};
   for (const module of modules) {
-    stavy[module.id] = lights[module.id] ?? (module.latest_version ? "green" : "none");
+    const metodika = lightKey(module.id, "methodology");
+    const prezentace = lightKey(module.id, "presentation");
+    stavy[metodika] = lights[metodika] ?? (module.latest_version ? "green" : "none");
+    stavy[prezentace] = lights[prezentace] ?? (module.latest_presentation ? "green" : "none");
   }
 
   return (

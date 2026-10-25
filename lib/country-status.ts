@@ -3,7 +3,7 @@
 // Barva semaforu se nikam neukládá – počítá ji pohled module_country_light
 // v databázi z data nejstarší nevyřešené změny (viz 0004_country_status.sql).
 import { createClient } from "@/lib/supabase/server";
-import type { CountryLight, PendingChange } from "@/lib/types";
+import { lightKey, toDocumentKind, type CountryLight, type PendingChange } from "@/lib/types";
 
 // Tvar, v jakém řádky vrací PostgREST (vnořené tabulky jako objekt nebo pole).
 type StatusRow = {
@@ -22,6 +22,7 @@ type StatusRow = {
     quote_translations: Record<string, string> | null;
     document_versions: {
       module_id: string;
+      kind: string | null;
       version_number: number | null;
       published_at: string | null;
       users: { email: string } | { email: string }[] | null;
@@ -53,7 +54,7 @@ export async function getChanges(
          id, page, note, category, source_locale, translations, translation_failed,
          quote, quote_translations,
          document_versions (
-           module_id, version_number, published_at,
+           module_id, kind, version_number, published_at,
            users:uploaded_by (email),
            modules (name),
            countries (name)
@@ -91,6 +92,7 @@ export async function getChanges(
         page: annotation.page,
         note: annotation.note,
         category: annotation.category,
+        kind: toDocumentKind(version.kind),
         quote: annotation.quote ?? null,
         quoteTranslations: annotation.quote_translations ?? {},
       },
@@ -98,9 +100,10 @@ export async function getChanges(
   });
 }
 
-type LightRow = { module_id: string; country_id: string; light: string };
+type LightRow = { module_id: string; kind: string | null; country_id: string; light: string };
 
-// Barva semaforu podle modulu pro jednu zemi. Co v mapě není, je zelené.
+// Barva semaforu podle lekce a druhu dokumentu pro jednu zemi. Klíč dává
+// lightKey(). Co v mapě není, je zelené.
 export async function getLightsForCountry(
   countryId: string
 ): Promise<Record<string, CountryLight>> {
@@ -108,12 +111,12 @@ export async function getLightsForCountry(
 
   const { data } = await supabase
     .from("module_country_light")
-    .select("module_id, country_id, light")
+    .select("module_id, kind, country_id, light")
     .eq("country_id", countryId);
 
   const lights: Record<string, CountryLight> = {};
   for (const row of (data ?? []) as LightRow[]) {
-    lights[row.module_id] = toLight(row.light);
+    lights[lightKey(row.module_id, toDocumentKind(row.kind))] = toLight(row.light);
   }
   return lights;
 }
@@ -124,11 +127,14 @@ export async function getLightMatrix(): Promise<Record<string, CountryLight>> {
 
   const { data } = await supabase
     .from("module_country_light")
-    .select("module_id, country_id, light");
+    .select("module_id, kind, country_id, light");
 
+  // Matice má jedno políčko za lekci, takže svítí horší z obou barev.
   const lights: Record<string, CountryLight> = {};
   for (const row of (data ?? []) as LightRow[]) {
-    lights[`${row.module_id}:${row.country_id}`] = toLight(row.light);
+    const key = `${row.module_id}:${row.country_id}`;
+    const light = toLight(row.light);
+    if (lights[key] !== "red") lights[key] = light;
   }
   return lights;
 }
