@@ -218,3 +218,15 @@ create policy "zmeny upravuje admin" on changes
   with check (public.is_admin());
 
 grant update on changes to authenticated;
+
+-- ---------------------------------------------------------------------
+-- A7. Notifikace s časem vzniku
+-- ---------------------------------------------------------------------
+-- Zvoneček řadil podle id, což je náhodné UUID – ukazoval tak náhodných
+-- dvacet notifikací. Stávající notifikace dostanou čas spuštění migrace.
+
+alter table notifications
+  add column if not exists created_at timestamptz not null default now();
+
+create index if not exists notifications_user_created_idx
+  on notifications (user_id, created_at desc);

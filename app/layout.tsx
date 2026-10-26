@@ -82,7 +82,13 @@ export default async function RootLayout({
           user={user}
           t={t}
           supportUnread={supportUnread}
-          bell={<NotificationBell initialNotifications={notifications} t={t} />}
+          bell={
+            <NotificationBell
+              initialNotifications={notifications.items}
+              initialUnread={notifications.unreadTotal}
+              t={t}
+            />
+          }
           banner={
             previewCountryName && <PreviewBanner countryName={previewCountryName} t={t} />
           }

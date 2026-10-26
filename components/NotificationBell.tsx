@@ -8,18 +8,24 @@ import type { Dictionary } from "@/lib/i18n";
 
 export function NotificationBell({
   initialNotifications,
+  initialUnread,
   t,
 }: {
   initialNotifications: NotificationWithDetails[];
+  /** Nepřečtené celkem, i ty starší, které se do seznamu nevešly. */
+  initialUnread: number;
   t: Dictionary;
 }) {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [open, setOpen] = useState(false);
+  // Kolik jich uživatel přečetl teď, bez nového načtení stránky.
+  const [prectenoTed, setPrectenoTed] = useState(0);
   const supabase = createClient();
 
-  const unreadCount = notifications.filter((n) => !n.read_at).length;
+  const unreadCount = Math.max(0, initialUnread - prectenoTed);
 
   async function markAsRead(id: string) {
+    if (notifications.some((n) => n.id === id && !n.read_at)) setPrectenoTed((pocet) => pocet + 1);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
     );
