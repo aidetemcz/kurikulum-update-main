@@ -114,7 +114,7 @@ export function VersionBrowser({
           </p>
           <p className="text-xs text-ink/50">
             <LocalDateTime value={versionDate(selected)} locale={t.dateLocale} /> ·{" "}
-            {fill(t.uploadedByWho, { who: selected.uploaded_by_email ?? "?" })} ·{" "}
+            {selected.uploaded_by_email && <>{selected.uploaded_by_email} · </>}
             {pluralCount(marks.length, t.markedChangesForms, t.dateLocale)}
           </p>
         </div>

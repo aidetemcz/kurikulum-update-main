@@ -1,3 +1,4 @@
+import { LightLegend } from "@/components/LightLegend";
 import { requireAdmin } from "@/lib/current-user";
 import { missingMigrations } from "@/lib/schema-check";
 import { mailConfigured } from "@/lib/mail";
@@ -66,7 +67,7 @@ export default async function AdminPage({
 
       <section>
         <h2 className="mb-1 font-heading text-xl font-bold text-ink">{t.readiness}</h2>
-        <p className="mb-3 text-xs text-ink/50">{t.readinessHint}</p>
+        <LightLegend t={t} className="mb-3" />
         <ReadinessMatrix
           modules={modules ?? []}
           countries={countries ?? []}

@@ -262,12 +262,5 @@ function toLight(value: string): CountryLight {
   return value === "red" || value === "yellow" ? value : "green";
 }
 
-export function lightLabel(
-  light: CountryLight,
-  t: { lightNone: string; lightOk: string; lightWaiting: string; lightAct: string }
-): string {
-  if (light === "red") return t.lightAct;
-  if (light === "yellow") return t.lightWaiting;
-  if (light === "none") return t.lightNone;
-  return t.lightOk;
-}
+// Krátký popisek stavu pro tečky (lhůty jsou jen v legendě, viz LightLegend).
+export { lightLabel } from "@/lib/light-label";

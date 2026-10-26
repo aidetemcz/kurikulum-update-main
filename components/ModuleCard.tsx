@@ -60,7 +60,7 @@ export function ModuleCard({
 
       {latest && (
         <p className="dashed-divider pt-2 text-xs text-ink/40">
-          {t.totalVersions}: {module.version_count}
+          {pluralCount(module.version_count, t.versionsCountForms, t.dateLocale)}
         </p>
       )}
     </>

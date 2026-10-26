@@ -270,9 +270,7 @@ export function FollowedModules({
                 </button>
               </div>
             </div>
-          ) : (
-            <p className="mt-6 text-xs text-ink/50">{t.followReadOnly}</p>
-          )}
+          ) : null}
         </div>
       )}
     </section>
@@ -287,10 +285,9 @@ export function FollowPrompt({ t }: { t: Dictionary }) {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral text-white">
           <BookmarkCheck size={20} />
         </span>
-        <div>
-          <p className="font-heading text-lg font-bold leading-tight text-ink">{t.followPromptTitle}</p>
-          <p className="mt-0.5 text-sm text-ink/60">{t.followPromptText}</p>
-        </div>
+        <p className="self-center font-heading text-lg font-bold leading-tight text-ink">
+          {t.followPromptTitle}
+        </p>
       </div>
       <a
         href={`#${FOLLOW_SECTION_ID}`}

@@ -52,7 +52,6 @@ export function UsersTable({
                   <option value="hu">hu</option>
                 </select>
                 <select name="role" defaultValue={u.role} className="input py-1">
-                  {u.role === "viewer" && <option value="viewer">{t.roleViewer}</option>}
                   <option value="editor">{t.roleEditor}</option>
                   <option value="admin">{t.roleAdmin}</option>
                 </select>

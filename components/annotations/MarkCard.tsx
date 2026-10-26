@@ -297,6 +297,7 @@ function MarkEditor({
             value={note}
             onChange={(event) => setNote(event.target.value)}
             rows={3}
+            placeholder={t.whatChangedPlaceholder}
             className="input mt-1.5 w-full"
           />
 

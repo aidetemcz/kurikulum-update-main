@@ -1,14 +1,13 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { dismissChange, restoreChange, type Resolution } from "@/app/changes/actions";
 import { categoryLabels } from "@/lib/annotations";
 import { moduleName } from "@/lib/module-name";
 import { fill } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 import type { PendingChange } from "@/lib/types";
 import type { Dictionary, Locale } from "@/lib/i18n";
 
@@ -46,7 +45,6 @@ export function ChangesFromOthers({
   const [zmeny, setZmeny] = useState<Record<string, Stav>>({});
   const [tab, setTab] = useState<"current" | "hidden">("current");
   const [hiddenOpen, setHiddenOpen] = useState(false);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [leavingId, setLeavingId] = useState<string | null>(null);
   // Lišta si drží jen id. Položku dohledáme až při kliknutí, ať se
   // nepracuje s obrázkem, který mezitím zestaral.
@@ -78,12 +76,10 @@ export function ChangesFromOthers({
     .filter((item) => stav(item) === "dismissed")
     .sort((a, b) => (b.dismissedAt ?? "").localeCompare(a.dismissedAt ?? ""));
 
-  const closeConfirm = useCallback(() => setConfirmingId(null), []);
 
   const toastTimer = useRef<number | null>(null);
 
   async function skryt(item: PendingChange, resolution: Resolution = "not_relevant") {
-    setConfirmingId(null);
     setError(null);
     setLeavingId(item.id);
 
@@ -139,12 +135,9 @@ export function ChangesFromOthers({
         resolution={duvody[item.id] ?? item.resolution}
         canResolve={canResolve}
         leaving={leavingId === item.id}
-        confirming={confirmingId === item.id}
         focus={focusModuleId === item.moduleId}
         locale={locale}
         t={t}
-        onAskDismiss={() => setConfirmingId(item.id)}
-        onCancelDismiss={closeConfirm}
         onDismiss={() => skryt(item)}
         onDone={() => skryt(item, "done")}
         onRestore={() => vratit(item.id)}
@@ -212,7 +205,6 @@ export function ChangesFromOthers({
           </button>
           {bezVerzeOpen && (
             <>
-              <p className="mt-1 text-xs text-ink/50">{t.changesForMissingHint}</p>
               <ul className="mt-4 grid grid-cols-1 gap-4 nav:grid-cols-2 min-[1400px]:grid-cols-3">
                 {karty(bezVerze)}
               </ul>
@@ -269,12 +261,9 @@ function ChangeCard({
   resolution,
   canResolve,
   leaving,
-  confirming,
   focus,
   locale,
   t,
-  onAskDismiss,
-  onCancelDismiss,
   onDismiss,
   onDone,
   onRestore,
@@ -284,13 +273,10 @@ function ChangeCard({
   resolution: Resolution | null;
   canResolve: boolean;
   leaving: boolean;
-  confirming: boolean;
   /** Na tuhle změnu se odrolovalo ze semaforu. */
   focus: boolean;
   locale: Locale;
   t: Dictionary;
-  onAskDismiss: () => void;
-  onCancelDismiss: () => void;
   onDismiss: () => void;
   onDone: () => void;
   onRestore: () => void;
@@ -384,7 +370,7 @@ function ChangeCard({
               {/* Samostatná akce, ne odeslání formuláře. */}
               <button
                 type="button"
-                onClick={onAskDismiss}
+                onClick={onDismiss}
                 className="rounded-xl px-3 py-1.5 text-sm text-ink/60 hover:bg-haze"
               >
                 {t.notRelevant}
@@ -393,27 +379,6 @@ function ChangeCard({
           )}
         </div>
       )}
-
-      <ConfirmDialog
-        open={confirming}
-        title={t.confirmHideTitle}
-        explanation={t.confirmHideExplain}
-        confirmLabel={t.confirmDismissYes}
-        cancelLabel={t.cancel}
-        closeLabel={t.close}
-        onConfirm={onDismiss}
-        onCancel={onCancelDismiss}
-      >
-        <p className="font-heading text-base font-bold text-ink">{moduleName(item.moduleNames, t)}</p>
-        <p className="mt-0.5 text-xs text-ink/50">
-          {fill(t.fromCountryVersion, {
-            country: item.fromCountryName,
-            version: item.versionLabel,
-          })}
-          {item.uploadedByEmail && ` · ${fill(t.uploadedByWho, { who: item.uploadedByEmail })}`}
-        </p>
-        <p className="mt-2 rounded-xl bg-haze/40 px-3 py-2 text-sm text-ink">{item.note}</p>
-      </ConfirmDialog>
     </li>
   );
 }

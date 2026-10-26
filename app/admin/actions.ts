@@ -268,7 +268,7 @@ export async function deleteModule(_prev: ActionState, formData: FormData): Prom
     .eq("module_id", id);
 
   if ((count ?? 0) > 0) {
-    return { error: "Metodika má nahrané verze, smazat nejde. Použij archivaci." };
+    return { error: "Metodika má nahrané verze, smazat nejde. Použijte archivaci." };
   }
 
   // .select() je tu schválně: bez něj by se o smazání nula řádků (třeba

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { SECTION_ORDER } from "@/lib/catalog";
 import { matchKey } from "@/lib/match-module";
 import { ModuleCard } from "@/components/ModuleCard";
-import { StatusDot } from "@/components/StatusDot";
+import { LightLegend } from "@/components/LightLegend";
+import { lightLabel } from "@/lib/light-label";
 import { lightKey, type CountryLight, type ModuleWithLatestVersion } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
@@ -79,7 +80,7 @@ export function ModulesCatalog({
         className="input w-full max-w-md"
       />
 
-      <Legenda t={t} />
+      <LightLegend t={t} className="mt-3" />
 
       {sekce.length === 0 ? (
         <p className="mt-6 text-sm text-ink/50">{t.nothingFound}</p>
@@ -105,9 +106,9 @@ export function ModulesCatalog({
                       module={module}
                       countryId={countryId}
                       light={light}
-                      lightTitle={lightLabelFor(light, t)}
+                      lightTitle={lightLabel(light, t)}
                       presentationLight={presentationLight}
-                      presentationLightTitle={lightLabelFor(presentationLight, t)}
+                      presentationLightTitle={lightLabel(presentationLight, t)}
                       available={available[lightKey(module.id, "teaching_material")] ?? 0}
                       presentationAvailable={available[lightKey(module.id, "presentation")] ?? 0}
                       t={t}
@@ -123,33 +124,6 @@ export function ModulesCatalog({
   );
 }
 
-function Legenda({ t }: { t: Dictionary }) {
-  const polozky: [CountryLight, string][] = [
-    ["none", t.lightNone],
-    ["green", t.lightOk],
-    ["yellow", t.lightWaiting],
-    ["red", t.lightAct],
-  ];
-
-  return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink/50">
-      <span>{t.legendTitle}:</span>
-      {polozky.map(([light, popis]) => (
-        <span key={light} className="flex items-center gap-1.5">
-          <StatusDot light={light} label={popis} size={8} />
-          {popis}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function lightLabelFor(light: CountryLight, t: Dictionary): string {
-  if (light === "red") return t.lightAct;
-  if (light === "yellow") return t.lightWaiting;
-  if (light === "none") return t.lightNone;
-  return t.lightOk;
-}
 
 function poradi(nazev: string, t: Dictionary): number {
   if (nazev === t.ungrouped) return SECTION_ORDER.length + 1;

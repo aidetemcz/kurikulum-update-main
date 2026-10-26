@@ -458,19 +458,6 @@ export function UploadWorkspace({
               </p>
             )}
 
-            {/* Info o předchozí verzi jen tehdy, když nějaká je. */}
-            {latest && (
-              <p className="rounded-xl bg-haze/40 p-3 text-xs text-ink/70">
-                {fill(t.existingVersionInfo, {
-                  country: countryName,
-                  version: versionLabel(latest),
-                  when: casMistne(latest.uploaded_at),
-                  who: latest.uploaded_by_email ?? "?",
-                  next: dalsiVerze,
-                })}
-              </p>
-            )}
-
           </div>
         }
         panelFooter={
@@ -481,7 +468,7 @@ export function UploadWorkspace({
                 rows={3}
                 value={summary}
                 onChange={(event) => setSummary(event.target.value)}
-                placeholder={t.whatChangedPlaceholder}
+                placeholder={t.optionalPlaceholder}
                 className="input"
               />
             </Field>
