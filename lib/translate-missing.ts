@@ -4,7 +4,7 @@
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { translateNotes } from "@/lib/translate";
-import { LOCALES, toLocale } from "@/lib/i18n";
+import { LOCALES, toLocale, type Locale } from "@/lib/i18n";
 
 // Jeden server se o dopřeklad pokusí nejvýš jednou za pět minut – ať se
 // při rozbitém klíči neptá AI při každém kliknutí.
@@ -28,59 +28,129 @@ export function translateMissingLater() {
   });
 }
 
-type Radek = {
+type Verze = { status: string; country_id: string };
+
+type Znacka = {
+  id: string;
+  note: string;
+  quote: string | null;
+  document_version_id: string;
+  translations: Record<string, string> | null;
+  translation_failed: boolean | null;
+  quote_translations: Record<string, string> | null;
+  annotation_country_status: { country_id: string }[] | null;
+  document_versions: Verze | Verze[] | null;
+};
+
+type Shrnuti = {
   id: string;
   note: string;
   document_version_id: string;
   translations: Record<string, string> | null;
   translation_failed: boolean | null;
+  document_versions: Verze | Verze[] | null;
 };
 
-// Nepřeložené je to, co při překladu selhalo, nebo nemá překlad žádný.
-function chybiPreklad(radek: Radek): boolean {
-  if (!radek.note?.trim()) return false;
-  return Boolean(radek.translation_failed) || Object.keys(radek.translations ?? {}).length === 0;
+function one<T>(value: T | T[] | null): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value;
+}
+
+// Které jazyky v překladech chybí. Za chybějící se bere každý jazyk zemí,
+// kterým změna přišla (a vždy angličtina), který v překladech není – ne
+// jen úplné selhání. Jazyk originálu se nepřekládá.
+function chybiPreklad(
+  text: string | null,
+  preklady: Record<string, string> | null,
+  ocekavane: Set<Locale>
+): Locale[] {
+  if (!text?.trim()) return [];
+  return [...ocekavane].filter((locale) => !preklady?.[locale]?.trim());
 }
 
 export async function translateMissing() {
   const supabase = createAdminClient();
 
-  const [{ data: znacky }, { data: zmeny }] = await Promise.all([
+  const [{ data: zeme }, { data: znacky }, { data: zmeny }] = await Promise.all([
+    supabase.from("countries").select("id, locale"),
     supabase
       .from("annotations")
-      .select("id, note, quote, document_version_id, translations, translation_failed")
+      .select(
+        `id, note, quote, document_version_id, translations, translation_failed, quote_translations,
+         annotation_country_status (country_id),
+         document_versions!inner (status, country_id)`
+      )
+      .eq("document_versions.status", "published")
       .order("created_at", { ascending: false })
       .limit(1000),
     supabase
       .from("changes")
-      .select("id, note, document_version_id, translations, translation_failed")
+      .select(
+        `id, note, document_version_id, translations, translation_failed,
+         document_versions!inner (status, country_id)`
+      )
+      .eq("document_versions.status", "published")
       .order("created_at", { ascending: false })
       .limit(500),
   ]);
 
-  const chybejiciZnacky = ((znacky ?? []) as (Radek & { quote: string | null })[]).filter(chybiPreklad);
-  const chybejiciZmeny = ((zmeny ?? []) as Radek[]).filter(chybiPreklad);
+  const jazykZeme = new Map((zeme ?? []).map((row) => [row.id, toLocale(row.locale)]));
+  const radkyZnacek = (znacky ?? []) as unknown as Znacka[];
+  const radkyZmen = (zmeny ?? []) as unknown as Shrnuti[];
+
+  // Jazyk originálu = jazyk země, která verzi nahrála. Cílové jazyky =
+  // jazyky zemí, kterým rámečky verze přišly, a angličtina.
+  const zdroj = new Map<string, Locale>();
+  const cileVerze = new Map<string, Set<Locale>>();
+  const cileZnacky = new Map<string, Set<Locale>>();
+  for (const znacka of radkyZnacek) {
+    const verze = one(znacka.document_versions);
+    const source = toLocale(jazykZeme.get(verze?.country_id ?? ""));
+    zdroj.set(znacka.document_version_id, source);
+
+    const cile = new Set<Locale>(["en"]);
+    for (const stav of znacka.annotation_country_status ?? []) {
+      const locale = jazykZeme.get(stav.country_id);
+      if (locale) cile.add(locale);
+    }
+    cile.delete(source);
+    cileZnacky.set(znacka.id, cile);
+
+    const proVerzi = cileVerze.get(znacka.document_version_id) ?? new Set<Locale>();
+    cile.forEach((locale) => proVerzi.add(locale));
+    cileVerze.set(znacka.document_version_id, proVerzi);
+  }
+  for (const zmena of radkyZmen) {
+    if (zdroj.has(zmena.document_version_id)) continue;
+    const verze = one(zmena.document_versions);
+    const source = toLocale(jazykZeme.get(verze?.country_id ?? ""));
+    zdroj.set(zmena.document_version_id, source);
+    cileVerze.set(zmena.document_version_id, new Set<Locale>(LOCALES.filter((l) => l !== source)));
+  }
+
+  const ocekavaneProZnacku = (znacka: Znacka) => cileZnacky.get(znacka.id) ?? new Set<Locale>();
+  const ocekavaneProZmenu = (zmena: Shrnuti) =>
+    cileVerze.get(zmena.document_version_id) ?? new Set<Locale>();
+
+  const chybejiciZnacky = radkyZnacek.filter(
+    (znacka) =>
+      chybiPreklad(znacka.note, znacka.translations, ocekavaneProZnacku(znacka)).length > 0 ||
+      chybiPreklad(znacka.quote, znacka.quote_translations, ocekavaneProZnacku(znacka)).length > 0
+  );
+  const chybejiciZmeny = radkyZmen.filter(
+    (zmena) => chybiPreklad(zmena.note, zmena.translations, ocekavaneProZmenu(zmena)).length > 0
+  );
 
   const verze = [
     ...new Set([...chybejiciZnacky, ...chybejiciZmeny].map((radek) => radek.document_version_id)),
-  ].slice(0, 100);
-  if (verze.length === 0) return;
+  ].slice(0, VERZI_NAJEDNOU);
 
-  // Jazyk originálu = jazyk země, která verzi nahrála. Překládají se jen
-  // zveřejněné verze – rozpracované stejně nikdo jiný nevidí.
-  const { data: verzeSeZemi } = await supabase
-    .from("document_versions")
-    .select("id, countries (locale)")
-    .in("id", verze)
-    .eq("status", "published")
-    .limit(VERZI_NAJEDNOU);
+  for (const versionId of verze) {
+    const sourceLocale = zdroj.get(versionId) ?? "cs";
+    const cile = [...(cileVerze.get(versionId) ?? new Set<Locale>())];
+    if (cile.length === 0) continue;
 
-  for (const radekVerze of verzeSeZemi ?? []) {
-    const zeme = Array.isArray(radekVerze.countries) ? radekVerze.countries[0] : radekVerze.countries;
-    const sourceLocale = toLocale(zeme?.locale);
-
-    const poznamky = chybejiciZnacky.filter((radek) => radek.document_version_id === radekVerze.id);
-    const shrnuti = chybejiciZmeny.filter((radek) => radek.document_version_id === radekVerze.id);
+    const poznamky = chybejiciZnacky.filter((radek) => radek.document_version_id === versionId);
+    const shrnuti = chybejiciZmeny.filter((radek) => radek.document_version_id === versionId);
     const citace = poznamky.filter((radek) => radek.quote?.trim());
 
     const texty = [
@@ -88,10 +158,11 @@ export async function translateMissing() {
       ...shrnuti.map((radek) => radek.note),
       ...citace.map((radek) => radek.quote as string),
     ];
-    const prelozene = await translateNotes(texty, sourceLocale, [...LOCALES]);
+    const prelozene = await translateNotes(texty, sourceLocale, cile);
     // Když se to nepovedlo ani teď, nic se nepřepisuje a zkusí se to příště.
     if (prelozene.every((vysledek) => vysledek.failed)) continue;
 
+    // Nové překlady se přidávají k těm, které už jsou – nic se neztratí.
     for (const [index, radek] of poznamky.entries()) {
       const vysledek = prelozene[index];
       if (!vysledek || vysledek.failed) continue;
@@ -99,7 +170,7 @@ export async function translateMissing() {
         .from("annotations")
         .update({
           source_locale: vysledek.sourceLocale,
-          translations: vysledek.translations,
+          translations: { ...(radek.translations ?? {}), ...vysledek.translations },
           translation_failed: false,
         })
         .eq("id", radek.id);
@@ -112,7 +183,7 @@ export async function translateMissing() {
         .from("changes")
         .update({
           source_locale: vysledek.sourceLocale,
-          translations: vysledek.translations,
+          translations: { ...(radek.translations ?? {}), ...vysledek.translations },
           translation_failed: false,
         })
         .eq("id", radek.id);
@@ -124,7 +195,9 @@ export async function translateMissing() {
       if (!vysledek || vysledek.failed) continue;
       await supabase
         .from("annotations")
-        .update({ quote_translations: vysledek.translations })
+        .update({
+          quote_translations: { ...(radek.quote_translations ?? {}), ...vysledek.translations },
+        })
         .eq("id", radek.id);
     }
   }

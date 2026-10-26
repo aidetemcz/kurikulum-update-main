@@ -10,6 +10,10 @@ import { type Locale } from "@/lib/i18n";
 // na které větší model není potřeba.
 const MODEL = "claude-haiku-4-5";
 
+// Jak dlouho se na odpověď AI nejvýš čeká. Bez limitu by visící volání
+// drželo celou serverovou funkci až do jejího vypršení.
+const AI_TIMEOUT_MS = 20_000;
+
 const JAZYKY: Record<Locale, string> = {
   cs: "čeština",
   sk: "slovenština",
@@ -46,7 +50,7 @@ export async function translateNotes(
   }
 
   try {
-    const client = new Anthropic();
+    const client = new Anthropic({ timeout: AI_TIMEOUT_MS, maxRetries: 1 });
 
     const response = await client.messages.create({
       model: MODEL,

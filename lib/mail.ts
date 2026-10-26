@@ -1,7 +1,7 @@
 // Posílání e-mailových notifikací o nové verzi/změně metodiky přes SMTP
 // běžné e-mailové schránky (např. Gmail / Google Workspace s heslem pro
 // aplikace). Stejnou schránku používá i Supabase pro přihlašovací odkazy.
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import type { DocumentKind } from "@/lib/types";
 
 // Firemní barvy AI for children. V e-mailu se styly píšou rovnou k prvkům,
@@ -24,14 +24,28 @@ export function mailConfigured(): boolean {
 // Spojení se vytváří až při odeslání (ne při načtení souboru), aby appka šla
 // sestavit, i než jsou SMTP údaje nastavené (např. při prvním nasazení).
 // Výchozí server je Gmail; jiná pošta si nastaví SMTP_HOST a SMTP_PORT.
-function transport() {
+//
+// Jedno sdílené spojení (pool) pro všechny e-maily: dřív se pro každého
+// příjemce otevíralo nové. Časové limity hlídají, aby pomalá nebo nedostupná
+// pošta nezdržela serverovou funkci donekonečna.
+let sdileneSpojeni: Transporter | null = null;
+
+function transport(): Transporter {
+  if (sdileneSpojeni) return sdileneSpojeni;
+
   const port = Number(process.env.SMTP_PORT ?? 465);
-  return nodemailer.createTransport({
+  sdileneSpojeni = nodemailer.createTransport({
+    pool: true,
+    maxConnections: 3,
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
     port,
     secure: port === 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
+  return sdileneSpojeni;
 }
 
 // Gmail povolí odesílat jen za adresu schránky, proto odesílatel je vždy

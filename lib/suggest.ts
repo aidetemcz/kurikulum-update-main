@@ -9,6 +9,10 @@ import { CATEGORY_KEYS } from "@/lib/annotations";
 
 const MODEL = "claude-opus-5-5";
 
+// Jak dlouho se na odpověď AI nejvýš čeká. Bez limitu by visící volání
+// drželo celou serverovou funkci až do jejího vypršení.
+const AI_TIMEOUT_MS = 20_000;
+
 type CategoryKey = (typeof CATEGORY_KEYS)[number];
 
 const POPIS_KATEGORII: Record<CategoryKey, string> = {
@@ -30,7 +34,7 @@ async function zeptejSe(
   if (!process.env.ANTHROPIC_API_KEY) return { value: null, reason: "missing_key" };
 
   try {
-    const client = new Anthropic();
+    const client = new Anthropic({ timeout: AI_TIMEOUT_MS, maxRetries: 1 });
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 2000,

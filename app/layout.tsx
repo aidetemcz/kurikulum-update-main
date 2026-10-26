@@ -11,6 +11,11 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { getSupportUnread } from "@/lib/support";
 import { translateMissingLater } from "@/lib/translate-missing";
 
+// Nejdelší doba běhu serverové funkce (v sekundách). Po zveřejnění verze
+// a po načtení stránky běží na pozadí překlady a e-maily (after()), které
+// mají vlastní časové limity; tohle je strop pro celek.
+export const maxDuration = 60;
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const TITLE = "AI kurikulum";
 const DESCRIPTION = "Sdílení metodik AI kurikula s partnerskými zeměmi";

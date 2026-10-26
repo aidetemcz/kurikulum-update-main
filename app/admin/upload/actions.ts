@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { requireUser, canUpload, canWriteForCountry } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { extractDriveFileId, drivePreviewUrl } from "@/lib/drive";
 import { sortMarks } from "@/lib/annotations";
-import { notifyCountryAboutChange, notifyPreviousAuthor } from "@/lib/notify";
+import { createChangeNotifications, emailChangeRecipients, emailPreviousAuthor } from "@/lib/notify";
 import { translateNotes } from "@/lib/translate";
 import { toLocale } from "@/lib/i18n";
 import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
@@ -286,52 +287,58 @@ export async function publishVersion(
     .in("id", zverejneno.recipient_country_ids);
   const prijemci = zemePrijemcu ?? [];
 
-  // Poznámky a shrnutí se přeloží do jazyků zemí, kterým se posílají,
-  // a vždy do angličtiny. Originál zůstává, jak byl napsaný.
-  await translatePublished({
-    supabase,
-    marks: marks ?? [],
-    changeId: change.id,
-    summary: summary || null,
-    sourceLocale: toLocale(
-      (await supabase.from("countries").select("locale").eq("id", countryId).maybeSingle())
-        .data?.locale
-    ),
-    targetLocales: [
-      "en" as const,
-      ...prijemci.map((country) => toLocale(country.locale)),
-    ],
-  });
-
   const [{ data: moduleData }, { data: countryData }] = await Promise.all([
     supabase.from("modules").select("name").eq("id", moduleId).single(),
-    supabase.from("countries").select("name").eq("id", countryId).single(),
+    supabase.from("countries").select("name, locale").eq("id", countryId).single(),
   ]);
 
-  // Notifikace odcházejí jednou, až je verze opravdu zveřejněná.
-  await notifyCountryAboutChange({
+  // Notifikace ve zvonečku vznikají hned – jsou rychlé a nesmí se ztratit.
+  const { recipients, previousAuthor } = await createChangeNotifications({
     changeId: change.id,
-    recipientCountryIds: prijemci.map((country) => country.id),
+    recipientCountryIds: zverejneno.recipient_country_ids,
     uploaderId: user.id,
-    countryName: countryData?.name ?? "",
-    moduleName: moduleData?.name ?? "",
-    kind,
-    versionNumber: published.version_number,
-    uploadedAt: published.uploaded_at,
-    summary,
-    notes: noteList,
+    previousAuthorId: previous?.uploaded_by ?? null,
   });
 
-  if (previous?.uploaded_by && previous.uploaded_by !== user.id) {
-    await notifyPreviousAuthor({
-      changeId: change.id,
-      authorId: previous.uploaded_by,
-      moduleName: moduleData?.name ?? "",
-      kind,
-      theirVersion: previous.version_number,
-      newVersion: published.version_number,
-    });
-  }
+  // Překlad a e-maily až po odeslání odpovědi: zveřejnění na ně nečeká
+  // a jejich pomalost ani výpadek ho neshodí. Co se nepřeloží, dopřeloží
+  // později lib/translate-missing.ts.
+  const sourceLocale = toLocale(countryData?.locale);
+  after(async () => {
+    try {
+      // Poznámky a shrnutí se přeloží do jazyků zemí, kterým se posílají,
+      // a vždy do angličtiny. Originál zůstává, jak byl napsaný.
+      await translatePublished({
+        marks: marks ?? [],
+        changeId: change.id,
+        summary: summary || null,
+        sourceLocale,
+        targetLocales: ["en" as const, ...prijemci.map((country) => toLocale(country.locale))],
+      });
+    } catch (chyba) {
+      console.error("Překlad po zveřejnění se nepodařil:", chyba);
+    }
+
+    await Promise.allSettled([
+      emailChangeRecipients(recipients, {
+        countryName: countryData?.name ?? "",
+        moduleName: moduleData?.name ?? "",
+        kind,
+        versionNumber: published.version_number,
+        uploadedAt: published.uploaded_at,
+        summary,
+        notes: noteList,
+      }),
+      previousAuthor && previous
+        ? emailPreviousAuthor(previousAuthor, {
+            moduleName: moduleData?.name ?? "",
+            kind,
+            theirVersion: previous.version_number,
+            newVersion: published.version_number,
+          })
+        : Promise.resolve(),
+    ]);
+  });
 
   revalidatePath("/");
   revalidatePath("/changes");
@@ -363,15 +370,18 @@ export async function publishVersion(
 
 // Překlad poznámek. Zveřejnění kvůli němu nikdy nespadne – když se
 // nepovede, uloží se jen příznak a v appce se ukáže originál.
+//
+// Zapisuje se přes service role: překlad shrnutí patří do tabulky changes,
+// do které editor po zveřejnění zapisovat nesmí.
 async function translatePublished(params: {
-  supabase: Awaited<ReturnType<typeof createClient>>;
   marks: { id: string; note: string; quote?: string | null }[];
   changeId: string;
   summary: string | null;
   sourceLocale: ReturnType<typeof toLocale>;
   targetLocales: ReturnType<typeof toLocale>[];
 }) {
-  const { supabase, marks, changeId, summary, sourceLocale, targetLocales } = params;
+  const { marks, changeId, summary, sourceLocale, targetLocales } = params;
+  const supabase = createAdminClient();
 
   // Text pod značkami jde do téhož překladu, jen za poznámky a shrnutí.
   const citace = marks.filter((mark) => mark.quote?.trim());
