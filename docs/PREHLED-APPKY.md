@@ -42,8 +42,9 @@ Uživatel bez přiřazené země vidí jen výzvu a vlaječky pro volbu jazyka.
    víc druhů změny: obsahová změna, oprava chyby, lokalizace, nová část, formální úprava,
    případně vlastní. AI druh změny navrhne podle poznámky. Appka si uloží i text z PDF
    pod rámečkem. Rozpracovaná verze (draft) se ukládá průběžně.
-3. **Zveřejnění:** verze dostane číslo, každá vyznačená změna se rozešle **všem ostatním
-   zemím, které danou metodiku sledují**. Poznámky, shrnutí i text pod rámečkem se
+3. **Zveřejnění** (jde jen s aspoň jedním popsaným rámečkem, shrnutí je volitelné):
+   proběhne celé v jedné databázové transakci (`publish_version`). Verze dostane číslo,
+   každá vyznačená změna se rozešle **všem ostatním zemím, které danou metodiku sledují**. Poznámky, shrnutí i text pod rámečkem se
    **automaticky přeloží** (Claude Haiku) do jazyků ostatních zemí. Lidé z těch zemí
    dostanou e-mail a notifikaci (zvoneček).
 4. **Odbavení:** země na přehledu **Změny** vidí nevyřízené změny od ostatních, každou
