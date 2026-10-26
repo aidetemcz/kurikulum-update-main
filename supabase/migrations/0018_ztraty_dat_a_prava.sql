@@ -61,3 +61,137 @@ $$;
 
 revoke all on function public.save_draft_marks(uuid, jsonb) from public;
 grant execute on function public.save_draft_marks(uuid, jsonb) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- A3. Zveřejnění celé, nebo vůbec
+-- ---------------------------------------------------------------------
+-- Dřív se verze přepnula na zveřejněnou dřív, než vznikl řádek se shrnutím
+-- a řádky pro ostatní země. Když pak něco selhalo, verze visela zveřejněná,
+-- nikomu nepřišla a zopakovat to nešlo.
+--
+-- Teď to dělá jedna funkce v jedné transakci: přidělí číslo verze, přepne
+-- ji na zveřejněnou, nastaví čas nahrání a zveřejnění, založí shrnutí
+-- a pošle každý rámeček všem zemím, které lekci sledují (země, která si
+-- výběr ještě neuložila, sleduje všechno). Buď proběhne všechno, nebo nic.
+--
+-- Práva hlídá funkce sama: admin smí zveřejnit jakýkoli koncept, editor
+-- jen vlastní koncept ve své zemi.
+
+create or replace function public.publish_version(p_draft_id uuid, p_summary text)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_role user_role;
+  v_draft document_versions%rowtype;
+  v_summary text := nullif(btrim(coalesce(p_summary, '')), '');
+  v_prev_number integer;
+  v_prev_uploaded_at timestamptz;
+  v_prev_uploaded_by uuid;
+  v_number integer;
+  v_now timestamptz := now();
+  v_note text;
+  v_change_id uuid;
+  v_recipients uuid[];
+begin
+  select role into v_role from users where id = auth.uid();
+  if v_role is null or v_role not in ('admin', 'editor') then
+    raise exception 'publish_forbidden' using errcode = '42501';
+  end if;
+
+  -- Zámek na řádku verze: souběžné ukládání rámečků (save_draft_marks)
+  -- i druhé kliknutí na Zveřejnit počkají, až tohle doběhne.
+  select * into v_draft from document_versions where id = p_draft_id for update;
+  if not found or v_draft.status <> 'draft' then
+    raise exception 'publish_not_draft';
+  end if;
+  if v_role <> 'admin'
+     and not (v_draft.uploaded_by = auth.uid() and public.is_my_country(v_draft.country_id)) then
+    raise exception 'publish_forbidden' using errcode = '42501';
+  end if;
+
+  -- Rámečky bez poznámky se nezveřejňují (appka je ani neukládá).
+  delete from annotations where document_version_id = v_draft.id and btrim(note) = '';
+
+  if v_summary is null
+     and not exists (select 1 from annotations where document_version_id = v_draft.id) then
+    raise exception 'publish_needs_mark';
+  end if;
+
+  -- Čísla verzí se přidělují po jednom pro každou lekci, zemi a druh
+  -- dokumentu – zámek zajistí, že dvě zveřejnění nedostanou stejné číslo.
+  perform pg_advisory_xact_lock(
+    hashtextextended(v_draft.module_id::text || ':' || v_draft.country_id::text || ':' || v_draft.kind, 0)
+  );
+
+  select version_number, uploaded_at, uploaded_by
+    into v_prev_number, v_prev_uploaded_at, v_prev_uploaded_by
+  from document_versions
+  where module_id = v_draft.module_id
+    and country_id = v_draft.country_id
+    and kind = v_draft.kind
+    and status = 'published'
+  order by version_number desc
+  limit 1;
+
+  v_number := coalesce(v_prev_number, 0) + 1;
+
+  update document_versions
+  set status = 'published',
+      version_number = v_number,
+      uploaded_at = v_now,
+      published_at = v_now
+  where id = v_draft.id;
+
+  -- Shrnutí verze: to, co editor napsal, jinak očíslované poznámky
+  -- v pořadí čtení (stránka, shora dolů, zleva doprava).
+  if v_summary is not null then
+    v_note := v_summary;
+  else
+    select string_agg(poradi || '. ' || note, E'\n' order by poradi)
+      into v_note
+    from (
+      select note, row_number() over (order by page, y, x) as poradi
+      from annotations
+      where document_version_id = v_draft.id
+    ) as serazene;
+  end if;
+
+  insert into changes (document_version_id, note, category)
+  values (v_draft.id, v_note, null)
+  returning id into v_change_id;
+
+  -- Komu změna jde: všem ostatním zemím, které lekci sledují.
+  select coalesce(array_agg(c.id), '{}')
+    into v_recipients
+  from countries c
+  where c.id <> v_draft.country_id
+    and (
+      c.modules_chosen_at is null
+      or exists (
+        select 1 from country_modules cm
+        where cm.country_id = c.id and cm.module_id = v_draft.module_id
+      )
+    );
+
+  insert into annotation_country_status (annotation_id, country_id)
+  select a.id, r.country_id
+  from annotations a
+  cross join unnest(v_recipients) as r (country_id)
+  where a.document_version_id = v_draft.id
+  on conflict (annotation_id, country_id) do nothing;
+
+  return jsonb_build_object(
+    'version_number', v_number,
+    'published_at', v_now,
+    'change_id', v_change_id,
+    'recipient_country_ids', to_jsonb(v_recipients),
+    'previous_version', v_prev_number,
+    'previous_uploaded_at', v_prev_uploaded_at,
+    'previous_uploaded_by', v_prev_uploaded_by
+  );
+end;
+$$;
+
+revoke all on function public.publish_version(uuid, text) from public;
+grant execute on function public.publish_version(uuid, text) to authenticated;

@@ -9,14 +9,10 @@ import { extractDriveFileId, drivePreviewUrl } from "@/lib/drive";
 import { sortMarks } from "@/lib/annotations";
 import { notifyCountryAboutChange, notifyPreviousAuthor } from "@/lib/notify";
 import { translateNotes } from "@/lib/translate";
-import { countriesFollowing } from "@/lib/followed";
 import { toLocale } from "@/lib/i18n";
 import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
 import { toDraftMarks, type DraftMark } from "@/lib/draft-marks";
 import { userError } from "@/lib/user-error";
-
-// Kolikrát zkusíme zveřejnění znovu, když nám někdo souběžně vezme číslo verze.
-const VERSION_ATTEMPTS = 5;
 
 // ---------------------------------------------------------------------
 // Rozpracovaná verze (draft)
@@ -172,6 +168,16 @@ export type PublishState =
     }
   | null;
 
+type PublishResult = {
+  version_number: number;
+  published_at: string;
+  change_id: string;
+  recipient_country_ids: string[];
+  previous_version: number | null;
+  previous_uploaded_at: string | null;
+  previous_uploaded_by: string | null;
+};
+
 export async function publishVersion(
   _prevState: PublishState,
   formData: FormData
@@ -223,58 +229,43 @@ export async function publishVersion(
     }
   }
 
+  // Číslo verze, přepnutí na zveřejněnou, shrnutí i řádky pro ostatní
+  // země vzniknou v databázi najednou (funkce publish_version). Když cokoli
+  // selže, nezveřejní se nic a jde to zkusit znovu.
+  const { data: vysledek, error: publishError } = await supabase.rpc("publish_version", {
+    p_draft_id: draftId,
+    p_summary: summary,
+  });
+
+  if (publishError || !vysledek) {
+    const zprava = publishError?.message ?? "";
+    if (zprava.includes("publish_needs_mark")) return { error: t.needMarkOrSummary };
+    if (zprava.includes("publish_not_draft")) return { error: t.draftNotEditable };
+    return {
+      error: await userError(t.saveFailedGeneric, publishError, "Zveřejnění verze se nepodařilo:"),
+    };
+  }
+
+  const zverejneno = vysledek as PublishResult;
+  const published = {
+    version_number: zverejneno.version_number,
+    uploaded_at: zverejneno.published_at,
+  };
+  const previous =
+    zverejneno.previous_version !== null
+      ? {
+          version_number: zverejneno.previous_version,
+          uploaded_at: zverejneno.previous_uploaded_at ?? "",
+          uploaded_by: zverejneno.previous_uploaded_by,
+        }
+      : null;
+  const change = { id: zverejneno.change_id };
+
+  // Zveřejněné rámečky (už s definitivními id) pro překlad a e-maily.
   const { data: marks } = await supabase
     .from("annotations")
     .select("*")
     .eq("document_version_id", draftId);
-
-  if ((marks ?? []).length === 0 && !summary) return { error: t.needMarkOrSummary };
-
-  // Číslo verze přidělujeme až tady. Souběžný zápis odmítne databáze
-  // (dvojice modul+země+číslo je unikátní), takže to zkusíme s dalším číslem.
-  let published: { version_number: number; uploaded_at: string } | null = null;
-  let previous: { version_number: number; uploaded_at: string; uploaded_by: string | null } | null =
-    null;
-  let lastError = "";
-
-  for (let attempt = 0; attempt < VERSION_ATTEMPTS && !published; attempt++) {
-    const { data: latest } = await supabase
-      .from("document_versions")
-      .select("version_number, uploaded_at, uploaded_by")
-      .eq("module_id", moduleId)
-      .eq("country_id", countryId)
-      .eq("kind", kind)
-      .eq("status", "published")
-      .order("version_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    previous = latest ?? null;
-
-    // maybeSingle, ne single: když pravidla v databázi zápis nepustí,
-    // vrátí se nula řádků. single() by z toho udělal nesrozumitelné
-    // "Cannot coerce the result to a single JSON object".
-    const { data, error } = await supabase
-      .from("document_versions")
-      .update({
-        version_number: (latest?.version_number ?? 0) + 1,
-        status: "published",
-        published_at: new Date().toISOString(),
-      })
-      .eq("id", draftId)
-      .eq("status", "draft")
-      .select("version_number, uploaded_at")
-      .maybeSingle();
-
-    if (data) {
-      published = data;
-    } else {
-      lastError = error?.message ?? t.publishBlocked;
-      if (error?.code !== "23505") break;
-    }
-  }
-
-  if (!published) return { error: `${t.saveFailedDetail} ${lastError}`.trim() };
 
   const noteList = sortMarks(
     (marks ?? []).map((mark) => ({
@@ -289,56 +280,11 @@ export async function publishVersion(
     }))
   ).map((mark) => mark.note);
 
-  // Ostatní země dostanou ke každé vyznačené změně svůj řádek – ten drží,
-  // jestli už na ni zareagovaly. Země se berou z tabulky, ne z pevného
-  // seznamu, takže nově přidaná země se zapojí sama.
-  //
-  // Změna jde všem zemím kromě té, za kterou se nahrává. Dřív se vynechávaly
-  // všechny země nahrávajícího – jenže kdo spravuje Česko i angličtinu,
-  // musí změnu z české verze zapracovat i do anglické, a admin s přiřazenými
-  // všemi zeměmi by změnu neposlal nikomu.
-  const { data: allCountries } = await supabase.from("countries").select("id, locale");
-
-  // A jen zemím, které tuhle metodiku sledují (nebo si zatím nevybraly).
-  const sledujici = await countriesFollowing(
-    moduleId,
-    (allCountries ?? []).map((country) => country.id)
-  );
-  const prijemci = (allCountries ?? []).filter(
-    (country) => country.id !== countryId && sledujici.has(country.id)
-  );
-
-  const statusRows = prijemci.flatMap((country) =>
-    (marks ?? []).map((mark) => ({ annotation_id: mark.id, country_id: country.id }))
-  );
-
-  // Obyčejný insert, ne upsert: rozpracovanou verzi jde zveřejnit jen jednou
-  // (podruhé se už nenajde mezi draft verzemi), takže se řádky nemají jak
-  // zdvojit. Navíc "on conflict" by editor stejně neprošel – na cizí řádky
-  // kvůli RLS nevidí, a Postgres v tu chvíli zápis odmítne.
-  if (statusRows.length > 0) {
-    const { error: statusError } = await supabase
-      .from("annotation_country_status")
-      .insert(statusRows);
-
-    if (statusError) {
-      return { error: `${t.saveFailedDetail} ${statusError.message}`.trim() };
-    }
-  }
-
-  const { data: change, error: changeError } = await supabase
-    .from("changes")
-    .insert({
-      document_version_id: draftId,
-      note: summary || noteList.map((note, index) => `${index + 1}. ${note}`).join("\n"),
-      category: null,
-    })
-    .select()
-    .single();
-
-  if (changeError || !change) {
-    return { error: `${t.saveFailedDetail} ${changeError?.message ?? ""}`.trim() };
-  }
+  const { data: zemePrijemcu } = await supabase
+    .from("countries")
+    .select("id, locale")
+    .in("id", zverejneno.recipient_country_ids);
+  const prijemci = zemePrijemcu ?? [];
 
   // Poznámky a shrnutí se přeloží do jazyků zemí, kterým se posílají,
   // a vždy do angličtiny. Originál zůstává, jak byl napsaný.
