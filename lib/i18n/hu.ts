@@ -357,6 +357,7 @@ export const hu: Dictionary = {
   confirmDeleteVersionExplain:
     "A verzió az összes megjelölt változással együtt eltűnik, és a többi ország postaládájából is kikerül. Ezt nem lehet visszavonni.",
 
+  lightNotFollowed: "nem követi",
   lightNone: "még nincs verzió",
   legendTitle: "Jelmagyarázat",
 

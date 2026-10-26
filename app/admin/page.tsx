@@ -42,7 +42,6 @@ export default async function AdminPage({
     .order("category")
     .order("order_index")
     .order("name");
-  const lights = await getLightMatrix();
 
   // Kolik verzí má která metodika – podle toho se rozhoduje, jestli jde smazat.
   const { data: verze } = await supabase.from("document_versions").select("module_id");
@@ -53,6 +52,7 @@ export default async function AdminPage({
 
   const moduly = (vsechnyModuly ?? []) as Module[];
   const modules = moduly.filter((m) => !m.archived_at);
+  const lights = await getLightMatrix(modules.map((m) => m.id));
 
   return (
     <div className="flex min-w-0 max-w-3xl flex-col gap-10">

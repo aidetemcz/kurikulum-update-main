@@ -355,6 +355,7 @@ export const sk: Dictionary = {
   confirmDeleteVersionExplain:
     "Verzia zmizne aj so všetkými vyznačenými zmenami a ostatné krajiny ju prestanú mať v schránke. Vrátiť to nejde.",
 
+  lightNotFollowed: "nesleduje",
   lightNone: "zatiaľ bez verzie",
   legendTitle: "Vysvetlivky",
 

@@ -193,22 +193,65 @@ export async function getLightsForCountry(countryId: string): Promise<CountryLig
   return { lights, availableWithoutVersion };
 }
 
+export type MatrixCell = {
+  light: CountryLight;
+  /** Země lekci nesleduje – šedá, ale z jiného důvodu než „nemá verzi“. */
+  notFollowed?: boolean;
+};
+
 // Matice modul × země pro administraci. Klíč je `${moduleId}:${countryId}`.
-export async function getLightMatrix(): Promise<Record<string, CountryLight>> {
+//
+// Platí stejná pravidla jako u jedné země (getLightsForCountry): lekce, kterou
+// země nesleduje, je šedá („nesleduje“); lekce, ke které země nemá žádnou
+// verzi, je šedá („zatím bez verze“); jinak svítí horší barva z metodiky
+// a prezentace, a to jen u druhu, ke kterému země verzi má.
+export async function getLightMatrix(moduleIds: string[]): Promise<Record<string, MatrixCell>> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("module_country_light")
-    .select("module_id, kind, country_id, light");
+  // Všechno jedním dotazem na tabulku – ne dotaz za každou zemi.
+  const [{ data: zeme }, { data: sledovane }, { data: verze }, { data: svetla }] =
+    await Promise.all([
+      supabase.from("countries").select("id, modules_chosen_at"),
+      supabase.from("country_modules").select("country_id, module_id"),
+      supabase.from("document_versions").select("module_id, country_id, kind").eq("status", "published"),
+      supabase.from("module_country_light").select("module_id, kind, country_id, light"),
+    ]);
+
+  // Dokud si země nevybrala (nebo chybí migrace 0015), sleduje všechno.
+  const vybrala = new Set(
+    (zeme ?? [])
+      .filter((row) => "modules_chosen_at" in row && row.modules_chosen_at)
+      .map((row) => row.id as string)
+  );
+  const sleduje = new Set((sledovane ?? []).map((row) => `${row.module_id}:${row.country_id}`));
+  const vlastniDruh = new Set(
+    (verze ?? []).map((row) => `${lightKey(row.module_id, toDocumentKind(row.kind))}:${row.country_id}`)
+  );
+  const maVerzi = new Set((verze ?? []).map((row) => `${row.module_id}:${row.country_id}`));
 
   // Matice má jedno políčko za lekci, takže svítí horší z obou barev.
-  const lights: Record<string, CountryLight> = {};
-  for (const row of (data ?? []) as LightRow[]) {
+  const barvy: Record<string, CountryLight> = {};
+  for (const row of (svetla ?? []) as LightRow[]) {
+    const druh = `${lightKey(row.module_id, toDocumentKind(row.kind))}:${row.country_id}`;
+    if (!vlastniDruh.has(druh)) continue;
     const key = `${row.module_id}:${row.country_id}`;
-    const light = toLight(row.light);
-    if (lights[key] !== "red") lights[key] = light;
+    if (barvy[key] !== "red") barvy[key] = toLight(row.light);
   }
-  return lights;
+
+  const cells: Record<string, MatrixCell> = {};
+  for (const countryId of (zeme ?? []).map((row) => row.id as string)) {
+    for (const moduleId of moduleIds) {
+      const key = `${moduleId}:${countryId}`;
+      if (vybrala.has(countryId) && !sleduje.has(key)) {
+        cells[key] = { light: "none", notFollowed: true };
+      } else if (!maVerzi.has(key)) {
+        cells[key] = { light: "none" };
+      } else {
+        cells[key] = { light: barvy[key] ?? "green" };
+      }
+    }
+  }
+  return cells;
 }
 
 function toLight(value: string): CountryLight {

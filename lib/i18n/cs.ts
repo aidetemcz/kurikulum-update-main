@@ -373,6 +373,7 @@ export const cs = {
   confirmDeleteVersionExplain:
     "Verze zmizí i se všemi vyznačenými změnami a ostatní země ji přestanou mít ve schránce. Vrátit to nejde.",
 
+  lightNotFollowed: "nesleduje",
   lightNone: "zatím bez verze",
   legendTitle: "Vysvětlivky",
 
