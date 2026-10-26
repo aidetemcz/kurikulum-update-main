@@ -94,7 +94,7 @@ export async function sendChangeNotificationEmail(params: {
     to,
     subject: `Nová verze ${coJe}: ${moduleName} (${countryName})`,
     text:
-      `Modul "${lekce}" má novou verzi (v${versionNumber}, ${formatUtc(uploadedAt)}).\n\n` +
+      `Modul "${lekce}" má novou verzi (v${versionNumber}, ${formatEmailTime(uploadedAt)}).\n\n` +
       (summary ? `Co se změnilo:\n${summary}\n\n` : "") +
       (notes.length
         ? `Označená místa v dokumentu:\n${notes
@@ -105,7 +105,7 @@ export async function sendChangeNotificationEmail(params: {
     html: emailLayout(
       `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
         `Modul <strong>${escapeHtml(lekce)}</strong> má novou verzi ` +
-        `(v${versionNumber}, ${escapeHtml(formatUtc(uploadedAt))}).</p>` +
+        `(v${versionNumber}, ${escapeHtml(formatEmailTime(uploadedAt))}).</p>` +
         (summary
           ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:${TMAVA}">Co se změnilo</p>` +
             `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:${TMAVA}">${escapeHtml(summary)}</p>`
@@ -225,14 +225,18 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// V e-mailu neznáme časové pásmo příjemce, proto čas píšeme v UTC.
-function formatUtc(value: string): string {
+// V e-mailu neznáme časové pásmo příjemce (appka ho u uživatelů neukládá),
+// proto čas píšeme v pražském čase i se zkratkou pásma.
+const EMAIL_TIME_ZONE = "Europe/Prague";
+
+function formatEmailTime(value: string): string {
   return new Date(value).toLocaleString("cs-CZ", {
     day: "numeric",
     month: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "UTC",
-  }) + " UTC";
+    timeZone: EMAIL_TIME_ZONE,
+    timeZoneName: "short",
+  });
 }

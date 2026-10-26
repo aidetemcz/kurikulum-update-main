@@ -26,7 +26,7 @@ const SLOUPCE = `
         note,
         category,
         created_at,
-        document_versions ( version_number, modules ( name ) )
+        document_versions ( version_number, published_at, uploaded_at, modules ( name ) )
       )
     `;
 
@@ -79,7 +79,12 @@ function radek(n: Radek): NotificationWithDetails {
     created_at: string;
     document_versions: unknown;
   };
-  type Verze = { version_number: number; modules: unknown };
+  type Verze = {
+    version_number: number;
+    published_at: string | null;
+    uploaded_at: string | null;
+    modules: unknown;
+  };
   const one = <T,>(value: unknown): T | null =>
     (Array.isArray(value) ? value[0] ?? null : value ?? null) as T | null;
 
@@ -90,7 +95,8 @@ function radek(n: Radek): NotificationWithDetails {
   return {
     id: n.id,
     read_at: n.read_at,
-    created_at: change?.created_at ?? "",
+    // Kdy byla verze zveřejněná – ne kdy vznikl její koncept.
+    created_at: version?.published_at ?? version?.uploaded_at ?? change?.created_at ?? "",
     note: change?.note ?? "",
     category: change?.category ?? null,
     module_name: moduleData?.name ?? "Neznámý modul",

@@ -29,6 +29,7 @@ type StatusRow = {
       kind: string | null;
       version_number: number | null;
       published_at: string | null;
+      uploaded_at: string | null;
       users: { email: string } | { email: string }[] | null;
       modules: ModuleNames | ModuleNames[] | null;
       countries: { name: string } | { name: string }[] | null;
@@ -67,7 +68,7 @@ export async function getChanges(
          id, page, note, category, source_locale, translations, translation_failed,
          quote, quote_translations,
          document_versions (
-           module_id, kind, version_number, published_at,
+           module_id, kind, version_number, published_at, uploaded_at,
            users:uploaded_by (email),
            modules (*),
            countries (name)
@@ -108,7 +109,7 @@ export async function getChanges(
         createdAt: row.created_at,
         dismissedAt: row.dismissed_at,
         resolution: row.resolution ?? null,
-        publishedAt: version.published_at,
+        publishedAt: version.published_at ?? version.uploaded_at,
         sourceLocale: annotation.source_locale,
         translations: annotation.translations ?? {},
         translationFailed: annotation.translation_failed ?? false,

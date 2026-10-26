@@ -11,7 +11,7 @@ import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill, pluralCount } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { AdminVersionEditor } from "@/components/AdminVersionEditor";
-import type { Change, DocumentVersion, Mark } from "@/lib/types";
+import { versionDate, type Change, type DocumentVersion, type Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
 const PdfViewer = dynamic(
@@ -94,7 +94,7 @@ export function VersionBrowser({
                 {index === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
               </span>
               <span className="block text-xs text-ink/40">
-                <LocalDateTime value={version.uploaded_at} locale={t.dateLocale} />
+                <LocalDateTime value={versionDate(version)} locale={t.dateLocale} />
               </span>
               {version.unread && (
                 <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-coral" />
@@ -112,7 +112,7 @@ export function VersionBrowser({
             {selectedIndex === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
           </p>
           <p className="text-xs text-ink/50">
-            <LocalDateTime value={selected.uploaded_at} locale={t.dateLocale} /> ·{" "}
+            <LocalDateTime value={versionDate(selected)} locale={t.dateLocale} /> ·{" "}
             {fill(t.uploadedByWho, { who: selected.uploaded_by_email ?? "?" })} ·{" "}
             {pluralCount(marks.length, t.markedChangesForms, t.dateLocale)}
           </p>

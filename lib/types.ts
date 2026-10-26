@@ -63,9 +63,18 @@ export type DocumentVersion = {
   kind: DocumentKind;
   file_url: string;
   version_number: number;
+  /** Kdy vznikl koncept; u verzí zveřejněných před migrací 0018 se liší
+   *  od zveřejnění. Pro zobrazení použij versionDate(). */
   uploaded_at: string;
+  /** Kdy byla verze zveřejněná. U nejstarších verzí může chybět. */
+  published_at?: string | null;
   uploaded_by: string | null;
 };
+
+/** Čas, který se u verze ukazuje: zveřejnění, a jen když chybí, nahrání. */
+export function versionDate(version: { published_at?: string | null; uploaded_at: string }): string {
+  return version.published_at ?? version.uploaded_at;
+}
 
 export type Change = {
   id: string;

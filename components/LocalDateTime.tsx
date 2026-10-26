@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { formatDateTime } from "@/lib/format";
 
 // Čas verze v místním pásmu prohlížeče.
@@ -18,4 +18,20 @@ export function LocalDateTime({ value, locale }: { value: string; locale: string
   }, [value, locale]);
 
   return <span suppressHydrationWarning>{text}</span>;
+}
+
+// Totéž pro čas vložený do věty (fill() ze slovníku): vrátí funkci, která
+// do načtení v prohlížeči formátuje v UTC (shodně se serverem) a pak
+// v místním čase uživatele.
+export function useLocalDateTimeFormat(locale: string): (value: string) => string {
+  const [mistni, setMistni] = useState(false);
+
+  useEffect(() => {
+    setMistni(true);
+  }, []);
+
+  return useCallback(
+    (value: string) => formatDateTime(value, locale, mistni ? undefined : "UTC"),
+    [locale, mistni]
+  );
 }

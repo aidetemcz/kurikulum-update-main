@@ -10,7 +10,7 @@ import { markTranslation } from "@/lib/mark-translation";
 import { moduleName } from "@/lib/module-name";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { SharedVersionView } from "@/components/SharedVersionView";
-import type { Mark } from "@/lib/types";
+import { versionDate, type Mark } from "@/lib/types";
 
 type Nested<T> = T | T[] | null;
 
@@ -40,7 +40,7 @@ export default async function ChangeDetailPage({
          id, page,
          document_version_id,
          document_versions (
-           id, file_url, version_number, kind,
+           id, file_url, version_number, kind, uploaded_at, published_at,
            modules (*),
            countries (name)
          )
@@ -59,6 +59,8 @@ export default async function ChangeDetailPage({
         file_url: string;
         version_number: number | null;
         kind: string | null;
+        uploaded_at: string;
+        published_at: string | null;
         modules: Nested<{
           id: string;
           name: string;
@@ -118,7 +120,7 @@ export default async function ChangeDetailPage({
           country: one(version.countries)?.name ?? "",
           version: version.version_number ?? "?",
         })}{" "}
-        · <LocalDateTime value={data!.created_at} locale={t.dateLocale} />
+        · <LocalDateTime value={versionDate(version)} locale={t.dateLocale} />
       </p>
 
       <SharedVersionView

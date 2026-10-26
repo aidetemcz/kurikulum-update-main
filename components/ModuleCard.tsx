@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import type { CountryLight, ModuleWithLatestVersion } from "@/lib/types";
+import { versionDate, type CountryLight, type ModuleWithLatestVersion } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { ModuleLightDot } from "@/components/ModuleLightDot";
@@ -47,7 +47,7 @@ export function ModuleCard({
             {t.currentVersion}: v{latest.version_number}
           </p>
           <p className="text-xs text-ink/40">
-            {t.uploaded} <LocalDateTime value={latest.uploaded_at} locale={t.dateLocale} />
+            {t.uploaded} <LocalDateTime value={versionDate(latest)} locale={t.dateLocale} />
           </p>
           {latest.changes[0] && (
             <p className="mt-1 line-clamp-2 text-ink/50">{latest.changes[0].note}</p>
@@ -114,7 +114,7 @@ export function ModuleCard({
             </span>
             <span className="text-xs text-ink/40">
               {t.uploaded}{" "}
-              <LocalDateTime value={presentation.uploaded_at} locale={t.dateLocale} />
+              <LocalDateTime value={versionDate(presentation)} locale={t.dateLocale} />
             </span>
           </Link>
         ) : (

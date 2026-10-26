@@ -11,7 +11,7 @@ import { sortMarks } from "@/lib/annotations";
 import { createChangeNotifications, emailChangeRecipients, emailPreviousAuthor } from "@/lib/notify";
 import { translateNotes } from "@/lib/translate";
 import { toLocale } from "@/lib/i18n";
-import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
+import { toDocumentKind, versionDate, type DocumentKind, type Mark } from "@/lib/types";
 import { toDraftMarks, type DraftMark } from "@/lib/draft-marks";
 import { userError } from "@/lib/user-error";
 
@@ -383,17 +383,25 @@ export async function publishVersion(
   // Když mezitím přibyla cizí verze, nepřesměrováváme – uživatel se to má
   // dozvědět hned a rozhodnout se, jestli se úpravy nepřekrývají.
   if (previous && previous.version_number > knownLatest && previous.uploaded_by !== user.id) {
-    const { data: author } = await supabase
-      .from("users")
-      .select("email")
-      .eq("id", previous.uploaded_by ?? "")
-      .maybeSingle();
+    const [{ data: author }, { data: predchozi }] = await Promise.all([
+      supabase.from("users").select("email").eq("id", previous.uploaded_by ?? "").maybeSingle(),
+      // Ukazuje se čas zveřejnění té verze, ne vzniku jejího konceptu.
+      supabase
+        .from("document_versions")
+        .select("published_at, uploaded_at")
+        .eq("module_id", moduleId)
+        .eq("country_id", countryId)
+        .eq("kind", kind)
+        .eq("version_number", previous.version_number)
+        .eq("status", "published")
+        .maybeSingle(),
+    ]);
 
     return {
       warning: {
         otherVersion: previous.version_number,
         otherAuthor: author?.email ?? "",
-        otherUploadedAt: previous.uploaded_at,
+        otherUploadedAt: predchozi ? versionDate(predchozi) : previous.uploaded_at,
         savedVersion: published.version_number,
         moduleId,
         countryId,

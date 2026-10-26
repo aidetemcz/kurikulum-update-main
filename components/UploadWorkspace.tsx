@@ -13,8 +13,8 @@ import { AnnotationWorkspace } from "@/components/annotations/AnnotationWorkspac
 import { ModulePicker } from "@/components/ModulePicker";
 import { matchModule, type MatchResult } from "@/lib/match-module";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
-import { fill, formatDateTime } from "@/lib/format";
-import { LocalDateTime } from "@/components/LocalDateTime";
+import { fill } from "@/lib/format";
+import { useLocalDateTimeFormat } from "@/components/LocalDateTime";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DOCUMENT_KINDS, type Country, type DocumentKind, type Mark, type Module } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
@@ -27,6 +27,7 @@ export type LatestVersion = {
   country_id: string;
   kind: DocumentKind;
   version_number: number;
+  /** Kdy byla verze zveřejněná (u nejstarších verzí kdy byla nahraná). */
   uploaded_at: string;
   uploaded_by_email: string | null;
 };
@@ -112,6 +113,9 @@ export function UploadWorkspace({
     setSaveState({ saving: false, savedAt: draft.saved_at });
     setDraftChoice("continue");
   }
+
+  // Časy v místním pásmu uživatele (po načtení v prohlížeči, viz LocalDateTime).
+  const casMistne = useLocalDateTimeFormat(t.dateLocale);
 
   const [state, formAction, isPending] = useActionState<PublishState, FormData>(
     publishVersion,
@@ -275,7 +279,7 @@ export function UploadWorkspace({
           {fill(t.draftFound, {
             module: draftModule,
             country: draftCountry,
-            time: formatDateTime(existingDraft.saved_at, t.dateLocale, "UTC"),
+            time: casMistne(existingDraft.saved_at),
           })}
         </p>
         <div className="mt-4 flex gap-2">
@@ -392,7 +396,7 @@ export function UploadWorkspace({
                 ? fill(t.existingVersionInfo, {
                     country: countryName,
                     version: latest.version_number,
-                    when: formatDateTime(latest.uploaded_at, t.dateLocale, "UTC"),
+                    when: casMistne(latest.uploaded_at),
                     who: latest.uploaded_by_email ?? "?",
                     next: latest.version_number + 1,
                   })
@@ -523,7 +527,7 @@ export function UploadWorkspace({
                   {fill(t.concurrentWarning, {
                     version: state.warning.otherVersion,
                     who: state.warning.otherAuthor,
-                    when: formatDateTime(state.warning.otherUploadedAt, t.dateLocale, "UTC"),
+                    when: casMistne(state.warning.otherUploadedAt),
                     saved: state.warning.savedVersion,
                   })}
                 </p>

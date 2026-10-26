@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser, canUpload, writableCountries } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { createClient } from "@/lib/supabase/server";
-import { toDocumentKind } from "@/lib/types";
+import { toDocumentKind, versionDate } from "@/lib/types";
 import { getLocalNamesForCountries } from "@/lib/local-names";
 import {
   UploadWorkspace,
@@ -39,7 +39,9 @@ export default async function UploadPage({
   // na co se navazuje a jaké číslo nová verze dostane.
   const { data: versions } = await supabase
     .from("document_versions")
-    .select("module_id, country_id, kind, version_number, uploaded_at, users:uploaded_by (email)")
+    .select(
+      "module_id, country_id, kind, version_number, uploaded_at, published_at, users:uploaded_by (email)"
+    )
     .eq("status", "published")
     .order("version_number", { ascending: false });
 
@@ -59,7 +61,8 @@ export default async function UploadPage({
       country_id: version.country_id,
       kind,
       version_number: version.version_number,
-      uploaded_at: version.uploaded_at,
+      // Čas zveřejnění, ne vzniku konceptu.
+      uploaded_at: versionDate(version),
       uploaded_by_email: uploader?.email ?? null,
     });
   }
@@ -96,13 +99,22 @@ export default async function UploadPage({
       .select("*")
       .eq("document_version_id", draft.id);
 
+    // Kdy se koncept naposledy opravdu uložil: rámečky se při každém
+    // uložení zapisují znovu, takže nejmladší z nich nese čas uložení.
+    // Bez rámečků platí čas založení konceptu.
+    const ulozeno = (annotations ?? []).reduce(
+      (nejnovejsi: string, annotation) =>
+        annotation.created_at > nejnovejsi ? annotation.created_at : nejnovejsi,
+      draft.uploaded_at
+    );
+
     existingDraft = {
       id: draft.id,
       module_id: draft.module_id,
       country_id: draft.country_id,
       kind: toDocumentKind(draft.kind),
       file_url: draft.file_url,
-      saved_at: draft.uploaded_at,
+      saved_at: ulozeno,
       marks: (annotations ?? []).map((annotation) => ({
         id: annotation.id,
         page: annotation.page,
