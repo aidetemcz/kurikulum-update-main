@@ -143,6 +143,8 @@ export type PendingChange = {
   createdAt: string;
   /** Kdy ji země skryla. Null u nevyřízených. */
   dismissedAt: string | null;
+  /** Jak ji země vyřídila; u starších vyřízených chybí (= netýká se nás). */
+  resolution: "done" | "not_relevant" | null;
   /** Kdy byla verze zveřejněná – to je čas, který dává smysl vedle jejího čísla. */
   publishedAt: string | null;
   /** Jazyk, ve kterém byla poznámka napsaná. */

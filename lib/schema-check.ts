@@ -22,6 +22,7 @@ const SONDY = [
   { migrace: "0014_module_name_translations.sql", tabulka: "modules", sloupec: "name_translations" },
   { migrace: "0015_followed_modules.sql", tabulka: "country_modules", sloupec: "module_id" },
   { migrace: "0016_country_module_names.sql", tabulka: "country_module_names", sloupec: "name" },
+  { migrace: "0017_change_resolution.sql", tabulka: "annotation_country_status", sloupec: "resolution" },
 ] as const;
 
 // Vrátí názvy migrací, které v databázi chybí. Prázdné pole = všechno sedí.

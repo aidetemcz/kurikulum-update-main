@@ -1,4 +1,4 @@
--- Celá databáze appky najednou: migrace 0001–0016 za sebou.
+-- Celá databáze appky najednou: migrace 0001–0017 za sebou.
 -- Vlož do Supabase → SQL Editor → New query a klikni na Run.
 -- Je určená pro prázdný projekt. Kde už migrace běžely, pouštěj jen ty chybějící.
 
@@ -1023,6 +1023,19 @@ create policy "vlastni nazvy vidi prihlaseni" on country_module_names
   for select to authenticated using (true);
 
 grant select on country_module_names to authenticated;
+
+-- ====================================================================
+-- 0017_change_resolution.sql
+-- ====================================================================
+-- Jak země změnu od jiné země vyřídila.
+-- Spustit v Supabase: SQL Editor -> New query -> vlož celý soubor -> Run
+
+-- Vyřízená změna má status 'dismissed' jako dřív. Nově se k ní pamatuje
+-- i proč: 'done' = země ji má hotovou, 'not_relevant' = netýká se jí.
+-- Starší vyřízené změny zůstanou bez důvodu (appka je ukáže jako „Netýká se nás“).
+alter table annotation_country_status
+  add column if not exists resolution text
+    check (resolution in ('done', 'not_relevant'));
 
 -- ====================================================================
 -- Doplnit řádky pro účty, které se přihlásily dřív, než tabulka users

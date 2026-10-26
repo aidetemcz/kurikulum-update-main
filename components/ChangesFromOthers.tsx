@@ -1,8 +1,9 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
-import { dismissChange, restoreChange } from "@/app/changes/actions";
+import { dismissChange, restoreChange, type Resolution } from "@/app/changes/actions";
 import { categoryLabels } from "@/lib/annotations";
 import { moduleName } from "@/lib/module-name";
 import { fill } from "@/lib/format";
@@ -47,6 +48,9 @@ export function ChangesFromOthers({
   // Lišta si drží jen id. Položku dohledáme až při kliknutí, ať se
   // nepracuje s obrázkem, který mezitím zestaral.
   const [toastId, setToastId] = useState<string | null>(null);
+  const [toastText, setToastText] = useState("");
+  // Jak to uživatel v téhle relaci vyřídil – kvůli štítku ve Vyřízených.
+  const [duvody, setDuvody] = useState<Record<string, Resolution>>({});
   const [error, setError] = useState<string | null>(null);
 
   const vse = [...pending, ...dismissed];
@@ -66,14 +70,14 @@ export function ChangesFromOthers({
 
   const toastTimer = useRef<number | null>(null);
 
-  async function skryt(item: PendingChange) {
+  async function skryt(item: PendingChange, resolution: Resolution = "not_relevant") {
     setConfirmingId(null);
     setError(null);
     setLeavingId(item.id);
 
     // Výpadek sítě by jinak zůstal viset jako nevyřízený slib a kartička
     // by se zasekla v polovině odchodu.
-    const result = await dismissChange(item.id).catch((chyba: Error) => ({
+    const result = await dismissChange(item.id, resolution).catch((chyba: Error) => ({
       error: chyba.message,
     }));
     if (result.error) {
@@ -85,8 +89,10 @@ export function ChangesFromOthers({
     window.setTimeout(() => {
       setLeavingId((current) => (current === item.id ? null : current));
       setZmeny((prev) => ({ ...prev, [item.id]: "dismissed" }));
+      setDuvody((prev) => ({ ...prev, [item.id]: resolution }));
     }, FADE_MS);
 
+    setToastText(resolution === "done" ? t.doneToast : t.dismissedToast);
     setToastId(item.id);
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToastId(null), UNDO_MS);
@@ -157,6 +163,7 @@ export function ChangesFromOthers({
                 key={item.id}
                 item={item}
                 hidden={stav(item) === "dismissed"}
+                resolution={duvody[item.id] ?? item.resolution}
                 leaving={leavingId === item.id}
                 confirming={confirmingId === item.id}
                 focus={focusModuleId === item.moduleId}
@@ -165,6 +172,7 @@ export function ChangesFromOthers({
                 onAskDismiss={() => setConfirmingId(item.id)}
                 onCancelDismiss={closeConfirm}
                 onDismiss={() => skryt(item)}
+                onDone={() => skryt(item, "done")}
                 onRestore={() => vratit(item.id)}
               />
             ))
@@ -174,7 +182,7 @@ export function ChangesFromOthers({
 
       {toastId && (
         <div className="fixed bottom-6 left-1/2 z-20 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-ink px-4 py-2.5 text-sm text-white shadow-lg">
-          {t.dismissedToast}
+          {toastText}
           {/* Záměrně onMouseDown, ne onClick: kliknutí těsně před vypršením
               lišty se tak stihne uplatnit ještě při stisku. */}
           <button
@@ -217,6 +225,7 @@ function Tab({
 function ChangeCard({
   item,
   hidden,
+  resolution,
   leaving,
   confirming,
   focus,
@@ -225,10 +234,12 @@ function ChangeCard({
   onAskDismiss,
   onCancelDismiss,
   onDismiss,
+  onDone,
   onRestore,
 }: {
   item: PendingChange;
   hidden: boolean;
+  resolution: Resolution | null;
   leaving: boolean;
   confirming: boolean;
   /** Na tuhle změnu se odrolovalo ze semaforu. */
@@ -238,6 +249,7 @@ function ChangeCard({
   onAskDismiss: () => void;
   onCancelDismiss: () => void;
   onDismiss: () => void;
+  onDone: () => void;
   onRestore: () => void;
 }) {
   const labels = categoryLabels(item.category, t);
@@ -289,7 +301,13 @@ function ChangeCard({
       </p>
 
       {hidden ? (
-        <div className="mt-auto pt-3">
+        <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
+          <span
+            className={`badge-pill ${resolution === "done" ? "bg-coral/10 text-coral" : "text-ink/50"}`}
+          >
+            {resolution === "done" && <Check size={12} strokeWidth={3} className="mr-1 inline" />}
+            {resolution === "done" ? t.changeDone : t.notRelevant}
+          </span>
           <button
             type="button"
             onClick={onRestore}
@@ -306,6 +324,15 @@ function ChangeCard({
           >
             {t.showInDocument}
           </Link>
+          {/* Hotovo se nepotvrzuje – jde vrátit z lišty i z Vyřízených. */}
+          <button
+            type="button"
+            onClick={onDone}
+            className="inline-flex items-center gap-1 rounded-xl border border-coral/40 px-3 py-1.5 text-sm font-medium text-coral hover:bg-coral/5"
+          >
+            <Check size={14} strokeWidth={3} />
+            {t.changeDone}
+          </button>
           {/* Samostatná akce, ne odeslání formuláře. */}
           <button
             type="button"

@@ -48,8 +48,8 @@ Uživatel bez přiřazené země vidí jen výzvu a vlaječky pro volbu jazyka.
    dostanou e-mail a notifikaci (zvoneček).
 4. **Odbavení:** země na přehledu **Změny** vidí nevyřízené změny od ostatních, každou
    otevře přímo v dokumentu na místě rámečku. Poznámka i zvýrazněný text jsou v jejím
-   jazyce, originál jde zobrazit. Změnu jde jen skrýt tlačítkem **„Netýká se nás“**
-   (jde vrátit mezi aktuální). Samostatný stav „zapracováno“ neexistuje.
+   jazyce, originál jde zobrazit. Změnu vyřídí tlačítkem **„Hotovo“** (zapracovala ji)
+   nebo **„Netýká se nás“**. Vyřízené jdou vrátit mezi aktuální.
 5. **Semafor** u každé metodiky a země: šedá = země k lekci nemá verzi, zelená = nic
    nevyřízeného, žlutá = nevyřízená změna mladší 14 dní, červená = 14 dní a víc.
    Metodika a prezentace mají semafor zvlášť.
@@ -84,7 +84,7 @@ Next.js 15 (App Router, server actions) na Vercelu (region Frankfurt) · Supabas
 přihlášení magic linkem, RLS pravidla) · PDF přes react-pdf z Google Drive (přes vlastní
 proxy `/api/pdf/[id]`) · e-maily přes SMTP (Google Workspace) · Anthropic API (překlady,
 návrhy druhu změny). Texty rozhraní v `lib/i18n/{cs,sk,en,hu}.ts`, databáze
-v `supabase/migrations/0001–0016`.
+v `supabase/migrations/0001–0017`.
 
 ## Vizuální styl (AI dětem)
 
@@ -105,9 +105,8 @@ generického („AI slop“).
 
 - Změna se zemím rozesílá jen ve chvíli zveřejnění. Země přidaná později nebo změna
   sledovaných lekcí zpětně nic nedoplní (nová země už dostává dosavadní změny).
-- Chybí stav „zapracováno“: změnu jde jen skrýt jako „Netýká se nás“, i když ji země
-  ve skutečnosti zapracovala. Nahrání nové verze vlastní země změny neodbaví samo.
-  Semafor proto může svítit červeně, i když je hotovo.
+- Nahrání nové verze vlastní země změny neodbaví samo – země musí každou změnu
+  označit „Hotovo“ ručně.
 - Závislost na Google Drive: když soubor není sdílený „kdokoli s odkazem“, PDF se
   nenačte. Uživatel to musí pochopit z hlášky.
 - Přeložený text pod rámečkem leží přímo v PDF přes originál a písmo se zmenšuje, aby se

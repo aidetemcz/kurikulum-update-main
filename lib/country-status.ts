@@ -12,6 +12,7 @@ type StatusRow = {
   id: string;
   created_at: string;
   dismissed_at: string | null;
+  resolution?: "done" | "not_relevant" | null;
   annotations: {
     id: string;
     page: number;
@@ -54,10 +55,13 @@ export async function getChanges(
 ): Promise<PendingChange[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("annotation_country_status")
-    .select(
-      `id, created_at, dismissed_at,
+  // Sloupec resolution přidává migrace 0017. Dokud neběžela, načte se
+  // seznam bez něj – jinak by zmizely všechny změny.
+  const nacti = (sloupce: string) =>
+    supabase
+      .from("annotation_country_status")
+      .select(
+        `${sloupce}
        annotations (
          id, page, note, category, source_locale, translations, translation_failed,
          quote, quote_translations,
@@ -68,12 +72,17 @@ export async function getChanges(
            countries (name)
          )
        )`
-    )
-    .eq("country_id", countryId)
-    .eq("status", status)
-    .order(status === "pending" ? "created_at" : "dismissed_at", {
-      ascending: status === "pending",
-    });
+      )
+      .eq("country_id", countryId)
+      .eq("status", status)
+      .order(status === "pending" ? "created_at" : "dismissed_at", {
+        ascending: status === "pending",
+      });
+
+  let { data, error } = await nacti("id, created_at, dismissed_at, resolution,");
+  if (error && ["42703", "PGRST204"].includes(error.code ?? "")) {
+    ({ data, error } = await nacti("id, created_at, dismissed_at,"));
+  }
 
   if (error || !data) return [];
 
@@ -96,6 +105,7 @@ export async function getChanges(
         annotationId: annotation.id,
         createdAt: row.created_at,
         dismissedAt: row.dismissed_at,
+        resolution: row.resolution ?? null,
         publishedAt: version.published_at,
         sourceLocale: annotation.source_locale,
         translations: annotation.translations ?? {},

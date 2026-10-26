@@ -7,24 +7,41 @@ import { requireUser } from "@/lib/current-user";
 const NEZMENENO =
   "Změnu se nepodařilo uložit. Zkus stránku načíst znovu — možná ji mezitím změnil někdo jiný.";
 
-// "Netýká se nás". Zápis je vratný – vrácení zpět řeší restoreChange,
-// buď hned z lišty, nebo kdykoli později ze záložky Skryté.
+export type Resolution = "done" | "not_relevant";
+
+// Kód chyby, když v databázi chybí sloupec (migrace 0017 ještě neběžela).
+const CHYBI_SLOUPEC = ["42703", "PGRST204"];
+
+// Vyřízení změny: „Hotovo“, nebo „Netýká se nás“. Zápis je vratný –
+// vrácení zpět řeší restoreChange, buď hned z lišty, nebo kdykoli
+// později ze záložky Vyřízené.
 // Podmínka na status zaručí, že opakované zavolání nic nepokazí.
-export async function dismissChange(statusId: string): Promise<{ error?: string }> {
+export async function dismissChange(
+  statusId: string,
+  resolution: Resolution = "not_relevant"
+): Promise<{ error?: string }> {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("annotation_country_status")
-    .update({
-      status: "dismissed",
-      dismissed_at: new Date().toISOString(),
-      dismissed_by: user.id,
-    })
-    .eq("id", statusId)
-    .eq("status", "pending")
-    .select("id")
-    .maybeSingle();
+  const zapis = {
+    status: "dismissed",
+    dismissed_at: new Date().toISOString(),
+    dismissed_by: user.id,
+  };
+  const uloz = (hodnoty: Record<string, unknown>) =>
+    supabase
+      .from("annotation_country_status")
+      .update(hodnoty)
+      .eq("id", statusId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+
+  let { data, error } = await uloz({ ...zapis, resolution });
+  // Bez migrace 0017 se důvod neuloží, změna se ale vyřídí i tak.
+  if (error && CHYBI_SLOUPEC.includes(error.code ?? "")) {
+    ({ data, error } = await uloz(zapis));
+  }
 
   if (error) return { error: error.message };
   // Nula změněných řádků bez chyby znamená, že zápis zastavila pravidla
@@ -42,13 +59,20 @@ export async function restoreChange(statusId: string): Promise<{ error?: string 
   await requireUser();
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("annotation_country_status")
-    .update({ status: "pending", dismissed_at: null, dismissed_by: null })
-    .eq("id", statusId)
-    .eq("status", "dismissed")
-    .select("id")
-    .maybeSingle();
+  const zapis = { status: "pending", dismissed_at: null, dismissed_by: null };
+  const uloz = (hodnoty: Record<string, unknown>) =>
+    supabase
+      .from("annotation_country_status")
+      .update(hodnoty)
+      .eq("id", statusId)
+      .eq("status", "dismissed")
+      .select("id")
+      .maybeSingle();
+
+  let { data, error } = await uloz({ ...zapis, resolution: null });
+  if (error && CHYBI_SLOUPEC.includes(error.code ?? "")) {
+    ({ data, error } = await uloz(zapis));
+  }
 
   if (error) return { error: error.message };
   if (!data) return { error: NEZMENENO };

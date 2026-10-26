@@ -220,6 +220,8 @@ export const sk: Dictionary = {
   followPromptText: "Teraz vám chodia zmeny vo všetkých metodikách. Vyberte len tie, ktoré vaša krajina používa – ostatné vás nebudú rušiť.",
   followPromptButton: "Vybrať metodiky",
   showInDocument: "Zobraziť v dokumente",
+  changeDone: "Hotovo",
+  doneToast: "Označené ako hotové.",
   notRelevant: "Netýka sa nás",
   dismissedToast: "Označené ako netýkajúce sa nás.",
   fromCountryVersion: "{country}, verzia {version}",
@@ -236,11 +238,11 @@ export const sk: Dictionary = {
 
   changesFromOthersCount: "Zmeny od ostatných krajín ({count})",
   tabCurrent: "Aktuálne",
-  tabHidden: "Skryté",
+  tabHidden: "Vybavené",
   confirmDismissYes: "Áno, netýka sa nás",
   restoreToCurrent: "Vrátiť medzi aktuálne",
-  noHiddenChanges: "Zatiaľ ste nič neskryli.",
-  hiddenAt: "Skryté",
+  noHiddenChanges: "Zatiaľ nič vybavené.",
+  hiddenAt: "Vybavené",
 
   recognizedAs: "Rozpoznané: {name}",
   change: "zmeniť",

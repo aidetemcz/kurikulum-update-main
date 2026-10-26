@@ -233,6 +233,8 @@ export const cs = {
   followPromptText: "Teď vám chodí změny ve všech metodikách. Vyberte jen ty, které vaše země používá – ostatní vás nebudou rušit.",
   followPromptButton: "Vybrat metodiky",
   showInDocument: "Zobrazit v dokumentu",
+  changeDone: "Hotovo",
+  doneToast: "Označeno jako hotové.",
   notRelevant: "Netýká se nás",
   dismissedToast: "Označeno jako netýkající se nás.",
   fromCountryVersion: "{country}, verze {version}",
@@ -249,11 +251,11 @@ export const cs = {
 
   changesFromOthersCount: "Změny od ostatních zemí ({count})",
   tabCurrent: "Aktuální",
-  tabHidden: "Skryté",
+  tabHidden: "Vyřízené",
   confirmDismissYes: "Ano, netýká se nás",
   restoreToCurrent: "Vrátit mezi aktuální",
-  noHiddenChanges: "Zatím jste nic neskryli.",
-  hiddenAt: "Skryto",
+  noHiddenChanges: "Zatím nic vyřízeného.",
+  hiddenAt: "Vyřízeno",
 
   // rozpoznání metodiky a výběr při nahrávání
   recognizedAs: "Rozpoznáno: {name}",

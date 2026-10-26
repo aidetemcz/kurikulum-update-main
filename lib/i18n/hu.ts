@@ -222,6 +222,8 @@ export const hu: Dictionary = {
   followPromptText: "Most minden módszertan változásai megérkeznek. Válasszátok ki csak azokat, amelyeket az országotok használ – a többi nem fog zavarni.",
   followPromptButton: "Módszertanok kiválasztása",
   showInDocument: "Megjelenítés a dokumentumban",
+  changeDone: "Kész",
+  doneToast: "Késznek jelölve.",
   notRelevant: "Minket nem érint",
   dismissedToast: "Megjelölve: minket nem érint.",
   fromCountryVersion: "{country}, {version}. verzió",
@@ -238,11 +240,11 @@ export const hu: Dictionary = {
 
   changesFromOthersCount: "Változások a többi országtól ({count})",
   tabCurrent: "Aktuális",
-  tabHidden: "Rejtett",
+  tabHidden: "Lezárt",
   confirmDismissYes: "Igen, minket nem érint",
   restoreToCurrent: "Vissza az aktuálisak közé",
-  noHiddenChanges: "Még semmit nem rejtettél el.",
-  hiddenAt: "Elrejtve",
+  noHiddenChanges: "Még nincs lezárt változás.",
+  hiddenAt: "Lezárva",
 
   recognizedAs: "Felismerve: {name}",
   change: "módosítás",

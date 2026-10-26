@@ -220,6 +220,8 @@ export const en: Dictionary = {
   followPromptText: "Right now you get changes in all teaching materials. Choose only those your country uses – the others won't bother you.",
   followPromptButton: "Choose teaching materials",
   showInDocument: "Show in document",
+  changeDone: "Done",
+  doneToast: "Marked as done.",
   notRelevant: "Not relevant to us",
   dismissedToast: "Marked as not relevant to us.",
   fromCountryVersion: "{country}, version {version}",
@@ -236,11 +238,11 @@ export const en: Dictionary = {
 
   changesFromOthersCount: "Changes from other countries ({count})",
   tabCurrent: "Current",
-  tabHidden: "Hidden",
+  tabHidden: "Resolved",
   confirmDismissYes: "Yes, not relevant to us",
   restoreToCurrent: "Move back to current",
-  noHiddenChanges: "You haven\u2019t hidden anything yet.",
-  hiddenAt: "Hidden",
+  noHiddenChanges: "Nothing resolved yet.",
+  hiddenAt: "Resolved",
 
   recognizedAs: "Recognised: {name}",
   change: "change",
