@@ -10,7 +10,7 @@ export const cs = {
   dateLocale: "cs-CZ",
 
   // název appky v levém horním rohu a na přihlášení
-  appName: "AI kurikulum",
+  appName: "AI Kurikulum",
 
   // navigace
   // Klíč se jmenuje "overview" historicky, stránka ale od přesunu

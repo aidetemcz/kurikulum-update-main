@@ -81,7 +81,7 @@ export async function replySupportMessage(
   if (prijemce?.email && prijemce.email !== admin.email) {
     const odeslano = await sendSupportEmail({
       to: prijemce.email,
-      from: "admin AI kurikula",
+      from: "admin AI Kurikula",
       body,
       path: "/help",
     });
@@ -144,7 +144,7 @@ export async function adminSendMessage(
     if (!email) continue;
     const odeslano = await sendSupportEmail({
       to: email,
-      from: "admin AI kurikula",
+      from: "admin AI Kurikula",
       body,
       path: "/help",
     });

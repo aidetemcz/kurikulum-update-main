@@ -5,7 +5,7 @@ import Image from "next/image";
 export function Logo({
   size = 32,
   showName = true,
-  name = "AI kurikulum",
+  name = "AI Kurikulum",
 }: {
   /** Výška i šířka loga v pixelech. Obrázek je čtvercový. */
   size?: number;

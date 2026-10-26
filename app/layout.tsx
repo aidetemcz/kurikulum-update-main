@@ -17,8 +17,8 @@ import { translateMissingLater } from "@/lib/translate-missing";
 export const maxDuration = 60;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const TITLE = "AI kurikulum";
-const DESCRIPTION = "Sdílení metodik AI kurikula s partnerskými zeměmi";
+const TITLE = "AI Kurikulum";
+const DESCRIPTION = "Sdílení metodik AI Kurikula s partnerskými zeměmi";
 
 export const metadata: Metadata = {
   // metadataBase je potřeba, aby se relativní cesta k náhledu doplnila

@@ -6,7 +6,7 @@ export const en: Dictionary = {
   dateLocale: "en-GB",
 
   // název appky v levém horním rohu a na přihlášení
-  appName: "AI curriculum",
+  appName: "AI Curriculum",
 
   overview: "Changes",
   upload: "Upload",

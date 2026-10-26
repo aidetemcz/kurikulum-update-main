@@ -51,7 +51,7 @@ function transport(): Transporter {
 // Gmail povolí odesílat jen za adresu schránky, proto odesílatel je vždy
 // SMTP_USER, měnit jde jen zobrazované jméno.
 function sender(): string {
-  return `"${process.env.SMTP_FROM_NAME ?? "AI kurikulum"}" <${process.env.SMTP_USER}>`;
+  return `"${process.env.SMTP_FROM_NAME ?? "AI Kurikulum"}" <${process.env.SMTP_USER}>`;
 }
 
 async function send(message: {
@@ -137,7 +137,7 @@ export async function sendSupportEmail(params: {
   const odkaz = `${siteUrl()}${path}`;
   return send({
     to,
-    subject: `Nová zpráva v AI kurikulu od ${from}`,
+    subject: `Nová zpráva v AI Kurikulu od ${from}`,
     text: `${from} píše:\n\n${body}\n\nOdpovědět: ${odkaz}`,
     html: emailLayout(
       `<p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
