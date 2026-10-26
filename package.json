@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "mkdir -p public && cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs"
+    "postinstall": "mkdir -p public && cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs",
+    "test": "node --experimental-strip-types --no-warnings --import ./tests/register.mjs --test tests/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

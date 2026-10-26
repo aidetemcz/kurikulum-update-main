@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   discardDraft,
@@ -11,7 +11,7 @@ import {
 } from "@/app/admin/upload/actions";
 import { AnnotationWorkspace } from "@/components/annotations/AnnotationWorkspace";
 import { ModulePicker } from "@/components/ModulePicker";
-import { matchModule, type MatchResult } from "@/lib/match-module";
+import { matchModule, toMatchableModule, type MatchResult } from "@/lib/match-module";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill } from "@/lib/format";
 import { useLocalDateTimeFormat } from "@/components/LocalDateTime";
@@ -48,9 +48,13 @@ const LINK_DEBOUNCE_MS = 500;
 // Jak dlouho po poslední změně značek se ukládá na server.
 const MARKS_DEBOUNCE_MS = 800;
 
+// Stálý prázdný objekt: nový {} při každém vykreslení by znovu spouštěl
+// rozpoznávání lekce.
+const BEZ_VLASTNICH_NAZVU: Record<string, Record<string, string>> = {};
+
 export function UploadWorkspace({
   modules,
-  localNames = {},
+  localNames = BEZ_VLASTNICH_NAZVU,
   countries,
   defaultCountryId,
   canChooseCountry,
@@ -153,15 +157,26 @@ export function UploadWorkspace({
     };
   }, [fileId]);
 
+  // Lekce pro rozpoznávání se všemi jejich názvy; přednost mají názvy
+  // v jazyce země, za kterou se nahrává, a její vlastní názvy.
+  const jazykZeme = countries.find((country) => country.id === countryId)?.locale ?? "cs";
+  const rozpoznatelne = useMemo(
+    () =>
+      modules.map((module) =>
+        toMatchableModule(module, jazykZeme, localNames[countryId]?.[module.id] ?? null)
+      ),
+    [modules, jazykZeme, localNames, countryId]
+  );
+
   useEffect(() => {
     if (!firstPageText && !fileName) return;
 
-    const result = matchModule(modules, firstPageText, fileName);
+    const result = matchModule(rozpoznatelne, firstPageText, fileName);
     setRecognition(result);
     if (result.kind === "match" && !moduleTouched.current) {
       setModuleId(result.best.moduleId);
     }
-  }, [modules, firstPageText, fileName]);
+  }, [rozpoznatelne, firstPageText, fileName]);
 
   // Koncept téhle záložky – server podle něj pozná, který koncept má
   // doplnit, a cizí (z jiné záložky) nepřepíše.
