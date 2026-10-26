@@ -20,6 +20,7 @@ import { DOCUMENT_KINDS, type Country, type DocumentKind, type Mark, type Module
 import type { Dictionary } from "@/lib/i18n";
 import { suggestVersionSummary } from "@/app/admin/upload/suggest-actions";
 import { suggestFailureMessage } from "@/lib/suggest-message";
+import { describedMarks } from "@/lib/draft-marks";
 
 export type LatestVersion = {
   module_id: string;
@@ -98,6 +99,8 @@ export function UploadWorkspace({
   // hodnotách stavu – ty se podruhé nespustí a odkaz na dokument by
   // zůstal prázdný.
   function continueDraft(draft: ExistingDraft) {
+    // Rámečky právě přišly z databáze, není co ukládat.
+    skipNextSave.current = true;
     moduleTouched.current = true;
     setModuleId(draft.module_id);
     setCountryId(draft.country_id);
@@ -176,15 +179,19 @@ export function UploadWorkspace({
 
   // Průběžné ukládání značek. Posun a zvětšování vyvolá spoustu změn za sebou,
   // proto se ukládá až chvíli po té poslední.
-  const firstRun = useRef(true);
+  //
+  // Ukládá se i hned po založení konceptu – rámečky nakreslené dřív, než byl
+  // vybraný modul a odkaz, by se jinak ztratily. Přeskočí se jen navázání na
+  // rozdělanou práci, kde rámečky právě přišly z databáze.
+  const skipNextSave = useRef(false);
   // Při zveřejnění se už nic průběžně neukládá: rámečky jdou s formulářem.
   const publishing = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const savingNow = useRef<Promise<unknown> | null>(null);
   useEffect(() => {
     if (!draftId) return;
-    if (firstRun.current) {
-      firstRun.current = false;
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
       return;
     }
     if (publishing.current) return;
@@ -239,7 +246,9 @@ export function UploadWorkspace({
       version.module_id === moduleId && version.country_id === countryId && version.kind === kind
   );
   const countryName = countries.find((country) => country.id === countryId)?.name ?? "";
-  const canPublish = Boolean(draftId) && (marks.length > 0 || summary.trim().length > 0);
+  // Server rámečky bez poznámky zahazuje, proto se nepočítají ani tady.
+  const popsaneRamecky = describedMarks(marks).length;
+  const canPublish = Boolean(draftId) && (popsaneRamecky > 0 || summary.trim().length > 0);
 
   if (draftChoice === "ask" && existingDraft) {
     const draftModule = modules.find((m) => m.id === existingDraft.module_id)?.name ?? "";
@@ -473,7 +482,7 @@ export function UploadWorkspace({
               disabled={isPending || !canPublish}
               className="rounded-xl bg-coral px-4 py-2.5 font-medium text-white transition hover:opacity-90 disabled:opacity-50"
             >
-              {isPending ? t.saving : `${t.uploadAndNotify} (${marks.length})`}
+              {isPending ? t.saving : `${t.uploadAndNotify} (${popsaneRamecky})`}
             </button>
 
             {/* Proč zatím nejde zveřejnit – jinak tlačítko jen mlčky šedne. */}
