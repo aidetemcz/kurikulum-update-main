@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   discardDraft,
@@ -177,25 +177,62 @@ export function UploadWorkspace({
   // Průběžné ukládání značek. Posun a zvětšování vyvolá spoustu změn za sebou,
   // proto se ukládá až chvíli po té poslední.
   const firstRun = useRef(true);
+  // Při zveřejnění se už nic průběžně neukládá: rámečky jdou s formulářem.
+  const publishing = useRef(false);
+  const saveTimer = useRef<number | null>(null);
+  const savingNow = useRef<Promise<unknown> | null>(null);
   useEffect(() => {
     if (!draftId) return;
     if (firstRun.current) {
       firstRun.current = false;
       return;
     }
+    if (publishing.current) return;
 
     setSaveState((s) => ({ ...s, saving: true, error: undefined }));
-    const timer = window.setTimeout(async () => {
-      const result = await saveDraftMarks(draftId, marks);
-      setSaveState(
-        "error" in result
-          ? { saving: false, savedAt: null, error: result.error }
-          : { saving: false, savedAt: result.savedAt }
-      );
+    const timer = window.setTimeout(() => {
+      saveTimer.current = null;
+      const ukladani = saveDraftMarks(draftId, marks).then((result) => {
+        setSaveState(
+          "error" in result
+            ? { saving: false, savedAt: null, error: result.error }
+            : { saving: false, savedAt: result.savedAt }
+        );
+      });
+      savingNow.current = ukladani;
+      ukladani.finally(() => {
+        if (savingNow.current === ukladani) savingNow.current = null;
+      });
     }, MARKS_DEBOUNCE_MS);
+    saveTimer.current = timer;
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      if (saveTimer.current === timer) saveTimer.current = null;
+    };
   }, [marks, draftId]);
+
+  // Zveřejnění: zrušit čekající uložení, počkat na to, které právě běží,
+  // a rámečky poslat rovnou s formulářem. Jinak by průběžné uložení mohlo
+  // doběhnout až po zveřejnění a přepsat ho.
+  async function zverejnit(formData: FormData) {
+    publishing.current = true;
+    if (saveTimer.current !== null) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    await savingNow.current?.catch(() => {});
+    formData.set("marks", JSON.stringify(marks));
+    startTransition(() => formAction(formData));
+  }
+
+  // Po zveřejnění (i s varováním o souběžné verzi) už koncept neexistuje.
+  // Po chybě zůstává koncept konceptem a průběžné ukládání se vrací.
+  useEffect(() => {
+    if (!state) return;
+    publishing.current = false;
+    if ("warning" in state) setDraftId(null);
+  }, [state]);
 
   const latest = latestVersions.find(
     (version) =>
@@ -257,7 +294,7 @@ export function UploadWorkspace({
   }
 
   return (
-    <form action={formAction}>
+    <form action={zverejnit}>
       <input type="hidden" name="draftId" value={draftId ?? ""} />
       <input type="hidden" name="knownLatest" value={latest?.version_number ?? 0} />
 

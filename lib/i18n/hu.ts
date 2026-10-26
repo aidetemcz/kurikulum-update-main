@@ -85,6 +85,8 @@ export const hu: Dictionary = {
   saved: "Mentve.",
   done: "Kész",
   saveChanges: "Változások mentése",
+  saveFailedGeneric: "A mentés nem sikerült. Kérlek, próbáld újra.",
+  draftNotEditable: "Ez a piszkozat már közzé lett téve vagy törölve. Kérlek, töltsd újra az oldalt.",
   saveFailedDetail: "A mentés nem sikerült:",
   uploadedBy: "feltöltötte",
   existingVersionInfo: "{country} esetében már létezik {version}. verzió ({when}, feltöltötte: {who}). Ez {next}. verzióként mentődik.",

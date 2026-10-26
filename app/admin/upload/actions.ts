@@ -12,6 +12,8 @@ import { translateNotes } from "@/lib/translate";
 import { countriesFollowing } from "@/lib/followed";
 import { toLocale } from "@/lib/i18n";
 import { toDocumentKind, type DocumentKind, type Mark } from "@/lib/types";
+import { toDraftMarks, type DraftMark } from "@/lib/draft-marks";
+import { userError } from "@/lib/user-error";
 
 // Kolikrát zkusíme zveřejnění znovu, když nám někdo souběžně vezme číslo verze.
 const VERSION_ATTEMPTS = 5;
@@ -93,6 +95,9 @@ export async function ensureDraftVersion(
   return { draftId: data.id, savedAt: new Date().toISOString() };
 }
 
+// Uloží rámečky rozpracované verze. Jen do konceptu – zveřejněnou verzi
+// tudy přepsat nejde (hlídá to funkce save_draft_marks v databázi, ve
+// stejné transakci a pod stejným zámkem jako zveřejnění).
 export async function saveDraftMarks(
   draftId: string,
   marks: Mark[]
@@ -103,43 +108,34 @@ export async function saveDraftMarks(
   if (!canUpload(user)) return { error: t.uploadNotAllowed };
 
   const supabase = await createClient();
-
-  // Nové značky zapisujeme dřív, než smažeme ty původní – kdyby zápis
-  // selhal, o rozdělanou práci uživatel nepřijde.
-  const { data: existing, error: readError } = await supabase
-    .from("annotations")
-    .select("id")
-    .eq("document_version_id", draftId);
-
-  if (readError) return { error: `${t.saveFailedDetail} ${readError.message}` };
-
-  const described = marks.filter((mark) => mark.note?.trim());
-
-  if (described.length > 0) {
-    const { error } = await supabase.from("annotations").insert(
-      described.map((mark) => ({
-        document_version_id: draftId,
-        page: mark.page,
-        x: mark.x,
-        y: mark.y,
-        w: mark.w,
-        h: mark.h,
-        note: mark.note,
-        category: mark.category,
-        quote: mark.quote ?? null,
-      }))
-    );
-
-    if (error) return { error: `${t.saveFailedDetail} ${error.message}` };
+  const vysledek = await ulozRamecky(supabase, draftId, toDraftMarks(marks));
+  if ("error" in vysledek) {
+    return {
+      error:
+        vysledek.error === "not_editable"
+          ? t.draftNotEditable
+          : await userError(t.saveFailedGeneric, vysledek.detail, "Koncept se nepodařilo uložit:"),
+    };
   }
+  return { savedAt: vysledek.savedAt };
+}
 
-  const previousIds = (existing ?? []).map((row) => row.id);
-  if (previousIds.length > 0) {
-    const { error } = await supabase.from("annotations").delete().in("id", previousIds);
-    if (error) return { error: `${t.saveFailedDetail} ${error.message}` };
+async function ulozRamecky(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  draftId: string,
+  marks: DraftMark[]
+): Promise<{ savedAt: string } | { error: "not_editable" | "failed"; detail: unknown }> {
+  const { data, error } = await supabase.rpc("save_draft_marks", {
+    p_draft_id: draftId,
+    p_marks: marks,
+  });
+  if (error) {
+    return {
+      error: error.message.includes("draft_not_editable") ? "not_editable" : "failed",
+      detail: error,
+    };
   }
-
-  return { savedAt: new Date().toISOString() };
+  return { savedAt: typeof data === "string" ? data : new Date().toISOString() };
 }
 
 export async function discardDraft(draftId: string): Promise<{ error: string } | null> {
@@ -205,6 +201,27 @@ export async function publishVersion(
 
   const { module_id: moduleId, country_id: countryId } = draft;
   const kind = toDocumentKind(draft.kind);
+
+  // Rámečky přicházejí přímo s formulářem: průběžné ukládání mohlo ještě
+  // čekat na časovač, a zveřejnit se má přesně to, co editor vidí.
+  const odeslaneRamecky = formData.get("marks");
+  if (typeof odeslaneRamecky === "string") {
+    let ramecky: DraftMark[] = [];
+    try {
+      ramecky = toDraftMarks(JSON.parse(odeslaneRamecky));
+    } catch {
+      return { error: t.saveFailedGeneric };
+    }
+    const ulozeno = await ulozRamecky(supabase, draftId, ramecky);
+    if ("error" in ulozeno) {
+      return {
+        error:
+          ulozeno.error === "not_editable"
+            ? t.draftNotEditable
+            : await userError(t.saveFailedGeneric, ulozeno.detail, "Rámečky před zveřejněním se nepodařilo uložit:"),
+      };
+    }
+  }
 
   const { data: marks } = await supabase
     .from("annotations")

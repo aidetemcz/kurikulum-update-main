@@ -85,6 +85,8 @@ export const en: Dictionary = {
   saved: "Saved.",
   done: "Done",
   saveChanges: "Save changes",
+  saveFailedGeneric: "Saving failed. Please try again.",
+  draftNotEditable: "This draft has already been published or deleted. Please reload the page.",
   saveFailedDetail: "Saving failed:",
   uploadedBy: "uploaded by",
   existingVersionInfo: "{country} already has version {version} ({when}, uploaded by {who}). This will be saved as version {next}.",
