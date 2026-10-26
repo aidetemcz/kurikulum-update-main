@@ -278,7 +278,6 @@ export const cs = {
   maybeOneOf: "Vypadá to na jednu z těchto:",
   searchModule: "Hledat metodiku",
   nothingFound: "Nic nenalezeno",
-  moreResults: "a {count} dalších – upřesněte hledání nebo vyberte sekci",
   publishNeedsCountry: "Nemáte přiřazenou žádnou zemi. Přiřadí ji admin v Administraci → Uživatelé.",
   publishNeedsLink: "Chybí odkaz na PDF.",
   publishNeedsModule: "Vyberte, ke které metodice verze patří.",

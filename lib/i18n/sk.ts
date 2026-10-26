@@ -264,7 +264,6 @@ export const sk: Dictionary = {
   maybeOneOf: "Vyzerá to na jednu z týchto:",
   searchModule: "Hľadať metodiku",
   nothingFound: "Nič sa nenašlo",
-  moreResults: "a {count} ďalších – upresnite hľadanie alebo vyberte sekciu",
   publishNeedsCountry: "Nemáte priradenú žiadnu krajinu. Priradí vám ju admin v Administrácii → Používatelia.",
   publishNeedsLink: "Chýba odkaz na PDF.",
   publishNeedsModule: "Vyberte, ku ktorej metodike verzia patrí.",

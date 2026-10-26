@@ -264,7 +264,6 @@ export const en: Dictionary = {
   maybeOneOf: "This looks like one of these:",
   searchModule: "Search teaching materials",
   nothingFound: "Nothing found",
-  moreResults: "and {count} more – refine the search or pick a section",
   publishNeedsCountry: "You don't have a country assigned. An admin can assign one in Administration → Users.",
   publishNeedsLink: "The link to the PDF is missing.",
   publishNeedsModule: "Choose which teaching material this version belongs to.",

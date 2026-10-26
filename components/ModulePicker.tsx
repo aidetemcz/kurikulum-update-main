@@ -3,18 +3,14 @@
 import { useMemo, useRef, useState } from "react";
 import { matchKey, type MatchResult } from "@/lib/match-module";
 import { SECTION_ORDER } from "@/lib/catalog";
-import { fill } from "@/lib/format";
 import { moduleName } from "@/lib/module-name";
 import type { Module } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
-// Kolik výsledků se ukáže najednou. Víc už je nepřehledné – kdo nenajde,
-// upřesní hledání nebo si vybere sekci.
-const MAX_VYSLEDKU = 8;
-
-// Výběr metodiky při nahrávání. Metodik je kolem padesáti, proto se
-// nevypisují všechny: hledá se podle názvu, případně se zúží na sekci.
-// Vybraná metodika se pak ukáže jako karta s tlačítkem „změnit“.
+// Výběr metodiky při nahrávání: posouvatelný seznam všech metodik
+// rozdělený po sekcích (v pořadí katalogu) a nad ním hledání, které
+// seznam zúží. Vybraná metodika se pak ukáže jako karta s tlačítkem
+// „změnit“.
 //
 // Rozpoznání z PDF metodiku jen předvyplní – kdykoli jde přepsat.
 export function ModulePicker({
@@ -32,7 +28,6 @@ export function ModulePicker({
   t: Dictionary;
 }) {
   const [hledani, setHledani] = useState("");
-  const [sekce, setSekce] = useState<string | null>(null);
   const [menim, setMenim] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,29 +43,39 @@ export function ModulePicker({
     ];
   }, [modules, t.ungrouped]);
 
-  const vysledky = useMemo(() => {
+  // Seznam po sekcích; hledání ho jen zúží.
+  const skupiny = useMemo(() => {
     const klic = matchKey(hledani);
-    if (!klic && !sekce) return [];
-    return modules.filter((module) => {
-      if (sekce && (module.category ?? t.ungrouped) !== sekce) return false;
-      if (!klic) return true;
-      return (
-        matchKey(module.name).includes(klic) ||
-        matchKey(module.name_en ?? "").includes(klic) ||
-        matchKey(module.local_name ?? "").includes(klic) ||
-        Object.values(module.name_translations ?? {}).some((nazev) =>
-          matchKey(nazev).includes(klic)
-        ) ||
-        matchKey(module.category ?? "").includes(klic)
-      );
-    });
-  }, [modules, hledani, sekce, t.ungrouped]);
+    const nalezene = klic
+      ? modules.filter(
+          (module) =>
+            matchKey(module.name).includes(klic) ||
+            matchKey(module.name_en ?? "").includes(klic) ||
+            matchKey(module.local_name ?? "").includes(klic) ||
+            Object.values(module.name_translations ?? {}).some((nazev) =>
+              matchKey(nazev).includes(klic)
+            ) ||
+            matchKey(module.category ?? "").includes(klic)
+        )
+      : modules;
+
+    return sekceVKatalogu
+      .map(
+        (nazev) =>
+          [
+            nazev,
+            nalezene
+              .filter((module) => (module.category ?? t.ungrouped) === nazev)
+              .sort((a, b) => a.order_index - b.order_index || a.name.localeCompare(b.name)),
+          ] as const
+      )
+      .filter(([, seznam]) => seznam.length > 0);
+  }, [modules, hledani, sekceVKatalogu, t.ungrouped]);
 
   function vybrat(moduleId: string) {
     onChange(moduleId);
     setMenim(false);
     setHledani("");
-    setSekce(null);
   }
 
   // Vybraná metodika: jen karta a možnost ji změnit.
@@ -121,51 +126,33 @@ export function ModulePicker({
         className="input"
       />
 
-      <div role="group" aria-label={t.module} className="flex flex-wrap gap-1">
-        {sekceVKatalogu.map((nazev) => (
-          <button
-            key={nazev}
-            type="button"
-            aria-pressed={sekce === nazev}
-            onClick={() => setSekce(sekce === nazev ? null : nazev)}
-            className={`rounded-full px-2 py-0.5 text-[11px] ${
-              sekce === nazev ? "bg-coral text-white" : "bg-haze/50 text-ink/70 hover:bg-mist/50"
-            }`}
-          >
-            {nazev}
-          </button>
-        ))}
-      </div>
-
-      {vysledky.length > 0 && (
-        <ul className="flex flex-col divide-y divide-haze rounded-xl border border-haze">
-          {vysledky.slice(0, MAX_VYSLEDKU).map((module) => (
-            <li key={module.id}>
-              <button
-                type="button"
-                onClick={() => vybrat(module.id)}
-                className={`w-full px-3 py-2 text-left hover:bg-haze/40 ${
-                  module.id === value ? "bg-haze/40" : ""
-                }`}
-              >
-                <span className="block text-sm text-ink">{moduleName(module, t)}</span>
-                {!sekce && (
-                  <span className="block text-xs text-ink/40">{module.category ?? t.ungrouped}</span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {vysledky.length > MAX_VYSLEDKU && (
-        <p className="text-xs text-ink/50">
-          {fill(t.moreResults, { count: vysledky.length - MAX_VYSLEDKU })}
-        </p>
-      )}
-
-      {(hledani.trim() || sekce) && vysledky.length === 0 && (
+      {skupiny.length === 0 ? (
         <p className="text-xs text-ink/50">{t.nothingFound}</p>
+      ) : (
+        <div className="max-h-72 overflow-y-auto rounded-xl border border-haze">
+          {skupiny.map(([nazev, seznam]) => (
+            <div key={nazev}>
+              <p className="sticky top-0 bg-haze/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink/50">
+                {nazev}
+              </p>
+              <ul className="divide-y divide-haze">
+                {seznam.map((module) => (
+                  <li key={module.id}>
+                    <button
+                      type="button"
+                      onClick={() => vybrat(module.id)}
+                      className={`w-full px-3 py-2 text-left text-sm text-ink hover:bg-haze/40 ${
+                        module.id === value ? "bg-haze/40" : ""
+                      }`}
+                    >
+                      {moduleName(module, t)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
 
       {menim && vybrana && (
