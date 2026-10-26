@@ -42,7 +42,7 @@ export default async function UploadPage({
   const { data: versions } = await supabase
     .from("document_versions")
     .select(
-      "module_id, country_id, kind, version_number, uploaded_at, published_at, users:uploaded_by (email)"
+      "module_id, country_id, kind, version_number, version_label, uploaded_at, published_at, users:uploaded_by (email)"
     )
     .eq("status", "published")
     .order("version_number", { ascending: false });
@@ -63,6 +63,7 @@ export default async function UploadPage({
       country_id: version.country_id,
       kind,
       version_number: version.version_number,
+      version_label: version.version_label ?? null,
       // Čas zveřejnění, ne vzniku konceptu.
       uploaded_at: versionDate(version),
       uploaded_by_email: uploader?.email ?? null,

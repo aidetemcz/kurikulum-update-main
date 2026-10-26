@@ -6,6 +6,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getFollowed, follows } from "@/lib/followed";
 import { getLocalNames } from "@/lib/local-names";
+import { versionLabel } from "@/lib/version-label";
 import { lightKey, toDocumentKind, type CountryLight, type PendingChange } from "@/lib/types";
 
 // Tvar, v jakém řádky vrací PostgREST (vnořené tabulky jako objekt nebo pole).
@@ -28,6 +29,7 @@ type StatusRow = {
       module_id: string;
       kind: string | null;
       version_number: number | null;
+      version_label: string | null;
       published_at: string | null;
       uploaded_at: string | null;
       users: { email: string } | { email: string }[] | null;
@@ -68,7 +70,7 @@ export async function getChanges(
          id, page, note, category, source_locale, translations, translation_failed,
          quote, quote_translations,
          document_versions (
-           module_id, kind, version_number, published_at, uploaded_at,
+           module_id, kind, version_number, version_label, published_at, uploaded_at,
            users:uploaded_by (email),
            modules (*),
            countries (name)
@@ -124,6 +126,7 @@ export async function getChanges(
         fromCountryName: one(version.countries)?.name ?? "",
         uploadedByEmail: one(version.users)?.email ?? null,
         versionNumber: version.version_number,
+        versionLabel: versionLabel(version),
         page: annotation.page,
         note: annotation.note,
         category: annotation.category,

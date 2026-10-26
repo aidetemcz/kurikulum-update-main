@@ -68,6 +68,9 @@ export type DocumentVersion = {
   uploaded_at: string;
   /** Kdy byla verze zveřejněná. U nejstarších verzí může chybět. */
   published_at?: string | null;
+  /** Označení podle měsíce a roku, např. „10/26 – 2“ (migrace 0019).
+   *  Pro zobrazení použij versionLabel(). */
+  version_label?: string | null;
   uploaded_by: string | null;
 };
 
@@ -175,6 +178,8 @@ export type PendingChange = {
    *  cizí e-maily neukazují. */
   uploadedByEmail: string | null;
   versionNumber: number | null;
+  /** Označení verze, např. „10/26“. */
+  versionLabel: string;
   page: number;
   note: string;
   category: string | null;

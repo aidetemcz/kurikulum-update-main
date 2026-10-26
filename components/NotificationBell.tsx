@@ -66,7 +66,7 @@ export function NotificationBell({
                   }`}
                 >
                   <span className="block font-medium">
-                    {n.module_name} · v{n.version_number}
+                    {n.module_name} · {n.version_label}
                   </span>
                   <span className="block truncate text-xs text-ink/60">{n.note}</span>
                 </button>

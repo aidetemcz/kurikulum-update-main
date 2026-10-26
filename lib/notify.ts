@@ -76,7 +76,7 @@ export async function emailChangeRecipients(
     countryName: string;
     moduleName: string;
     kind?: DocumentKind;
-    versionNumber: number;
+    versionLabel: string;
     uploadedAt: string;
     summary: string;
     notes: string[];
@@ -112,7 +112,7 @@ export async function emailChangeRecipients(
 // Autor předchozí verze se dozví, že k ní přibyla novější.
 export async function emailPreviousAuthor(
   author: Recipient,
-  params: { moduleName: string; kind?: DocumentKind; theirVersion: number; newVersion: number }
+  params: { moduleName: string; kind?: DocumentKind; theirVersion: string; newVersion: string }
 ) {
   try {
     const odeslani = await sendNewerVersionEmail({ to: author.email, ...params });

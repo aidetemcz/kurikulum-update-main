@@ -77,13 +77,14 @@ export async function sendChangeNotificationEmail(params: {
   to: string;
   moduleName: string;
   kind?: DocumentKind;
-  versionNumber: number;
+  /** Označení verze, např. „10/26“. */
+  versionLabel: string;
   uploadedAt: string;
   summary: string;
   notes: string[];
   countryName: string;
 }): Promise<SendResult> {
-  const { to, moduleName, kind, versionNumber, uploadedAt, summary, notes, countryName } = params;
+  const { to, moduleName, kind, versionLabel, uploadedAt, summary, notes, countryName } = params;
   const coJe = kind === "presentation" ? "prezentace" : "metodiky";
   const lekce = kind === "presentation" ? `${moduleName} (prezentace)` : moduleName;
   const url = siteUrl();
@@ -94,7 +95,7 @@ export async function sendChangeNotificationEmail(params: {
     to,
     subject: `Nová verze ${coJe}: ${moduleName} (${countryName})`,
     text:
-      `Modul "${lekce}" má novou verzi (v${versionNumber}, ${formatEmailTime(uploadedAt)}).\n\n` +
+      `Modul "${lekce}" má novou verzi (${versionLabel}, ${formatEmailTime(uploadedAt)}).\n\n` +
       (summary ? `Co se změnilo:\n${summary}\n\n` : "") +
       (notes.length
         ? `Označená místa v dokumentu:\n${notes
@@ -105,7 +106,7 @@ export async function sendChangeNotificationEmail(params: {
     html: emailLayout(
       `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
         `Modul <strong>${escapeHtml(lekce)}</strong> má novou verzi ` +
-        `(v${versionNumber}, ${escapeHtml(formatEmailTime(uploadedAt))}).</p>` +
+        `(${escapeHtml(versionLabel)}, ${escapeHtml(formatEmailTime(uploadedAt))}).</p>` +
         (summary
           ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:${TMAVA}">Co se změnilo</p>` +
             `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:${TMAVA}">${escapeHtml(summary)}</p>`
@@ -153,8 +154,9 @@ export async function sendNewerVersionEmail(params: {
   to: string;
   moduleName: string;
   kind?: DocumentKind;
-  theirVersion: number;
-  newVersion: number;
+  /** Označení verzí, např. „09/26“ a „10/26“. */
+  theirVersion: string;
+  newVersion: string;
 }): Promise<SendResult> {
   const { to, kind, theirVersion, newVersion } = params;
   const coJe = kind === "presentation" ? "prezentace" : "metodiky";
@@ -168,12 +170,12 @@ export async function sendNewerVersionEmail(params: {
     to,
     subject: `K vaší verzi ${coJe} přibyla novější: ${params.moduleName}`,
     text:
-      `K vaší verzi v${theirVersion} modulu "${moduleName}" přibyla novější verze v${newVersion}.\n\n` +
+      `K vaší verzi ${theirVersion} modulu "${moduleName}" přibyla novější verze ${newVersion}.\n\n` +
       `Otevřít appku: ${url}`,
     html: emailLayout(
       `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
-        `K vaší verzi v${theirVersion} modulu <strong>${escapeHtml(moduleName)}</strong> ` +
-        `přibyla novější verze v${newVersion}.</p>`
+        `K vaší verzi ${escapeHtml(theirVersion)} modulu <strong>${escapeHtml(moduleName)}</strong> ` +
+        `přibyla novější verze ${escapeHtml(newVersion)}.</p>`
     ),
   });
 }

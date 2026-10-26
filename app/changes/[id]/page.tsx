@@ -11,6 +11,7 @@ import { moduleName } from "@/lib/module-name";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { SharedVersionView } from "@/components/SharedVersionView";
 import { versionDate, type Mark } from "@/lib/types";
+import { versionLabel } from "@/lib/version-label";
 
 type Nested<T> = T | T[] | null;
 
@@ -40,7 +41,7 @@ export default async function ChangeDetailPage({
          id, page,
          document_version_id,
          document_versions (
-           id, file_url, version_number, kind, uploaded_at, published_at,
+           id, file_url, version_number, version_label, kind, uploaded_at, published_at,
            modules (*),
            countries (name)
          )
@@ -58,6 +59,7 @@ export default async function ChangeDetailPage({
         id: string;
         file_url: string;
         version_number: number | null;
+        version_label: string | null;
         kind: string | null;
         uploaded_at: string;
         published_at: string | null;
@@ -118,7 +120,7 @@ export default async function ChangeDetailPage({
       <p className="mb-6 mt-1 text-sm text-ink/50">
         {fill(t.fromCountryVersion, {
           country: one(version.countries)?.name ?? "",
-          version: version.version_number ?? "?",
+          version: versionLabel(version),
         })}{" "}
         · <LocalDateTime value={versionDate(version)} locale={t.dateLocale} />
       </p>

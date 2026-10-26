@@ -6,6 +6,7 @@ import { LocalDateTime } from "@/components/LocalDateTime";
 import { ModuleLightDot } from "@/components/ModuleLightDot";
 import { moduleName } from "@/lib/module-name";
 import { pluralCount } from "@/lib/format";
+import { versionLabel } from "@/lib/version-label";
 
 export function ModuleCard({
   module,
@@ -44,7 +45,7 @@ export function ModuleCard({
       {latest ? (
         <div className="mt-auto text-sm text-ink/60">
           <p>
-            {t.currentVersion}: v{latest.version_number}
+            {t.currentVersion}: {versionLabel(latest)}
           </p>
           <p className="text-xs text-ink/40">
             {t.uploaded} <LocalDateTime value={versionDate(latest)} locale={t.dateLocale} />
@@ -110,7 +111,7 @@ export function ModuleCard({
             className="flex min-w-0 flex-1 flex-col text-ink/60 hover:text-coral"
           >
             <span className="font-medium text-ink">
-              {t.kindPresentation} · v{presentation.version_number}
+              {t.kindPresentation} · {versionLabel(presentation)}
             </span>
             <span className="text-xs text-ink/40">
               {t.uploaded}{" "}

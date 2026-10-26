@@ -14,6 +14,7 @@ import { toLocale } from "@/lib/i18n";
 import { toDocumentKind, versionDate, type DocumentKind, type Mark } from "@/lib/types";
 import { toDraftMarks, type DraftMark } from "@/lib/draft-marks";
 import { userError } from "@/lib/user-error";
+import { versionLabel } from "@/lib/version-label";
 
 // ---------------------------------------------------------------------
 // Rozpracovaná verze (draft)
@@ -195,10 +196,11 @@ export type PublishState =
   | {
       // Zveřejnilo se, ale mezitím někdo jiný přidal vlastní verzi.
       warning: {
-        otherVersion: number;
+        /** Označení verzí, např. „10/26 – 2“. */
+        otherVersion: string;
         otherAuthor: string;
         otherUploadedAt: string;
-        savedVersion: number;
+        savedVersion: string;
         moduleId: string;
         countryId: string;
       };
@@ -298,6 +300,28 @@ export async function publishVersion(
       : null;
   const change = { id: zverejneno.change_id };
 
+  // Označení nové i předchozí verze (např. „10/26 – 2“) a čas zveřejnění
+  // předchozí – označení dává databáze při zveřejnění (migrace 0019).
+  const { data: oznacene } = await supabase
+    .from("document_versions")
+    .select("version_number, version_label, published_at, uploaded_at")
+    .eq("module_id", moduleId)
+    .eq("country_id", countryId)
+    .eq("kind", kind)
+    .eq("status", "published")
+    .in(
+      "version_number",
+      [published.version_number, previous?.version_number].filter((cislo) => cislo != null)
+    );
+  const podleCisla = new Map((oznacene ?? []).map((radek) => [radek.version_number, radek]));
+  const novaVerze = versionLabel(
+    podleCisla.get(published.version_number) ?? { version_number: published.version_number }
+  );
+  const predchozi = previous ? podleCisla.get(previous.version_number) ?? null : null;
+  const predchoziVerze = previous
+    ? versionLabel(predchozi ?? { version_number: previous.version_number })
+    : "";
+
   // Zveřejněné rámečky (už s definitivními id) pro překlad a e-maily.
   const { data: marks } = await supabase
     .from("annotations")
@@ -360,7 +384,7 @@ export async function publishVersion(
         countryName: countryData?.name ?? "",
         moduleName: moduleData?.name ?? "",
         kind,
-        versionNumber: published.version_number,
+        versionLabel: novaVerze,
         uploadedAt: published.uploaded_at,
         summary,
         notes: noteList,
@@ -369,8 +393,8 @@ export async function publishVersion(
         ? emailPreviousAuthor(previousAuthor, {
             moduleName: moduleData?.name ?? "",
             kind,
-            theirVersion: previous.version_number,
-            newVersion: published.version_number,
+            theirVersion: predchoziVerze,
+            newVersion: novaVerze,
           })
         : Promise.resolve(),
     ]);
@@ -383,26 +407,19 @@ export async function publishVersion(
   // Když mezitím přibyla cizí verze, nepřesměrováváme – uživatel se to má
   // dozvědět hned a rozhodnout se, jestli se úpravy nepřekrývají.
   if (previous && previous.version_number > knownLatest && previous.uploaded_by !== user.id) {
-    const [{ data: author }, { data: predchozi }] = await Promise.all([
-      supabase.from("users").select("email").eq("id", previous.uploaded_by ?? "").maybeSingle(),
-      // Ukazuje se čas zveřejnění té verze, ne vzniku jejího konceptu.
-      supabase
-        .from("document_versions")
-        .select("published_at, uploaded_at")
-        .eq("module_id", moduleId)
-        .eq("country_id", countryId)
-        .eq("kind", kind)
-        .eq("version_number", previous.version_number)
-        .eq("status", "published")
-        .maybeSingle(),
-    ]);
+    const { data: author } = await supabase
+      .from("users")
+      .select("email")
+      .eq("id", previous.uploaded_by ?? "")
+      .maybeSingle();
 
     return {
       warning: {
-        otherVersion: previous.version_number,
+        otherVersion: predchoziVerze,
         otherAuthor: author?.email ?? "",
+        // Ukazuje se čas zveřejnění té verze, ne vzniku jejího konceptu.
         otherUploadedAt: predchozi ? versionDate(predchozi) : previous.uploaded_at,
-        savedVersion: published.version_number,
+        savedVersion: novaVerze,
         moduleId,
         countryId,
       },

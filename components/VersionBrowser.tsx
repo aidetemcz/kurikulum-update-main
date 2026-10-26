@@ -9,6 +9,7 @@ import { MarkFilterBar, scrollToMarkPosition, useMarkFilter } from "@/components
 import { numberMarks, sortMarks } from "@/lib/annotations";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill, pluralCount } from "@/lib/format";
+import { versionLabel } from "@/lib/version-label";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { AdminVersionEditor } from "@/components/AdminVersionEditor";
 import { versionDate, type Change, type DocumentVersion, type Mark } from "@/lib/types";
@@ -90,7 +91,7 @@ export function VersionBrowser({
               }`}
             >
               <span className="block text-sm font-medium text-ink">
-                v{version.version_number}
+                {versionLabel(version)}
                 {index === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
               </span>
               <span className="block text-xs text-ink/40">
@@ -108,7 +109,7 @@ export function VersionBrowser({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-haze/40 px-4 py-3">
         <div className="text-sm">
           <p className="font-medium text-ink">
-            {t.version} {selected.version_number}
+            {t.version} {versionLabel(selected)}
             {selectedIndex === 0 && <span className="font-normal text-ink/50"> · {t.latest}</span>}
           </p>
           <p className="text-xs text-ink/50">
@@ -206,7 +207,7 @@ export function VersionBrowser({
           <aside className="rounded-2xl border border-haze p-5 doc:sticky doc:top-8 doc:max-h-[calc(100vh-4rem)] doc:overflow-y-auto">
             <h2 className="font-heading text-lg font-bold text-ink">
               {previous
-                ? fill(t.changesAgainst, { version: previous.version_number })
+                ? fill(t.changesAgainst, { version: versionLabel(previous) })
                 : t.firstVersion}
             </h2>
 

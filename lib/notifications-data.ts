@@ -1,6 +1,7 @@
 // Načtení notifikací aktuálního uživatele včetně textu změny a názvu modulu,
 // aby se dal zvoneček s notifikacemi vykreslit jedním dotazem.
 import { createClient } from "@/lib/supabase/server";
+import { versionLabel } from "@/lib/version-label";
 
 export type NotificationWithDetails = {
   id: string;
@@ -10,6 +11,8 @@ export type NotificationWithDetails = {
   category: string | null;
   module_name: string;
   version_number: number;
+  /** Označení verze, např. „10/26“. */
+  version_label: string;
 };
 
 export type NotificationsForBell = {
@@ -26,7 +29,7 @@ const SLOUPCE = `
         note,
         category,
         created_at,
-        document_versions ( version_number, published_at, uploaded_at, modules ( name ) )
+        document_versions ( version_number, version_label, published_at, uploaded_at, modules ( name ) )
       )
     `;
 
@@ -81,6 +84,7 @@ function radek(n: Radek): NotificationWithDetails {
   };
   type Verze = {
     version_number: number;
+    version_label: string | null;
     published_at: string | null;
     uploaded_at: string | null;
     modules: unknown;
@@ -101,5 +105,6 @@ function radek(n: Radek): NotificationWithDetails {
     category: change?.category ?? null,
     module_name: moduleData?.name ?? "Neznámý modul",
     version_number: version?.version_number ?? 0,
+    version_label: version ? versionLabel(version) : "?",
   };
 }

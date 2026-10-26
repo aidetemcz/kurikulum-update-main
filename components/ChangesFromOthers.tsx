@@ -329,7 +329,7 @@ function ChangeCard({
       <p className="mt-1 text-xs text-ink/50">
         {fill(t.fromCountryVersion, {
           country: item.fromCountryName,
-          version: item.versionNumber ?? "?",
+          version: item.versionLabel,
         })}{" "}
         · {t.publishedAt}{" "}
         <LocalDateTime value={item.publishedAt ?? item.createdAt} locale={t.dateLocale} /> ·{" "}
@@ -408,7 +408,7 @@ function ChangeCard({
         <p className="mt-0.5 text-xs text-ink/50">
           {fill(t.fromCountryVersion, {
             country: item.fromCountryName,
-            version: item.versionNumber ?? "?",
+            version: item.versionLabel,
           })}
           {item.uploadedByEmail && ` · ${fill(t.uploadedByWho, { who: item.uploadedByEmail })}`}
         </p>

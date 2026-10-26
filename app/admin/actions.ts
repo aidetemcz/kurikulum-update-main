@@ -6,6 +6,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin, getRealUser } from "@/lib/current-user";
 import { sendChangeNotificationEmail } from "@/lib/mail";
 import { isRateLimit } from "@/lib/auth-errors";
+import { versionMonth } from "@/lib/version-label";
 import { PREVIEW_COOKIE } from "@/lib/preview";
 import { setUserCountries, type UserCountriesClient } from "@/lib/user-countries";
 import type { UserRole } from "@/lib/types";
@@ -141,7 +142,7 @@ export async function sendTestEmail(): Promise<
     const result = await sendChangeNotificationEmail({
       to: admin.email,
       moduleName: "Zkušební metodika",
-      versionNumber: 1,
+      versionLabel: versionMonth(new Date()),
       uploadedAt: new Date().toISOString(),
       summary: "Tohle je zkušební e-mail z Administrace, nic se nikam nenahrálo.",
       notes: ["Ukázková poznámka ke změně", "Druhá ukázková poznámka"],

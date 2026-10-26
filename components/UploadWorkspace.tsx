@@ -22,6 +22,7 @@ import { suggestVersionSummary } from "@/app/admin/upload/suggest-actions";
 import { suggestFailureMessage } from "@/lib/suggest-message";
 import { describedMarks } from "@/lib/draft-marks";
 import { moduleName } from "@/lib/module-name";
+import { nextVersionLabel, versionLabel } from "@/lib/version-label";
 import { Check } from "lucide-react";
 
 export type LatestVersion = {
@@ -29,6 +30,8 @@ export type LatestVersion = {
   country_id: string;
   kind: DocumentKind;
   version_number: number;
+  /** Označení verze, např. „10/26“ (u nejstarších verzí může chybět). */
+  version_label: string | null;
   /** Kdy byla verze zveřejněná (u nejstarších verzí kdy byla nahraná). */
   uploaded_at: string;
   uploaded_by_email: string | null;
@@ -288,6 +291,8 @@ export function UploadWorkspace({
       version.module_id === moduleId && version.country_id === countryId && version.kind === kind
   );
   const countryName = countries.find((country) => country.id === countryId)?.name ?? "";
+  // Jak se nová verze bude jmenovat: měsíc/rok, ve stejném měsíci „– 2“…
+  const dalsiVerze = nextVersionLabel(latest?.version_label ?? null);
   const lekce = modules.find((module) => module.id === moduleId);
   const vybranaLekce = lekce
     ? moduleName({ ...lekce, local_name: localNames[countryId]?.[lekce.id] ?? null }, t)
@@ -368,7 +373,7 @@ export function UploadWorkspace({
           )}
           {vybranaLekce && countryName && (
             <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">
-              {fill(t.versionWillBe, { country: countryName, date: mesicRok(new Date()) })}
+              {fill(t.versionWillBe, { country: countryName, date: dalsiVerze })}
             </span>
           )}
         </div>
@@ -458,10 +463,10 @@ export function UploadWorkspace({
               <p className="rounded-xl bg-haze/40 p-3 text-xs text-ink/70">
                 {fill(t.existingVersionInfo, {
                   country: countryName,
-                  version: latest.version_number,
+                  version: versionLabel(latest),
                   when: casMistne(latest.uploaded_at),
                   who: latest.uploaded_by_email ?? "?",
-                  next: latest.version_number + 1,
+                  next: dalsiVerze,
                 })}
               </p>
             )}
@@ -613,9 +618,3 @@ function Field({
   );
 }
 
-// Označení verze podle měsíce a roku zveřejnění, např. „10/26“.
-function mesicRok(datum: Date): string {
-  const mesic = String(datum.getMonth() + 1).padStart(2, "0");
-  const rok = String(datum.getFullYear() % 100).padStart(2, "0");
-  return `${mesic}/${rok}`;
-}
