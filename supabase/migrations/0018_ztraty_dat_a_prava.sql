@@ -315,3 +315,14 @@ create policy "verzi upravuje admin nebo editor sve zeme" on document_versions
     public.is_admin()
     or (status = 'draft' and uploaded_by = auth.uid() and public.can_write_for_country(country_id))
   );
+
+-- ---------------------------------------------------------------------
+-- B2. Čekající změny zakládá jen zveřejnění
+-- ---------------------------------------------------------------------
+-- Pravidlo pro vkládání hlídalo jen roli, takže editor mohl jiné zemi
+-- vložit falešné čekající změny. Řádky teď vznikají jen ve funkci
+-- publish_version, případně na serveru přes service role (doplnění
+-- změn nově přidané zemi). Z prohlížeče je založit nejde.
+
+drop policy if exists "stav zmeny zaklada admin nebo editor" on annotation_country_status;
+revoke insert on annotation_country_status from authenticated;
