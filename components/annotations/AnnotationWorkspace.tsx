@@ -43,7 +43,7 @@ export function AnnotationWorkspace({
   t: Dictionary;
   /** Shrnutí a tlačítko pro uložení – liší se podle obrazovky. */
   panelFooter?: ReactNode;
-  /** Formulář vlevo od dokumentu (obrazovka nahrávání nové verze). */
+  /** Formulář v pravém panelu nad změnami (obrazovka nahrávání nové verze). */
   formColumn?: ReactNode;
   /** Obsah nad dokumentem, např. seznam verzí. */
   documentHeader?: ReactNode;
@@ -210,23 +210,34 @@ export function AnnotationWorkspace({
   // Ukázka gesta se přehraje jen tehdy, když ještě nic označeného není.
   const showDemo = editable && !hidden && marks.length === 0;
 
-  // Tři stupně: pod sebe, pak dokument + panel vedle sebe s formulářem
-  // nahoře, a od `wide` všechno vedle sebe. Formulář by jinak na
-  // patnáctipalcovém notebooku ukrojil z dokumentu nečitelný proužek.
+  // Dokument uprostřed, panel jen vpravo. Při nahrávání stojí formulář
+  // (metodika, země, odkaz) v pravém panelu nahoře nad vyznačenými změnami:
+  // dokument zabírá obě řady vlevo, formulář a seznam změn jsou pod sebou
+  // vpravo. Na úzkém displeji jde všechno pod sebe v pořadí formulář,
+  // dokument, změny – nejdřív je potřeba vyplnit, co se nahrává.
   //
   // min-w-0 na buňkách: položka mřížky se jinak nesmrští pod šířku
   // svého obsahu (PDF, dlouhý název) a stránka se roluje do strany.
   const gridClass = formColumn
-    ? "grid grid-cols-1 gap-6 [&>*]:min-w-0 doc:grid-cols-[minmax(0,1fr)_340px] wide:grid-cols-[320px_minmax(0,1fr)_340px]"
+    ? "grid grid-cols-1 gap-6 [&>*]:min-w-0 doc:grid-cols-[minmax(0,1fr)_380px] doc:grid-rows-[auto_1fr]"
     : "grid grid-cols-1 gap-6 [&>*]:min-w-0 doc:grid-cols-[minmax(0,1fr)_340px]";
 
   return (
     <div className={gridClass}>
       {formColumn && (
-        <div className="doc:col-span-2 wide:col-span-1">{formColumn}</div>
+        <div className="rounded-2xl border border-coral/40 bg-coral/5 p-5 doc:col-start-2 doc:row-start-1">
+          {formColumn}
+        </div>
       )}
 
-      <div>
+      <div
+        className={
+          formColumn
+            ? "rounded-2xl bg-haze/30 p-3 doc:col-start-1 doc:row-span-2 doc:row-start-1 doc:p-6"
+            : undefined
+        }
+      >
+        <div className={formColumn ? "mx-auto max-w-3xl" : undefined}>
         {documentHeader}
 
         {fileId !== null && (
@@ -273,11 +284,12 @@ export function AnnotationWorkspace({
           )}
         />
         )}
+        </div>
       </div>
 
       {/* Buňka mřížky se roztáhne na výšku dokumentu, lepkavý je až panel
           uvnitř – jinak by neměl kam "cestovat" a při rolování by zmizel. */}
-      <div>
+      <div className={formColumn ? "doc:col-start-2 doc:row-start-2" : undefined}>
       <aside className="rounded-2xl border border-haze p-5 doc:sticky doc:top-8 doc:max-h-[calc(100vh-4rem)] doc:overflow-y-auto">
         <h2 className="font-heading text-lg font-bold text-ink">{t.changesPanelTitle}</h2>
 
