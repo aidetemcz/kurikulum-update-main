@@ -158,7 +158,7 @@ export const sk: Dictionary = {
 
   newVersionTitle: "Nová verzia",
   pdfLoadedFromDrive: "PDF z Drivu sa načítalo",
-  versionWillBe: "{country} · bude v{next}",
+  versionWillBe: "{country} · verzia {date}",
   uploadNewVersion: "Nahrať novú verziu",
   module: "Modul",
   country: "Krajina",

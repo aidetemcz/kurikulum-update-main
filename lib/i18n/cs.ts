@@ -169,7 +169,7 @@ export const cs = {
   // nahrání nové verze
   newVersionTitle: "Nová verze",
   pdfLoadedFromDrive: "PDF z Drivu se načetlo",
-  versionWillBe: "{country} · bude v{next}",
+  versionWillBe: "{country} · verze {date}",
   uploadNewVersion: "Nahrát novou verzi",
   module: "Modul",
   country: "Země",

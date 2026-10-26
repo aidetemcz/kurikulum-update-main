@@ -363,10 +363,7 @@ export function UploadWorkspace({
           )}
           {vybranaLekce && countryName && (
             <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">
-              {fill(t.versionWillBe, {
-                country: countryName,
-                next: (latest?.version_number ?? 0) + 1,
-              })}
+              {fill(t.versionWillBe, { country: countryName, date: mesicRok(new Date()) })}
             </span>
           )}
         </div>
@@ -611,4 +608,11 @@ function Field({
       {help && <span className="text-xs font-normal text-ink/50">{help}</span>}
     </label>
   );
+}
+
+// Označení verze podle měsíce a roku zveřejnění, např. „10/26“.
+function mesicRok(datum: Date): string {
+  const mesic = String(datum.getMonth() + 1).padStart(2, "0");
+  const rok = String(datum.getFullYear() % 100).padStart(2, "0");
+  return `${mesic}/${rok}`;
 }

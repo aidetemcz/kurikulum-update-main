@@ -158,7 +158,7 @@ export const en: Dictionary = {
 
   newVersionTitle: "New version",
   pdfLoadedFromDrive: "PDF loaded from Drive",
-  versionWillBe: "{country} · will be v{next}",
+  versionWillBe: "{country} · version {date}",
   uploadNewVersion: "Upload new version",
   module: "Module",
   country: "Country",

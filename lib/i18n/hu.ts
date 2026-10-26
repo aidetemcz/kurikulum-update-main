@@ -158,7 +158,7 @@ export const hu: Dictionary = {
 
   newVersionTitle: "Új verzió",
   pdfLoadedFromDrive: "A PDF betöltődött a Drive-ról",
-  versionWillBe: "{country} · v{next} lesz",
+  versionWillBe: "{country} · {date} verzió",
   uploadNewVersion: "Új verzió feltöltése",
   module: "Modul",
   country: "Ország",
