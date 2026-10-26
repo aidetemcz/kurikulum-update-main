@@ -3,11 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/current-user";
+import { resolveActiveCountry } from "@/lib/active-country";
 import { CATALOG_URL, fetchCatalog, type CatalogItem } from "@/lib/catalog";
 import { fetchEnglishNames } from "@/lib/catalog-en";
 import { buildPlan, type ImportPlan, type ModuleRow } from "@/lib/catalog-plan";
 
-export type PlanResult = { plan: ImportPlan } | { error: string };
+// Co admin viděl v náhledu: plán i položky z webu, ze kterých vznikl.
+// Zapisuje se přesně tohle – katalog se při zápisu znovu nestahuje.
+export type CatalogPreview = {
+  plan: ImportPlan;
+  items: CatalogItem[];
+  /** Anglické názvy z webu jako dvojice [slug české metodiky, název]. */
+  english: [string, string][];
+};
+
+export type PlanResult = { preview: CatalogPreview } | { error: string };
 export type ApplyResult =
   | {
       added: number;
@@ -20,9 +30,13 @@ export type ApplyResult =
     }
   | { error: string };
 
+// Kolik metodik smí import archivovat bez výslovného potvrzení.
+const ARCHIV_BEZ_POTVRZENI = 5;
+
 // Co import udělá, ještě než něco zapíše.
 export async function previewCatalogImport(): Promise<PlanResult> {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  const { t } = await resolveActiveCountry(admin);
 
   try {
     const [katalog, modules, anglicke] = await Promise.all([
@@ -30,44 +44,43 @@ export async function previewCatalogImport(): Promise<PlanResult> {
       loadModules(),
       fetchEnglishNames(),
     ]);
+    // Prázdná nebo chybová stránka webu by jinak archivovala všechno.
+    if (katalog.items.length === 0) return { error: t.catalogEmpty };
+
     return {
-      plan: buildPlan(
-        katalog.items,
-        modules,
-        [...katalog.warnings, ...anglicke.warnings],
-        anglicke.names
-      ),
+      preview: {
+        plan: buildPlan(
+          katalog.items,
+          modules,
+          [...katalog.warnings, ...anglicke.warnings],
+          anglicke.names
+        ),
+        items: katalog.items,
+        english: [...anglicke.names.entries()],
+      },
     };
   } catch (chyba) {
     return { error: popisChyby(chyba) };
   }
 }
 
-// Zápis. Katalog se načte znovu, aby se zapsalo to, co je na webu teď,
-// a ne to, co viděl náhled před minutou.
-export async function applyCatalogImport(): Promise<ApplyResult> {
-  await requireAdmin();
+// Zápis přesně toho plánu, který admin viděl v náhledu. Dřív se katalog
+// stahoval znovu a plán přepočítal – výpadek webu mezi náhledem a zápisem
+// tak mohl archivovat všechny lekce.
+export async function applyCatalogImport(
+  preview: CatalogPreview,
+  confirmArchive = false
+): Promise<ApplyResult> {
+  const admin = await requireAdmin();
+  const { t } = await resolveActiveCountry(admin);
 
-  let items: CatalogItem[];
-  let plan: ImportPlan;
-  let anglickeNazvy: Map<string, string>;
-  try {
-    const [katalog, modules, anglicke] = await Promise.all([
-      fetchCatalog(),
-      loadModules(),
-      fetchEnglishNames(),
-    ]);
-    items = katalog.items;
-    anglickeNazvy = anglicke.names;
-    plan = buildPlan(
-      items,
-      modules,
-      [...katalog.warnings, ...anglicke.warnings],
-      anglicke.names
-    );
-  } catch (chyba) {
-    return { error: popisChyby(chyba) };
+  const plan = preview?.plan;
+  const items = Array.isArray(preview?.items) ? preview.items : [];
+  if (!plan || items.length === 0) return { error: t.catalogEmpty };
+  if (plan.toArchive.length > ARCHIV_BEZ_POTVRZENI && !confirmArchive) {
+    return { error: t.catalogArchiveNeedsConfirm };
   }
+  const anglickeNazvy = new Map(Array.isArray(preview.english) ? preview.english : []);
 
   const supabase = await createClient();
   const podleSlugu = new Map(items.map((item) => [item.slug, item]));

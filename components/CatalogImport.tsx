@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { applyCatalogImport, previewCatalogImport } from "@/app/admin/catalog-actions";
+import {
+  applyCatalogImport,
+  previewCatalogImport,
+  type CatalogPreview,
+} from "@/app/admin/catalog-actions";
 import { planIsEmpty, type ImportPlan } from "@/lib/catalog-plan";
 import { fill } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n";
@@ -12,7 +16,10 @@ import type { Dictionary } from "@/lib/i18n";
 export function CatalogImport({ t }: { t: Dictionary }) {
   const router = useRouter();
   const [stav, setStav] = useState<"idle" | "loading" | "preview" | "saving" | "done">("idle");
-  const [plan, setPlan] = useState<ImportPlan | null>(null);
+  const [preview, setPreview] = useState<CatalogPreview | null>(null);
+  // Víc než pět archivací chce výslovné potvrzení.
+  const [archivPotvrzen, setArchivPotvrzen] = useState(false);
+  const plan: ImportPlan | null = preview?.plan ?? null;
   const [hlaska, setHlaska] = useState<string | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
 
@@ -28,13 +35,17 @@ export function CatalogImport({ t }: { t: Dictionary }) {
       return;
     }
 
-    setPlan(result.plan);
+    setPreview(result.preview);
+    setArchivPotvrzen(false);
     setStav("preview");
   }
 
   async function potvrdit() {
     setStav("saving");
-    const result = await applyCatalogImport().catch((e: Error) => ({ error: e.message }));
+    if (!preview) return;
+    const result = await applyCatalogImport(preview, archivPotvrzen).catch((e: Error) => ({
+      error: e.message,
+    }));
 
     if ("error" in result) {
       setStav("preview");
@@ -43,12 +54,13 @@ export function CatalogImport({ t }: { t: Dictionary }) {
     }
 
     setHlaska(fill(t.catalogDone, result));
-    setPlan(null);
+    setPreview(null);
     setStav("done");
     router.refresh();
   }
 
   const nenicoMenit = plan !== null && planIsEmpty(plan);
+  const mnohoArchivaci = plan !== null && plan.toArchive.length > 5;
 
   return (
     <div className="flex flex-col gap-3">
@@ -155,12 +167,24 @@ export function CatalogImport({ t }: { t: Dictionary }) {
             {fill(t.catalogUnchanged, { count: plan.unchanged, total: plan.total })}
           </p>
 
+          {mnohoArchivaci && (
+            <label className="mt-4 flex items-start gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={archivPotvrzen}
+                onChange={(event) => setArchivPotvrzen(event.target.checked)}
+                className="mt-0.5"
+              />
+              {fill(t.catalogArchiveConfirm, { count: plan.toArchive.length })}
+            </label>
+          )}
+
           <div className="mt-4 flex gap-2">
             {!nenicoMenit && (
               <button
                 type="button"
                 onClick={potvrdit}
-                disabled={stav === "saving"}
+                disabled={stav === "saving" || (mnohoArchivaci && !archivPotvrzen)}
                 className="rounded-xl bg-coral px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
               >
                 {stav === "saving" ? t.saving : t.catalogConfirm}
@@ -169,7 +193,7 @@ export function CatalogImport({ t }: { t: Dictionary }) {
             <button
               type="button"
               onClick={() => {
-                setPlan(null);
+                setPreview(null);
                 setStav("idle");
               }}
               className="rounded-xl px-4 py-2 text-sm text-ink/60 hover:bg-haze"
