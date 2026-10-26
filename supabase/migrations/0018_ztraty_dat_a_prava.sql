@@ -267,3 +267,51 @@ $$;
 
 revoke all on function public.save_followed_modules(uuid, uuid[]) from public;
 grant execute on function public.save_followed_modules(uuid, uuid[]) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- B1. Zveřejněnou verzi mění a maže jen admin
+-- ---------------------------------------------------------------------
+-- Editor mohl přes REST přepsat zveřejněnou verzi své země – i její rámečky,
+-- a tím smazat změny čekající u ostatních zemí. Smazat ji šlo oklikou:
+-- nejdřív přepsat status na 'draft', pak smazat jako koncept.
+--
+-- Nově: ne-admin smí měnit a mazat jen koncept (status 'draft'), a to svůj
+-- ve své zemi. Ze konceptu na zveřejněnou verzi vede jen funkce
+-- publish_version (výš). Admin má práva beze změny.
+
+create or replace function public.can_write_version(v_id uuid)
+returns boolean
+language sql security definer stable set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.document_versions dv
+    join public.users u on u.id = auth.uid()
+    where dv.id = v_id
+      and u.role in ('admin', 'editor')
+      and (
+        u.role = 'admin'
+        or (dv.status = 'draft' and public.is_my_country(dv.country_id))
+      )
+  );
+$$;
+
+drop policy if exists "verzi zaklada admin nebo editor sve zeme" on document_versions;
+create policy "verzi zaklada admin nebo editor sve zeme" on document_versions
+  for insert to authenticated
+  with check (
+    public.can_write_for_country(country_id)
+    and (public.is_admin() or (status = 'draft' and uploaded_by = auth.uid()))
+  );
+
+drop policy if exists "verzi upravuje admin nebo editor sve zeme" on document_versions;
+create policy "verzi upravuje admin nebo editor sve zeme" on document_versions
+  for update to authenticated
+  using (
+    public.is_admin()
+    or (status = 'draft' and uploaded_by = auth.uid() and public.can_write_for_country(country_id))
+  )
+  with check (
+    public.is_admin()
+    or (status = 'draft' and uploaded_by = auth.uid() and public.can_write_for_country(country_id))
+  );
