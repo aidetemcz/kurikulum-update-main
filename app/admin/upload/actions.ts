@@ -170,7 +170,8 @@ async function ulozRamecky(
 
 export async function discardDraft(draftId: string): Promise<{ error: string } | null> {
   const user = await requireUser();
-  if (!canUpload(user)) return { error: "forbidden" };
+  const { t } = await resolveActiveCountry(user);
+  if (!canUpload(user)) return { error: t.uploadNotAllowed };
 
   const supabase = await createClient();
   // Značky zmizí samy, mají v databázi nastavené mazání spolu s verzí.
@@ -180,7 +181,9 @@ export async function discardDraft(draftId: string): Promise<{ error: string } |
     .eq("id", draftId)
     .eq("status", "draft");
 
-  return error ? { error: error.message } : null;
+  return error
+    ? { error: await userError(t.saveFailedGeneric, error, "Koncept se nepodařilo zahodit:") }
+    : null;
 }
 
 // ---------------------------------------------------------------------

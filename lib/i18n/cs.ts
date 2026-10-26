@@ -97,7 +97,6 @@ export const cs = {
   saveChanges: "Uložit změny",
   saveFailedGeneric: "Uložení se nepodařilo. Zkus to prosím znovu.",
   draftNotEditable: "Tahle rozpracovaná verze už je zveřejněná nebo smazaná. Načti prosím stránku znovu.",
-  saveFailedDetail: "Uložení se nepodařilo:",
   uploadedBy: "nahrál/a",
   existingVersionInfo: "Pro {country} už existuje verze {version} ({when}, nahrál/a {who}). Uloží se jako verze {next}.",
   firstVersionInfo: "Pro {country} to bude první verze.",

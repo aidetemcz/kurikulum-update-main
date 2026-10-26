@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { canWriteForCountry, requireUser } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
+import { userError } from "@/lib/user-error";
 
 export type RenameState = { error: string } | { savedAt: string } | null;
 
@@ -34,7 +35,9 @@ export async function saveLocalModuleName(
         .delete()
         .eq("country_id", countryId)
         .eq("module_id", moduleId);
-  if (error) return { error: `${t.renameFailed} ${error.message}` };
+  if (error) {
+    return { error: await userError(t.renameFailed, error, "Vlastní název se nepodařilo uložit:") };
+  }
 
   revalidatePath(`/modules/${moduleId}`);
   revalidatePath("/modules");

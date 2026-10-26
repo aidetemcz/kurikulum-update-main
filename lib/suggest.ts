@@ -23,7 +23,8 @@ const POPIS_KATEGORII: Record<CategoryKey, string> = {
   formal: "formální úprava – vzhled, formátování, pořadí, bez změny obsahu",
 };
 
-/** Výsledek návrhu. Když se nepovede, reason říká proč – appka to ukáže editorovi. */
+/** Výsledek návrhu. Když se nepovede, reason je krátký kód důvodu (bez textu
+ *  chyby) – editor dostane obecnou hlášku, detail je v logu ve Vercelu. */
 export type SuggestResult<T> = { value: T } | { value: null; reason: string };
 
 async function zeptejSe(
@@ -62,7 +63,8 @@ async function zeptejSe(
       // Došlý kredit vrací API jako 400 se zmínkou o „credit balance“.
       const zprava = String(chyba.message ?? "");
       if (/credit/i.test(zprava)) return { value: null, reason: "no_credit" };
-      return { value: null, reason: `api_${chyba.status ?? "error"}: ${zprava.slice(0, 200)}` };
+      // Do prohlížeče jde jen kód důvodu, text chyby zůstává v logu.
+      return { value: null, reason: `api_${chyba.status ?? "error"}` };
     }
     return { value: null, reason: "network" };
   }

@@ -87,7 +87,6 @@ export const sk: Dictionary = {
   saveChanges: "Uložiť zmeny",
   saveFailedGeneric: "Uloženie sa nepodarilo. Skús to prosím znova.",
   draftNotEditable: "Táto rozpracovaná verzia je už zverejnená alebo zmazaná. Načítaj prosím stránku znova.",
-  saveFailedDetail: "Uloženie sa nepodarilo:",
   uploadedBy: "nahral/a",
   existingVersionInfo: "Pre {country} už existuje verzia {version} ({when}, nahral/a {who}). Uloží sa ako verzia {next}.",
   firstVersionInfo: "Pre {country} to bude prvá verzia.",
