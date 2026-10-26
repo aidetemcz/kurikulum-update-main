@@ -5,6 +5,7 @@ import type { Dictionary } from "@/lib/i18n";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { ModuleLightDot } from "@/components/ModuleLightDot";
 import { moduleName } from "@/lib/module-name";
+import { pluralCount } from "@/lib/format";
 
 export function ModuleCard({
   module,
@@ -13,6 +14,8 @@ export function ModuleCard({
   lightTitle,
   presentationLight,
   presentationLightTitle,
+  available = 0,
+  presentationAvailable = 0,
   t,
 }: {
   module: ModuleWithLatestVersion;
@@ -23,6 +26,10 @@ export function ModuleCard({
   /** Semafor prezentace k téže lekci – svítí zvlášť. */
   presentationLight: CountryLight;
   presentationLightTitle: string;
+  /** Změny od ostatních zemí k lekci, ke které země nemá verzi metodiky. */
+  available?: number;
+  /** Totéž pro prezentaci. */
+  presentationAvailable?: number;
   t: Dictionary;
 }) {
   const latest = module.latest_version;
@@ -72,6 +79,7 @@ export function ModuleCard({
           <span />
         )}
         <div className="flex shrink-0 items-center gap-2">
+          <DostupneZmeny count={available} moduleId={module.id} countryId={countryId} t={t} />
           <ModuleLightDot
             moduleId={module.id}
             countryId={countryId}
@@ -112,13 +120,45 @@ export function ModuleCard({
         ) : (
           <span className="text-ink/40">{t.noPresentationYet}</span>
         )}
-        <ModuleLightDot
-          moduleId={module.id}
-          countryId={countryId}
-          light={presentationLight}
-          label={presentationLightTitle}
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          <DostupneZmeny
+            count={presentationAvailable}
+            moduleId={module.id}
+            countryId={countryId}
+            t={t}
+          />
+          <ModuleLightDot
+            moduleId={module.id}
+            countryId={countryId}
+            light={presentationLight}
+            label={presentationLightTitle}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+// Lekce, ke které země nemá verzi, svítí šedě – změny od ostatních zemí
+// jsou u ní jen „k dispozici“. Odkaz vede na přehled Změny.
+function DostupneZmeny({
+  count,
+  moduleId,
+  countryId,
+  t,
+}: {
+  count: number;
+  moduleId: string;
+  countryId: string;
+  t: Dictionary;
+}) {
+  if (count <= 0) return null;
+  return (
+    <Link
+      href={`/?country=${countryId}&module=${moduleId}`}
+      className="text-xs text-ink/40 hover:text-coral hover:underline"
+    >
+      {pluralCount(count, t.changesAvailableForms, t.dateLocale)}
+    </Link>
   );
 }

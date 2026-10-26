@@ -2,6 +2,7 @@
 //
 // Barva semaforu se nikam neukládá – počítá ji pohled module_country_light
 // v databázi z data nejstarší nevyřešené změny (viz 0004_country_status.sql).
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getFollowed, follows } from "@/lib/followed";
 import { getLocalNames } from "@/lib/local-names";
@@ -88,9 +89,10 @@ export async function getChanges(
 
   // Změny k metodikám, které země nesleduje, se neukazují (zůstávají ale
   // v databázi – kdyby je země zase začala sledovat, objeví se znovu).
-  const [followed, vlastniNazvy] = await Promise.all([
+  const [followed, vlastniNazvy, vlastni] = await Promise.all([
     getFollowed(countryId),
     getLocalNames(countryId),
+    getOwnedKinds(countryId),
   ]);
 
   return (data as unknown as StatusRow[]).flatMap((row) => {
@@ -125,6 +127,7 @@ export async function getChanges(
         note: annotation.note,
         category: annotation.category,
         kind: toDocumentKind(version.kind),
+        forMissingLesson: !vlastni.has(lightKey(version.module_id, toDocumentKind(version.kind))),
         quote: annotation.quote ?? null,
         quoteTranslations: annotation.quote_translations ?? {},
       },
@@ -132,27 +135,62 @@ export async function getChanges(
   });
 }
 
-type LightRow = { module_id: string; kind: string | null; country_id: string; light: string };
+type LightRow = {
+  module_id: string;
+  kind: string | null;
+  country_id: string;
+  light: string;
+  pending_count?: number | null;
+};
+
+// Ke kterým lekcím (a jakému druhu dokumentu) má země zveřejněnou vlastní
+// verzi. Klíč dává lightKey(). Bez vlastní verze nemá co zapracovávat –
+// semafor je šedý a změny od ostatních jsou jen „k dispozici“.
+export const getOwnedKinds = cache(async (countryId: string): Promise<Set<string>> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("document_versions")
+    .select("module_id, kind")
+    .eq("country_id", countryId)
+    .eq("status", "published");
+  return new Set(
+    (data ?? []).map((row) => lightKey(row.module_id, toDocumentKind(row.kind)))
+  );
+});
+
+export type CountryLights = {
+  /** Barva semaforu jen u lekcí, ke kterým má země vlastní verzi. Co v mapě
+   *  není, je zelené (má verzi) nebo šedé (nemá). */
+  lights: Record<string, CountryLight>;
+  /** Kolik nevyřízených změn od ostatních čeká u lekcí, ke kterým země
+   *  vlastní verzi nemá – jen pro informaci „k dispozici“. */
+  availableWithoutVersion: Record<string, number>;
+};
 
 // Barva semaforu podle lekce a druhu dokumentu pro jednu zemi. Klíč dává
-// lightKey(). Co v mapě není, je zelené.
-export async function getLightsForCountry(
-  countryId: string
-): Promise<Record<string, CountryLight>> {
+// lightKey().
+export async function getLightsForCountry(countryId: string): Promise<CountryLights> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("module_country_light")
-    .select("module_id, kind, country_id, light")
-    .eq("country_id", countryId);
+  const [{ data }, followed, vlastni] = await Promise.all([
+    supabase
+      .from("module_country_light")
+      .select("module_id, kind, country_id, light, pending_count")
+      .eq("country_id", countryId),
+    getFollowed(countryId),
+    getOwnedKinds(countryId),
+  ]);
 
-  const followed = await getFollowed(countryId);
   const lights: Record<string, CountryLight> = {};
+  const availableWithoutVersion: Record<string, number> = {};
   for (const row of (data ?? []) as LightRow[]) {
     if (!follows(followed, row.module_id)) continue;
-    lights[lightKey(row.module_id, toDocumentKind(row.kind))] = toLight(row.light);
+    const key = lightKey(row.module_id, toDocumentKind(row.kind));
+    // Bez vlastní verze nesvítí žlutě ani červeně – není co zapracovat.
+    if (vlastni.has(key)) lights[key] = toLight(row.light);
+    else availableWithoutVersion[key] = Number(row.pending_count ?? 0);
   }
-  return lights;
+  return { lights, availableWithoutVersion };
 }
 
 // Matice modul × země pro administraci. Klíč je `${moduleId}:${countryId}`.

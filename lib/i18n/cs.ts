@@ -253,6 +253,9 @@ export const cs = {
     "Databáze zápis odmítla. Zkontroluj, jestli jsou v Supabase spuštěné všechny migrace ze složky supabase/migrations.",
 
   changesFromOthersCount: "Změny od ostatních zemí ({count})",
+  changesAvailableForms: "změna k dispozici|změny k dispozici|změn k dispozici",
+  changesForMissingTitle: "K lekcím, které nemáte",
+  changesForMissingHint: "Vaše země k těmto lekcím zatím nemá vlastní verzi. Změny jsou tu pro informaci a do nevyřízených se nepočítají.",
   tabCurrent: "Aktuální",
   tabHidden: "Vyřízené",
   confirmDismissYes: "Ano, netýká se nás",

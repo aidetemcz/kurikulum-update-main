@@ -240,6 +240,9 @@ export const en: Dictionary = {
     "The database refused the write. Check that every migration from supabase/migrations has been run in Supabase.",
 
   changesFromOthersCount: "Changes from other countries ({count})",
+  changesAvailableForms: "change available|changes available",
+  changesForMissingTitle: "For lessons you don't have",
+  changesForMissingHint: "Your country doesn't have its own version of these lessons yet. The changes are here for information and don't count as pending.",
   tabCurrent: "Current",
   tabHidden: "Resolved",
   confirmDismissYes: "Yes, not relevant to us",

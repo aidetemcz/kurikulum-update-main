@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { dismissChange, restoreChange, type Resolution } from "@/app/changes/actions";
@@ -62,9 +62,18 @@ export function ChangesFromOthers({
 
   // Nejnovější napřed – v mřížce plynou karty zleva doprava, takže
   // nejčerstvější změna je vlevo nahoře.
-  const current = vse
+  const nevyrizene = vse
     .filter((item) => stav(item) === "pending")
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Změny k lekcím, ke kterým země nemá vlastní verzi, se nemíchají
+  // s ostatními: nejsou co zapracovat, jen k dispozici. Stojí ve vlastním
+  // sbaleném bloku a do počtu nevyřízených se nepočítají.
+  const current = nevyrizene.filter((item) => !item.forMissingLesson);
+  const bezVerze = nevyrizene.filter((item) => item.forMissingLesson);
+  // Když semafor u lekce bez verze odkázal sem, blok se rovnou rozbalí.
+  const [bezVerzeOpen, setBezVerzeOpen] = useState(() =>
+    pending.some((item) => item.forMissingLesson && item.moduleId === focusModuleId)
+  );
   const hidden = vse
     .filter((item) => stav(item) === "dismissed")
     .sort((a, b) => (b.dismissedAt ?? "").localeCompare(a.dismissedAt ?? ""));
@@ -119,7 +128,28 @@ export function ChangesFromOthers({
     setToastId((current) => (current === statusId ? null : current));
   }
 
-  if (current.length === 0 && hidden.length === 0) return null;
+  if (current.length === 0 && hidden.length === 0 && bezVerze.length === 0) return null;
+
+  const karty = (seznam: PendingChange[]) =>
+    seznam.map((item) => (
+      <ChangeCard
+        key={item.id}
+        item={item}
+        hidden={stav(item) === "dismissed"}
+        resolution={duvody[item.id] ?? item.resolution}
+        canResolve={canResolve}
+        leaving={leavingId === item.id}
+        confirming={confirmingId === item.id}
+        focus={focusModuleId === item.moduleId}
+        locale={locale}
+        t={t}
+        onAskDismiss={() => setConfirmingId(item.id)}
+        onCancelDismiss={closeConfirm}
+        onDismiss={() => skryt(item)}
+        onDone={() => skryt(item, "done")}
+        onRestore={() => vratit(item.id)}
+      />
+    ));
 
   // Bez nevyřízených změn zůstane z bloku jen nenápadný rozbalovák,
   // ať Přehled zbytečně nenabobtná.
@@ -161,27 +191,34 @@ export function ChangesFromOthers({
           {zobrazit.length === 0 ? (
             <p className="text-sm text-ink/50">{t.noHiddenChanges}</p>
           ) : (
-            zobrazit.map((item) => (
-              <ChangeCard
-                key={item.id}
-                item={item}
-                hidden={stav(item) === "dismissed"}
-                resolution={duvody[item.id] ?? item.resolution}
-                canResolve={canResolve}
-                leaving={leavingId === item.id}
-                confirming={confirmingId === item.id}
-                focus={focusModuleId === item.moduleId}
-                locale={locale}
-                t={t}
-                onAskDismiss={() => setConfirmingId(item.id)}
-                onCancelDismiss={closeConfirm}
-                onDismiss={() => skryt(item)}
-                onDone={() => skryt(item, "done")}
-                onRestore={() => vratit(item.id)}
-              />
-            ))
+            karty(zobrazit)
           )}
         </ul>
+      )}
+
+      {bezVerze.length > 0 && (
+        <div className="mt-8">
+          <button
+            type="button"
+            aria-expanded={bezVerzeOpen}
+            onClick={() => setBezVerzeOpen((open) => !open)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/60 hover:text-coral"
+          >
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${bezVerzeOpen ? "" : "-rotate-90"}`}
+            />
+            {t.changesForMissingTitle} ({bezVerze.length})
+          </button>
+          {bezVerzeOpen && (
+            <>
+              <p className="mt-1 text-xs text-ink/50">{t.changesForMissingHint}</p>
+              <ul className="mt-4 grid grid-cols-1 gap-4 nav:grid-cols-2 min-[1400px]:grid-cols-3">
+                {karty(bezVerze)}
+              </ul>
+            </>
+          )}
+        </div>
       )}
 
       {toastId && (

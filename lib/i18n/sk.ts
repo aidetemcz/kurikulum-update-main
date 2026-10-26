@@ -240,6 +240,9 @@ export const sk: Dictionary = {
     "Databáza zápis odmietla. Skontroluj, či sú v Supabase spustené všetky migrácie z priečinka supabase/migrations.",
 
   changesFromOthersCount: "Zmeny od ostatných krajín ({count})",
+  changesAvailableForms: "zmena k dispozícii|zmeny k dispozícii|zmien k dispozícii",
+  changesForMissingTitle: "K lekciám, ktoré nemáte",
+  changesForMissingHint: "Vaša krajina k týmto lekciám zatiaľ nemá vlastnú verziu. Zmeny sú tu pre informáciu a do nevybavených sa nepočítajú.",
   tabCurrent: "Aktuálne",
   tabHidden: "Vybavené",
   confirmDismissYes: "Áno, netýka sa nás",

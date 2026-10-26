@@ -22,20 +22,28 @@ export default async function ModulesPage({
     return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
-  const [modules, lights] = await Promise.all([
+  const [modules, { lights, availableWithoutVersion }] = await Promise.all([
     getModulesForCountry(activeCountryId),
     getLightsForCountry(activeCountryId),
   ]);
 
   // Semafor v databázi zná jen to, co čeká na vyřízení; zbytek se pozná
-  // podle toho, jestli země vůbec má nahranou verzi.
+  // podle toho, jestli země vůbec má nahranou verzi. Bez vlastní verze je
+  // vždy šedý – čekající změny od ostatních jsou pak jen „k dispozici“.
   // Metodika i prezentace mají každá svůj semafor (klíč dává lightKey).
   const stavy: Record<string, CountryLight> = {};
+  const kDispozici: Record<string, number> = {};
   for (const module of modules) {
     const metodika = lightKey(module.id, "teaching_material");
     const prezentace = lightKey(module.id, "presentation");
-    stavy[metodika] = lights[metodika] ?? (module.latest_version ? "green" : "none");
-    stavy[prezentace] = lights[prezentace] ?? (module.latest_presentation ? "green" : "none");
+    stavy[metodika] = module.latest_version ? lights[metodika] ?? "green" : "none";
+    stavy[prezentace] = module.latest_presentation ? lights[prezentace] ?? "green" : "none";
+    if (!module.latest_version && availableWithoutVersion[metodika]) {
+      kDispozici[metodika] = availableWithoutVersion[metodika];
+    }
+    if (!module.latest_presentation && availableWithoutVersion[prezentace]) {
+      kDispozici[prezentace] = availableWithoutVersion[prezentace];
+    }
   }
 
   return (
@@ -52,6 +60,7 @@ export default async function ModulesPage({
       <ModulesCatalog
         modules={modules}
         lights={stavy}
+        available={kDispozici}
         countryId={activeCountryId}
         t={t}
       />

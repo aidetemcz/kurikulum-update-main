@@ -242,6 +242,9 @@ export const hu: Dictionary = {
     "Az adatbázis elutasította az írást. Ellenőrizd, hogy a supabase/migrations mappa összes migrációja lefutott-e a Supabase-ben.",
 
   changesFromOthersCount: "Változások a többi országtól ({count})",
+  changesAvailableForms: "elérhető változás|elérhető változás",
+  changesForMissingTitle: "Olyan leckékhez, amelyek nálatok nincsenek",
+  changesForMissingHint: "Az országotoknak még nincs saját változata ezekből a leckékből. A változások csak tájékoztatásul szerepelnek, és nem számítanak a függőben lévők közé.",
   tabCurrent: "Aktuális",
   tabHidden: "Lezárt",
   confirmDismissYes: "Igen, minket nem érint",

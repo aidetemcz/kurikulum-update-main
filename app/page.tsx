@@ -80,7 +80,8 @@ export default async function DashboardPage({
 
       {/* Appka bude většinu času prázdná a to je v pořádku – ať to
           nevypadá jako nedodělek. */}
-      {pending.length === 0 && (
+      {/* Změny k lekcím bez vlastní verze se do nevyřízených nepočítají. */}
+      {!pending.some((item) => !item.forMissingLesson) && (
         <div className="rounded-2xl bg-haze/40 px-5 py-4">
           <p className="text-sm font-medium text-ink">{t.noUpdatesTitle}</p>
           <p className="mt-0.5 text-sm text-ink/60">{t.noUpdatesHint}</p>

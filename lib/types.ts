@@ -171,6 +171,9 @@ export type PendingChange = {
   category: string | null;
   /** Jde o změnu v metodice, nebo v prezentaci. */
   kind: DocumentKind;
+  /** Země k lekci zatím nemá vlastní verzi tohohle druhu dokumentu. Takové
+   *  změny se ukazují zvlášť a do nevyřízených (ani do semaforu) se nepočítají. */
+  forMissingLesson: boolean;
   /** Text z PDF pod značkou v jazyce originálu a jeho překlady. */
   quote: string | null;
   quoteTranslations: Record<string, string>;

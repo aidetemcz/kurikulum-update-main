@@ -14,12 +14,15 @@ import type { Dictionary } from "@/lib/i18n";
 export function ModulesCatalog({
   modules,
   lights,
+  available,
   countryId,
   t,
 }: {
   modules: ModuleWithLatestVersion[];
   /** Stav metodiky i prezentace každé lekce pro zobrazenou zemi (klíč z lightKey). */
   lights: Record<string, CountryLight>;
+  /** Počet změn od ostatních u lekcí, ke kterým země nemá verzi (klíč z lightKey). */
+  available: Record<string, number>;
   countryId: string;
   t: Dictionary;
 }) {
@@ -105,6 +108,8 @@ export function ModulesCatalog({
                       lightTitle={lightLabelFor(light, t)}
                       presentationLight={presentationLight}
                       presentationLightTitle={lightLabelFor(presentationLight, t)}
+                      available={available[lightKey(module.id, "teaching_material")] ?? 0}
+                      presentationAvailable={available[lightKey(module.id, "presentation")] ?? 0}
                       t={t}
                     />
                   );
