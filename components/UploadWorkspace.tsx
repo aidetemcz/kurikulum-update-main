@@ -136,7 +136,12 @@ export function UploadWorkspace({
   const fileId = extractDriveFileId(linkForPreview);
   // Načetlo se PDF z odkazu? Ukazuje se v hlavičce nad dokumentem.
   const [pdfNacteno, setPdfNacteno] = useState(false);
-  useEffect(() => setPdfNacteno(false), [fileId]);
+  // Nápověda ke sdílení v Drive se ukáže, jen když se PDF nenačte.
+  const [pdfChyba, setPdfChyba] = useState(false);
+  useEffect(() => {
+    setPdfNacteno(false);
+    setPdfChyba(false);
+  }, [fileId]);
 
   // Název souboru na Drive bývá pro rozpoznání výmluvnější než text uvnitř.
   useEffect(() => {
@@ -377,11 +382,12 @@ export function UploadWorkspace({
         editable
         onFirstPageText={setFirstPageText}
         onPdfLoad={() => setPdfNacteno(true)}
+        onPdfError={() => setPdfChyba(true)}
         t={t}
         formColumn={
           <div className="flex flex-col gap-4">
             {/* Odkaz na PDF je nejdůležitější, proto stojí nahoře. */}
-            <Field label={t.driveLink} help={t.driveLinkHelp}>
+            <Field label={t.driveLink} help={pdfChyba ? t.driveLinkHelp : undefined}>
               <input
                 type="text"
                 name="driveLink"
@@ -421,7 +427,6 @@ export function UploadWorkspace({
               // pro odečítače obrazovky („Země Velká Británie").
               <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium text-ink">{t.uploadForWhichCountry}</span>
-                <span className="text-xs text-ink/50">{t.uploadForWhichCountryHint}</span>
                 <div role="group" aria-label={t.uploadForWhichCountry} className="flex flex-wrap gap-2">
                   {countries.map((country) => (
                     <button
@@ -448,17 +453,18 @@ export function UploadWorkspace({
               </p>
             )}
 
-            <p className="rounded-xl bg-haze/40 p-3 text-xs text-ink/70">
-              {latest
-                ? fill(t.existingVersionInfo, {
-                    country: countryName,
-                    version: latest.version_number,
-                    when: casMistne(latest.uploaded_at),
-                    who: latest.uploaded_by_email ?? "?",
-                    next: latest.version_number + 1,
-                  })
-                : fill(t.firstVersionInfo, { country: countryName })}
-            </p>
+            {/* Info o předchozí verzi jen tehdy, když nějaká je. */}
+            {latest && (
+              <p className="rounded-xl bg-haze/40 p-3 text-xs text-ink/70">
+                {fill(t.existingVersionInfo, {
+                  country: countryName,
+                  version: latest.version_number,
+                  when: casMistne(latest.uploaded_at),
+                  who: latest.uploaded_by_email ?? "?",
+                  next: latest.version_number + 1,
+                })}
+              </p>
+            )}
 
           </div>
         }
@@ -521,9 +527,6 @@ export function UploadWorkspace({
                   </button>
                 ))}
               </div>
-              {kind === "presentation" && (
-                <span className="text-xs text-ink/50">{t.kindHint}</span>
-              )}
             </div>
 
             {/* Stav průběžného ukládání rozpracované verze. */}
@@ -561,7 +564,7 @@ export function UploadWorkspace({
                     ? t.publishNeedsModule
                     : !draftId
                       ? saveState.error ?? t.publishPreparing
-                      : t.needMark}
+                      : null}
               </p>
             )}
 

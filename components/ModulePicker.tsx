@@ -75,23 +75,16 @@ export function ModulePicker({
 
   // Vybraná metodika: jen karta a možnost ji změnit.
   if (vybrana && !menim) {
-    const rozpoznana = recognition?.kind === "match" && recognition.best.moduleId === vybrana.id;
     return (
-      <div className="flex items-start justify-between gap-3 rounded-xl border border-coral px-3 py-2.5">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-ink">{moduleName(vybrana, t)}</p>
-          <p className="text-xs text-ink/50">
-            {vybrana.category ?? t.ungrouped}
-            {rozpoznana && ` · ${t.recognizedFromPdf}`}
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-coral px-3 py-2.5 text-white">
+        <p className="min-w-0 text-sm font-semibold">{moduleName(vybrana, t)}</p>
         <button
           type="button"
           onClick={() => {
             setMenim(true);
             window.setTimeout(() => inputRef.current?.focus(), 0);
           }}
-          className="shrink-0 text-sm font-medium text-coral hover:underline"
+          className="shrink-0 text-sm font-medium text-white/90 underline hover:text-white"
         >
           {t.change}
         </button>

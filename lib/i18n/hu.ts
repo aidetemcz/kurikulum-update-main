@@ -52,7 +52,6 @@ export const hu: Dictionary = {
   kindMethodology: "Módszertan",
   kindPresentation: "Prezentáció",
   noPresentationYet: "Még nincs feltöltött prezentáció.",
-  kindHint: "A prezentáció ugyanahhoz az órához tartozik, mint a módszertan, de külön verziói vannak. PDF-ként töltsd fel (exportálva Google Diákból, Canvából vagy PowerPointból).",
   noCategory: "Nincs kategória",
 
   version: "Verzió",
@@ -89,7 +88,6 @@ export const hu: Dictionary = {
   draftNotEditable: "Ez a piszkozat már közzé lett téve vagy törölve. Kérlek, töltsd újra az oldalt.",
   uploadedBy: "feltöltötte",
   existingVersionInfo: "{country} esetében már létezik {version}. verzió ({when}, feltöltötte: {who}). Ez {next}. verzióként mentődik.",
-  firstVersionInfo: "Ez lesz az első verzió a következőhöz: {country}.",
   concurrentWarning: "Időközben {who} hozzáadta a(z) {version}. verziót ({when}). A te módosításod {saved}. verzióként mentődött — ellenőrizd, nem fedik-e egymást.",
   openThatVersion: "Modul megnyitása",
   olderVersions: "Korábbi verziók",
@@ -171,8 +169,6 @@ export const hu: Dictionary = {
     "Töltsd ki a modult, az országot, a PDF-linket és a változás leírását.",
   uploadForeignCountry: "Csak a saját országod nevében tölthetsz fel.",
   uploadForWhichCountry: "Melyik ország nevében töltesz fel?",
-  uploadForWhichCountryHint:
-    "Több ország van hozzád rendelve, ezért itt választasz. Akinek csak egy országa van, nem látja ezt a választást, és automatikusan annak nevében tölt fel.",
   uploadingFor: "Feltöltés – {country}",
   uploadNotAllowed: "Nincs jogosultságod új verziót hozzáadni.",
   saveFailed: "A mentés nem sikerült.",
@@ -270,7 +266,6 @@ export const hu: Dictionary = {
   maybeOneOf: "Ezek egyike lehet:",
   searchModule: "Módszertan keresése",
   nothingFound: "Nincs találat",
-  recognizedFromPdf: "a PDF alapján felismerve",
   moreResults: "és még {count} – pontosíts a keresésen vagy válassz szekciót",
   publishNeedsCountry: "Nincs hozzád rendelt ország. Az admin rendelheti hozzád: Adminisztráció → Felhasználók.",
   publishNeedsLink: "Hiányzik a PDF linkje.",

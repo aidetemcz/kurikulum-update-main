@@ -52,7 +52,6 @@ export const en: Dictionary = {
   kindMethodology: "Teaching material",
   kindPresentation: "Presentation",
   noPresentationYet: "No presentation uploaded yet.",
-  kindHint: "A presentation belongs to the same lesson as the teaching material but has its own versions. Upload it as a PDF (export from Google Slides, Canva or PowerPoint).",
   noCategory: "No category",
 
   version: "Version",
@@ -89,7 +88,6 @@ export const en: Dictionary = {
   draftNotEditable: "This draft has already been published or deleted. Please reload the page.",
   uploadedBy: "uploaded by",
   existingVersionInfo: "{country} already has version {version} ({when}, uploaded by {who}). This will be saved as version {next}.",
-  firstVersionInfo: "This will be the first version for {country}.",
   concurrentWarning: "Version {version} was added meanwhile by {who} ({when}). Your change was saved as version {saved} — check whether they overlap.",
   openThatVersion: "Open module",
   olderVersions: "Older versions",
@@ -170,8 +168,6 @@ export const en: Dictionary = {
   uploadMissingFields: "Please fill in the module, country, PDF link and the change note.",
   uploadForeignCountry: "You can only upload for your own country.",
   uploadForWhichCountry: "Which country are you uploading for?",
-  uploadForWhichCountryHint:
-    "You have more than one country assigned, so you choose here. People with a single country never see this choice – they upload for their country automatically.",
   uploadingFor: "Uploading for {country}",
   uploadNotAllowed: "You don't have permission to add new versions.",
   saveFailed: "Saving failed.",
@@ -268,7 +264,6 @@ export const en: Dictionary = {
   maybeOneOf: "This looks like one of these:",
   searchModule: "Search teaching materials",
   nothingFound: "Nothing found",
-  recognizedFromPdf: "recognised from the PDF",
   moreResults: "and {count} more – refine the search or pick a section",
   publishNeedsCountry: "You don't have a country assigned. An admin can assign one in Administration → Users.",
   publishNeedsLink: "The link to the PDF is missing.",

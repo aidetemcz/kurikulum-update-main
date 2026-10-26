@@ -60,7 +60,6 @@ export const cs = {
   kindMethodology: "Metodika",
   kindPresentation: "Prezentace",
   noPresentationYet: "Prezentace zatím není nahraná.",
-  kindHint: "Prezentace patří ke stejné lekci jako metodika, ale verzuje se zvlášť. Nahrajte ji jako PDF (export z Google Slides, Canvy nebo PowerPointu).",
   noCategory: "Bez kategorie",
 
   // detail modulu a verze
@@ -99,7 +98,6 @@ export const cs = {
   draftNotEditable: "Tahle rozpracovaná verze už je zveřejněná nebo smazaná. Načtěte prosím stránku znovu.",
   uploadedBy: "nahrál/a",
   existingVersionInfo: "Pro {country} už existuje verze {version} ({when}, nahrál/a {who}). Uloží se jako verze {next}.",
-  firstVersionInfo: "Pro {country} to bude první verze.",
   concurrentWarning: "Mezitím přibyla verze {version} od {who} ({when}). Vaše úprava se uložila jako verze {saved} — zkontrolujte, jestli se nepřekrývají.",
   openThatVersion: "Otevřít modul",
   olderVersions: "Starší verze",
@@ -181,8 +179,6 @@ export const cs = {
   uploadMissingFields: "Vyplňte prosím modul, zemi, odkaz na PDF i poznámku ke změně.",
   uploadForeignCountry: "Nahrávat jde jen za vlastní zemi.",
   uploadForWhichCountry: "Za kterou zemi nahráváte?",
-  uploadForWhichCountryHint:
-    "Máte přiřazených víc zemí, proto vybíráte. Kdo má jen jednu zemi, tuhle volbu nevidí a nahrává automaticky za ni.",
   uploadingFor: "Nahráváte za zemi {country}",
   uploadNotAllowed: "Nemáte oprávnění přidávat nové verze.",
   saveFailed: "Uložení se nepodařilo.",
@@ -282,7 +278,6 @@ export const cs = {
   maybeOneOf: "Vypadá to na jednu z těchto:",
   searchModule: "Hledat metodiku",
   nothingFound: "Nic nenalezeno",
-  recognizedFromPdf: "rozpoznáno z PDF",
   moreResults: "a {count} dalších – upřesněte hledání nebo vyberte sekci",
   publishNeedsCountry: "Nemáte přiřazenou žádnou zemi. Přiřadí ji admin v Administraci → Uživatelé.",
   publishNeedsLink: "Chybí odkaz na PDF.",

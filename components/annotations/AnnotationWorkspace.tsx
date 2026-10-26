@@ -35,6 +35,7 @@ export function AnnotationWorkspace({
   focusMarkId,
   onFirstPageText,
   onPdfLoad,
+  onPdfError,
 }: {
   /** Null, dokud uživatel nevloží platný odkaz na Drive. */
   fileId: string | null;
@@ -55,6 +56,8 @@ export function AnnotationWorkspace({
   onFirstPageText?: (text: string) => void;
   /** PDF se úspěšně načetlo (obrazovka nahrávání to ukazuje v hlavičce). */
   onPdfLoad?: () => void;
+  /** PDF se načíst nepodařilo. */
+  onPdfError?: () => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(focusMarkId ?? null);
@@ -230,7 +233,7 @@ export function AnnotationWorkspace({
   return (
     <div className={gridClass}>
       {formColumn && (
-        <div className="rounded-2xl border border-coral/40 bg-coral/5 p-5 doc:col-start-2 doc:row-start-1">
+        <div className="rounded-2xl border-2 border-coral bg-white p-5 doc:col-start-2 doc:row-start-1">
           {formColumn}
         </div>
       )}
@@ -273,6 +276,7 @@ export function AnnotationWorkspace({
             setPdf(document);
             onPdfLoad?.();
           }}
+          onLoadError={onPdfError}
           renderPageOverlay={(pageIndex) => (
             <MarkLayer
               marks={marks.filter((mark) => mark.page === pageIndex)}
@@ -325,7 +329,8 @@ export function AnnotationWorkspace({
         )}
 
         {sorted.length === 0 ? (
-          <p className="mt-2 text-sm text-ink/50">{t.changesPanelEmpty}</p>
+          // Při nahrávání stačí nápověda pod seznamem.
+          !editable && <p className="mt-2 text-sm text-ink/50">{t.changesPanelEmpty}</p>
         ) : editable ? (
           // Při nahrávání jeden seznam – stránku nese každá kartička sama.
           <div className="mt-3 flex flex-col gap-2">

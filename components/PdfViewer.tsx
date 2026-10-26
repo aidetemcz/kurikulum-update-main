@@ -22,6 +22,7 @@ export function PdfViewer({
   renderPageOverlay,
   onFirstPageText,
   onDocumentLoad,
+  onLoadError,
 }: {
   src: string;
   /** Odkaz na soubor v Drive pro případ, že se vykreslení nepovede. */
@@ -33,6 +34,8 @@ export function PdfViewer({
   onFirstPageText?: (text: string) => void;
   /** Načtený dokument – značkování si z něj čte text pod značkami. */
   onDocumentLoad?: (pdf: PDFDocumentProxy) => void;
+  /** PDF se načíst nepodařilo. */
+  onLoadError?: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -73,6 +76,7 @@ export function PdfViewer({
             onFirstPageText("");
           }
         }}
+        onLoadError={() => onLoadError?.()}
         loading={<PdfSkeleton text={t.loadingPdf} />}
         error={<PdfError t={t} driveUrl={driveUrl} />}
         noData={<PdfSkeleton text={t.loadingPdf} />}

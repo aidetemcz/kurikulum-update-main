@@ -52,7 +52,6 @@ export const sk: Dictionary = {
   kindMethodology: "Metodika",
   kindPresentation: "Prezentácia",
   noPresentationYet: "Prezentácia zatiaľ nie je nahraná.",
-  kindHint: "Prezentácia patrí k tej istej lekcii ako metodika, ale verzuje sa zvlášť. Nahrajte ju ako PDF (export z Google Slides, Canvy alebo PowerPointu).",
   noCategory: "Bez kategórie",
 
   version: "Verzia",
@@ -89,7 +88,6 @@ export const sk: Dictionary = {
   draftNotEditable: "Táto rozpracovaná verzia je už zverejnená alebo zmazaná. Načítajte prosím stránku znova.",
   uploadedBy: "nahral/a",
   existingVersionInfo: "Pre {country} už existuje verzia {version} ({when}, nahral/a {who}). Uloží sa ako verzia {next}.",
-  firstVersionInfo: "Pre {country} to bude prvá verzia.",
   concurrentWarning: "Medzitým pribudla verzia {version} od {who} ({when}). Vaša úprava sa uložila ako verzia {saved} — skontrolujte, či sa neprekrývajú.",
   openThatVersion: "Otvoriť modul",
   olderVersions: "Staršie verzie",
@@ -170,8 +168,6 @@ export const sk: Dictionary = {
   uploadMissingFields: "Vyplňte prosím modul, krajinu, odkaz na PDF aj poznámku k zmene.",
   uploadForeignCountry: "Nahrávať sa dá len za vlastnú krajinu.",
   uploadForWhichCountry: "Za ktorú krajinu nahrávate?",
-  uploadForWhichCountryHint:
-    "Máte priradených viac krajín, preto vyberáte. Kto má len jednu krajinu, túto voľbu nevidí a nahráva automaticky za ňu.",
   uploadingFor: "Nahrávate za krajinu {country}",
   uploadNotAllowed: "Nemáte oprávnenie pridávať nové verzie.",
   saveFailed: "Uloženie sa nepodarilo.",
@@ -268,7 +264,6 @@ export const sk: Dictionary = {
   maybeOneOf: "Vyzerá to na jednu z týchto:",
   searchModule: "Hľadať metodiku",
   nothingFound: "Nič sa nenašlo",
-  recognizedFromPdf: "rozpoznané z PDF",
   moreResults: "a {count} ďalších – upresnite hľadanie alebo vyberte sekciu",
   publishNeedsCountry: "Nemáte priradenú žiadnu krajinu. Priradí vám ju admin v Administrácii → Používatelia.",
   publishNeedsLink: "Chýba odkaz na PDF.",
