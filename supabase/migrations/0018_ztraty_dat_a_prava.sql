@@ -230,3 +230,40 @@ alter table notifications
 
 create index if not exists notifications_user_created_idx
   on notifications (user_id, created_at desc);
+
+-- ---------------------------------------------------------------------
+-- A9. Uložení sledovaných lekcí najednou
+-- ---------------------------------------------------------------------
+-- Appka výběr nejdřív celý smazala a pak vložila nový. Když vložení
+-- selhalo, země nesledovala nic. Teď je to jedna transakce: buď se uloží
+-- celý nový výběr, nebo zůstane starý.
+--
+-- Smí admin a editor dané země (admin i v náhledu jako jiná země).
+
+create or replace function public.save_followed_modules(p_country_id uuid, p_module_ids uuid[])
+returns timestamptz
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_ids uuid[] := coalesce(p_module_ids, '{}');
+begin
+  if not public.can_write_for_country(p_country_id) then
+    raise exception 'follow_forbidden' using errcode = '42501';
+  end if;
+
+  delete from country_modules
+  where country_id = p_country_id
+    and module_id <> all (v_ids);
+
+  insert into country_modules (country_id, module_id)
+  select p_country_id, m from unnest(v_ids) as m
+  on conflict (country_id, module_id) do nothing;
+
+  update countries set modules_chosen_at = now() where id = p_country_id;
+
+  return now();
+end;
+$$;
+
+revoke all on function public.save_followed_modules(uuid, uuid[]) from public;
+grant execute on function public.save_followed_modules(uuid, uuid[]) to authenticated;
