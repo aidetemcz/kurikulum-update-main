@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { X } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireUser, canUpload, writableCountries } from "@/lib/current-user";
 import { resolveActiveCountry } from "@/lib/active-country";
@@ -131,7 +133,16 @@ export default async function UploadPage({
 
   return (
     <div>
-      <h1 className="mb-6 font-heading text-3xl font-bold text-ink">{t.uploadNewVersion}</h1>
+      <div className="mb-4 flex items-center gap-3">
+        <Link
+          href="/"
+          aria-label={t.close}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-haze text-ink/70 hover:bg-haze"
+        >
+          <X size={18} />
+        </Link>
+        <h1 className="font-heading text-3xl font-bold text-ink">{t.newVersionTitle}</h1>
+      </div>
 
       <UploadWorkspace
         modules={modules ?? []}

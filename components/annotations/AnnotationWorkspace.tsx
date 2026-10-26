@@ -7,6 +7,7 @@ import { MarkLayer } from "@/components/annotations/MarkLayer";
 import { MarkCard } from "@/components/annotations/MarkCard";
 import { MarkFilterBar, scrollToMarkPosition, useMarkFilter } from "@/components/annotations/MarkFilter";
 import { numberMarks, sortMarks } from "@/lib/annotations";
+import { fill } from "@/lib/format";
 import type { Mark } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import type { PDFDocumentProxy } from "pdfjs-dist";
@@ -33,6 +34,7 @@ export function AnnotationWorkspace({
   documentHeader,
   focusMarkId,
   onFirstPageText,
+  onPdfLoad,
 }: {
   /** Null, dokud uživatel nevloží platný odkaz na Drive. */
   fileId: string | null;
@@ -51,6 +53,8 @@ export function AnnotationWorkspace({
   focusMarkId?: string;
   /** Text první strany – podle něj appka pozná, o kterou metodiku jde. */
   onFirstPageText?: (text: string) => void;
+  /** PDF se úspěšně načetlo (obrazovka nahrávání to ukazuje v hlavičce). */
+  onPdfLoad?: () => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(focusMarkId ?? null);
@@ -64,6 +68,7 @@ export function AnnotationWorkspace({
   const filter = useMarkFilter(marks);
   const mutedIds = editable ? undefined : filter.mutedIds;
   const sorted = sortMarks(marks);
+  const bezPopisu = marks.filter((mark) => !mark.note.trim()).length;
 
   const showToast = useCallback((text: string, undo?: Mark) => {
     setToast({ text, undo });
@@ -264,7 +269,10 @@ export function AnnotationWorkspace({
           driveUrl={driveUrl}
           t={t}
           onFirstPageText={onFirstPageText}
-          onDocumentLoad={setPdf}
+          onDocumentLoad={(document) => {
+            setPdf(document);
+            onPdfLoad?.();
+          }}
           renderPageOverlay={(pageIndex) => (
             <MarkLayer
               marks={marks.filter((mark) => mark.page === pageIndex)}
@@ -291,7 +299,18 @@ export function AnnotationWorkspace({
           uvnitř – jinak by neměl kam "cestovat" a při rolování by zmizel. */}
       <div className={formColumn ? "doc:col-start-2 doc:row-start-2" : undefined}>
       <aside className="rounded-2xl border border-haze p-5 doc:sticky doc:top-8 doc:max-h-[calc(100vh-4rem)] doc:overflow-y-auto">
-        <h2 className="font-heading text-lg font-bold text-ink">{t.changesPanelTitle}</h2>
+        {/* Při nahrávání nadpis s počtem rámečků a kolik z nich ještě nemá popis. */}
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="font-heading text-xl font-bold text-ink">
+            {editable ? t.markedChangesTitle : t.changesPanelTitle}
+          </h2>
+          {editable && marks.length > 0 && (
+            <span className="shrink-0 text-xs text-ink/50">
+              {marks.length}
+              {bezPopisu > 0 && ` · ${fill(t.withoutNoteCount, { count: bezPopisu })}`}
+            </span>
+          )}
+        </div>
 
         {!editable && (
           <MarkFilterBar
@@ -307,6 +326,26 @@ export function AnnotationWorkspace({
 
         {sorted.length === 0 ? (
           <p className="mt-2 text-sm text-ink/50">{t.changesPanelEmpty}</p>
+        ) : editable ? (
+          // Při nahrávání jeden seznam – stránku nese každá kartička sama.
+          <div className="mt-3 flex flex-col gap-2">
+            {sorted.map((mark) => (
+              <MarkCard
+                key={mark.id}
+                mark={mark}
+                number={numbers[mark.id]}
+                editable
+                editing={editingId === mark.id}
+                dimmed={hoveredId !== null && hoveredId !== mark.id}
+                t={t}
+                onHover={setHoveredId}
+                onOpen={() => openMark(mark.id)}
+                onDelete={() => handleDelete(mark.id)}
+                onSubmit={(note, category) => handleSubmitNote(mark.id, note, category)}
+                onCancel={() => handleCancelNote(mark.id)}
+              />
+            ))}
+          </div>
         ) : (
           <div className="mt-3 flex flex-col gap-4">
             {groupByPage(sorted).map(([page, pageMarks]) => (
@@ -338,6 +377,13 @@ export function AnnotationWorkspace({
               </div>
             ))}
           </div>
+        )}
+
+        {editable && (
+          <ul className="mt-3 flex flex-col gap-0.5 text-xs text-ink/50">
+            <li>+ {t.hintNoNote}</li>
+            <li>+ {t.hintQuoteAuto}</li>
+          </ul>
         )}
 
         {panelFooter && <div className="dashed-divider mt-5 pt-4">{panelFooter}</div>}

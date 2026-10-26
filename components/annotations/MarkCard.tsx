@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Trash2 } from "lucide-react";
 import {
   CATEGORY_KEYS,
   categoryLabel,
@@ -53,6 +52,7 @@ export function MarkCard({
         t={t}
         onSubmit={onSubmit}
         onCancel={onCancel}
+        onDelete={onDelete}
       />
     );
   }
@@ -104,56 +104,70 @@ function MarkView({
       onMouseEnter={() => onHover(mark.id)}
       onMouseLeave={() => onHover(null)}
       onClick={onOpen}
-      className={`cursor-pointer rounded-xl border border-haze p-3 transition-opacity ${
+      className={`cursor-pointer rounded-xl border border-haze bg-white p-3 transition-opacity hover:border-coral/40 ${
         dimmed ? "opacity-40" : ""
       }`}
     >
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-white">
-          {number}
-        </span>
-        <p className="flex-1 text-sm text-ink">{poznamka}</p>
+      <div className="flex items-start gap-2.5">
+        <CisloZnacky number={number} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium leading-snug text-ink">
+            {poznamka || <span className="font-normal text-ink/40">{t.noNoteYet}</span>}
+          </p>
 
-        {editable && (
-          <button
-            type="button"
-            aria-label={t.delete}
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete();
-            }}
-            className="shrink-0 text-ink/40 hover:text-coral"
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
-      </div>
+          {preklad?.note && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setOriginalOpen((open) => !open);
+              }}
+              className="mt-1 text-left text-xs text-ink/40 hover:text-coral"
+            >
+              {originalOpen
+                ? t.showTranslation
+                : fill(t.machineTranslatedFrom, { language: jazykOriginalu(preklad.fromLocale, t) })}
+            </button>
+          )}
 
-      {preklad?.note && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            setOriginalOpen((open) => !open);
-          }}
-          className="ml-7 mt-1 text-left text-xs text-ink/40 hover:text-coral"
-        >
-          {originalOpen
-            ? t.showTranslation
-            : fill(t.machineTranslatedFrom, { language: jazykOriginalu(preklad.fromLocale, t) })}
-        </button>
-      )}
+          <div className="mt-2 flex flex-wrap gap-1">
+            {labels.length > 0 ? (
+              labels.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-semibold text-white"
+                >
+                  {label}
+                </span>
+              ))
+            ) : (
+              <span className="rounded-full border border-haze px-2.5 py-0.5 text-[11px] text-ink/40">
+                {t.noCategory2}
+              </span>
+            )}
+          </div>
 
-      <div className="mt-2 flex flex-wrap gap-1">
-        {labels.length > 0 ? (
-          labels.map((label) => (
-            <span key={label} className="badge-pill">
-              {label}
-            </span>
-          ))
-        ) : (
-          <span className="badge-pill text-ink/40">{t.noCategory2}</span>
-        )}
+          {/* Při nahrávání: kde rámeček leží a co s ním jde dělat. */}
+          {editable && (
+            <p className="mt-2 text-xs text-ink/50">
+              {t.pageShort} {mark.page + 1} ·{" "}
+              <button type="button" onClick={onOpen} className="underline hover:text-coral">
+                {t.editShort}
+              </button>{" "}
+              ·{" "}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete();
+                }}
+                className="text-coral underline hover:opacity-80"
+              >
+                {t.deleteShort}
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -166,6 +180,15 @@ function jazykOriginalu(locale: string, t: Dictionary): string {
   return t.langCs;
 }
 
+// Pořadové číslo rámečku – stejné v dokumentu i v panelu.
+function CisloZnacky({ number }: { number: number }) {
+  return (
+    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-white">
+      {number}
+    </span>
+  );
+}
+
 // Psaní popisu. Bez popisu se značka při zavření zahodí.
 function MarkEditor({
   mark,
@@ -173,12 +196,14 @@ function MarkEditor({
   t,
   onSubmit,
   onCancel,
+  onDelete,
 }: {
   mark: Mark;
   number: number;
   t: Dictionary;
   onSubmit: (note: string, category: string | null) => void;
   onCancel: () => void;
+  onDelete: () => void;
 }) {
   const [note, setNote] = useState(mark.note);
   // Druhů změny může být víc. Vlastní (ruční) je všechno, co není
@@ -261,91 +286,104 @@ function MarkEditor({
           onCancel();
         }
       }}
-      className="rounded-xl border border-coral p-3"
+      className="rounded-xl border-2 border-coral/70 bg-white p-3"
     >
-      <div className="mb-2 flex items-center gap-2">
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-white">
-          {number}
-        </span>
-        <span className="text-sm font-medium text-ink">{t.whatChangedHere}</span>
-      </div>
+      <div className="flex items-start gap-2.5">
+        <CisloZnacky number={number} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-ink">{t.whatChangedHere}</p>
+          <textarea
+            ref={inputRef}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={3}
+            className="input mt-1.5 w-full"
+          />
 
-      <textarea
-        ref={inputRef}
-        value={note}
-        onChange={(event) => setNote(event.target.value)}
-        rows={3}
-        className="input w-full"
-      />
-
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {CATEGORY_KEYS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={categories.includes(key)}
-            onClick={() => {
-              categoryTouched.current = true;
-              setSuggested([]);
-              setCategories((current) =>
-                current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+          <p className="mt-3 text-sm font-semibold text-ink">{t.changeTypeLabel}</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {CATEGORY_KEYS.map((key) => {
+              const vybrano = categories.includes(key);
+              const odAi = vybrano && suggested.includes(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={vybrano}
+                  onClick={() => {
+                    categoryTouched.current = true;
+                    setSuggested([]);
+                    setCategories((current) =>
+                      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+                    );
+                  }}
+                  className={`rounded-full border px-3 py-1 text-sm transition ${
+                    odAi
+                      ? "border-dashed border-coral bg-coral/5 text-ink"
+                      : vybrano
+                        ? "border-ink bg-ink text-white"
+                        : "border-haze bg-white text-ink hover:border-ink/30"
+                  }`}
+                >
+                  {categoryLabel(key, t)}
+                  {odAi && (
+                    <span className="ml-1.5 text-[10px] font-semibold text-coral">{t.aiSuggested}</span>
+                  )}
+                </button>
               );
-            }}
-            className={`badge-pill ${categories.includes(key) ? "bg-coral text-white" : ""}`}
-          >
-            {categoryLabel(key, t)}
-            {suggested.includes(key) && categories.includes(key) && (
-              <span className="ml-1 text-[10px] font-normal opacity-80">✦ {t.aiSuggested}</span>
-            )}
-          </button>
-        ))}
+            })}
 
-        <button
-          type="button"
-          aria-pressed={customOpen}
-          onClick={() => {
-            categoryTouched.current = true;
-            setSuggested([]);
-            setCustomOpen((open) => !open);
-          }}
-          className={`badge-pill ${customOpen ? "bg-coral text-white" : ""}`}
-        >
-          {t.otherCategory}
-        </button>
-      </div>
+            <button
+              type="button"
+              aria-pressed={customOpen}
+              onClick={() => {
+                categoryTouched.current = true;
+                setSuggested([]);
+                setCustomOpen((open) => !open);
+              }}
+              className={`rounded-full border border-dashed px-3 py-1 text-sm transition ${
+                customOpen ? "border-ink bg-ink text-white" : "border-haze bg-white text-ink hover:border-ink/30"
+              }`}
+            >
+              {t.otherCategory}
+            </button>
+          </div>
 
-      {customOpen && (
-        <input
-          type="text"
-          value={custom}
-          onChange={(event) => setCustom(event.target.value)}
-          placeholder={t.otherCategoryPlaceholder}
-          className="input mt-2 w-full"
-        />
-      )}
+          {customOpen && (
+            <input
+              type="text"
+              value={custom}
+              onChange={(event) => setCustom(event.target.value)}
+              placeholder={t.otherCategoryPlaceholder}
+              className="input mt-2 w-full"
+            />
+          )}
 
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          disabled={!note.trim()}
-          onClick={() => {
-            closing.current = true;
-            if (note.trim()) onSubmit(note.trim(), chosenCategory());
-          }}
-          className="rounded-xl bg-coral px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40"
-        >
-          {t.done}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            closing.current = true;
-            onCancel();
-          }}
-          className="rounded-xl px-3 py-1.5 text-sm text-ink/60 hover:bg-haze"
-        >
-          {t.cancel}
-        </button>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={!note.trim()}
+              onClick={() => {
+                closing.current = true;
+                if (note.trim()) onSubmit(note.trim(), chosenCategory());
+              }}
+              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            >
+              {t.done}
+            </button>
+            {/* Zavřít bez uložení jde klávesou Esc; smazání jde vrátit z lišty. */}
+            <button
+              type="button"
+              onClick={() => {
+                closing.current = true;
+                onDelete();
+              }}
+              className="text-sm text-ink/60 hover:text-coral"
+            >
+              {t.deleteFrame}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -21,6 +21,8 @@ import type { Dictionary } from "@/lib/i18n";
 import { suggestVersionSummary } from "@/app/admin/upload/suggest-actions";
 import { suggestFailureMessage } from "@/lib/suggest-message";
 import { describedMarks } from "@/lib/draft-marks";
+import { moduleName } from "@/lib/module-name";
+import { Check } from "lucide-react";
 
 export type LatestVersion = {
   module_id: string;
@@ -132,6 +134,9 @@ export function UploadWorkspace({
   }, [driveLink]);
 
   const fileId = extractDriveFileId(linkForPreview);
+  // Načetlo se PDF z odkazu? Ukazuje se v hlavičce nad dokumentem.
+  const [pdfNacteno, setPdfNacteno] = useState(false);
+  useEffect(() => setPdfNacteno(false), [fileId]);
 
   // Název souboru na Drive bývá pro rozpoznání výmluvnější než text uvnitř.
   useEffect(() => {
@@ -278,6 +283,10 @@ export function UploadWorkspace({
       version.module_id === moduleId && version.country_id === countryId && version.kind === kind
   );
   const countryName = countries.find((country) => country.id === countryId)?.name ?? "";
+  const lekce = modules.find((module) => module.id === moduleId);
+  const vybranaLekce = lekce
+    ? moduleName({ ...lekce, local_name: localNames[countryId]?.[lekce.id] ?? null }, t)
+    : "";
   // Server rámečky bez poznámky zahazuje, proto se nepočítají ani tady.
   const popsaneRamecky = describedMarks(marks).length;
   // Ostatním zemím přicházejí jednotlivé rámečky, shrnutí jen doplňuje –
@@ -341,6 +350,28 @@ export function UploadWorkspace({
       <input type="hidden" name="draftId" value={draftId ?? ""} />
       <input type="hidden" name="knownLatest" value={latest?.version_number ?? 0} />
 
+      {/* Hlavička: co se nahrává – lekce, že se PDF načetlo a jaké číslo
+          verze to bude. */}
+      {(vybranaLekce || pdfNacteno) && (
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-haze/40 px-4 py-2.5 text-sm">
+          {vybranaLekce && <span className="font-semibold text-ink">{vybranaLekce}</span>}
+          {pdfNacteno && (
+            <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
+              <Check size={14} strokeWidth={2.5} />
+              {t.pdfLoadedFromDrive}
+            </span>
+          )}
+          {vybranaLekce && countryName && (
+            <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">
+              {fill(t.versionWillBe, {
+                country: countryName,
+                next: (latest?.version_number ?? 0) + 1,
+              })}
+            </span>
+          )}
+        </div>
+      )}
+
       <AnnotationWorkspace
         fileId={fileId}
         driveUrl={fileId ? driveViewUrl(`https://drive.google.com/file/d/${fileId}/preview`) : ""}
@@ -348,9 +379,23 @@ export function UploadWorkspace({
         setMarks={setMarks}
         editable
         onFirstPageText={setFirstPageText}
+        onPdfLoad={() => setPdfNacteno(true)}
         t={t}
         formColumn={
           <div className="flex flex-col gap-4">
+            {/* Odkaz na PDF je nejdůležitější, proto stojí nahoře. */}
+            <Field label={t.driveLink} help={t.driveLinkHelp}>
+              <input
+                type="text"
+                name="driveLink"
+                required
+                value={driveLink}
+                onChange={(event) => setDriveLink(event.target.value)}
+                placeholder="https://drive.google.com/file/d/.../view"
+                className="input"
+              />
+            </Field>
+
             {/* Ne <Field>: ten je <label> a klik do nabídky by přesměroval
                 na první pole uvnitř – položky by pak nešly vybrat. */}
             <div className="flex flex-col gap-1.5">
@@ -418,17 +463,6 @@ export function UploadWorkspace({
                 : fill(t.firstVersionInfo, { country: countryName })}
             </p>
 
-            <Field label={t.driveLink} help={t.driveLinkHelp}>
-              <input
-                type="text"
-                name="driveLink"
-                required
-                value={driveLink}
-                onChange={(event) => setDriveLink(event.target.value)}
-                placeholder="https://drive.google.com/file/d/.../view"
-                className="input"
-              />
-            </Field>
           </div>
         }
         panelFooter={
