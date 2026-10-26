@@ -26,7 +26,9 @@ export async function ensureDraftVersion(
   moduleId: string,
   countryId: string,
   driveLink: string,
-  kind: DocumentKind = "teaching_material"
+  kind: DocumentKind = "teaching_material",
+  /** Koncept, se kterým právě pracuje tahle záložka prohlížeče. */
+  currentDraftId: string | null = null
 ): Promise<{ draftId: string; savedAt: string } | { error: string }> {
   const user = await requireUser();
   const { t } = await resolveActiveCountry(user, countryId);
@@ -44,34 +46,45 @@ export async function ensureDraftVersion(
 
   const supabase = await createClient();
   const fileUrl = drivePreviewUrl(fileId);
+  const druh = toDocumentKind(kind);
 
-  // Jeden rozpracovaný záznam na uživatele – když mezitím změnil modul,
-  // zemi nebo odkaz, jen ho přepíšeme.
-  const { data: existing } = await supabase
-    .from("document_versions")
-    .select("id")
-    .eq("uploaded_by", user.id)
-    .eq("status", "draft")
-    .limit(1)
-    .maybeSingle();
-
-  if (existing) {
-    const { data: updated, error } = await supabase
+  // Každá záložka má svůj koncept – dřív sdílely jeden na uživatele a druhá
+  // záložka přepsala první. Koncept téže lekce, země a druhu dokumentu se
+  // jen doplní o nový odkaz. Patří-li k jiné lekci, zemi nebo druhu, nepřepíše
+  // se a vznikne nový (rámečky do něj pak uloží průběžné ukládání).
+  let opusteny: string | null = null;
+  if (currentDraftId) {
+    const { data: soucasny } = await supabase
       .from("document_versions")
-      .update({
-        module_id: moduleId,
-        country_id: countryId,
-        kind: toDocumentKind(kind),
-        file_url: fileUrl,
-      })
-      .eq("id", existing.id)
-      .select("id")
+      .select("id, module_id, country_id, kind, status, uploaded_by")
+      .eq("id", currentDraftId)
       .maybeSingle();
 
-    if (error) return { error: `${t.saveFailedDetail} ${error.message}` };
-    // Nula řádků bez chyby znamená, že zápis zastavila pravidla v databázi.
-    if (!updated) return { error: t.publishBlocked };
-    return { draftId: existing.id, savedAt: new Date().toISOString() };
+    const stejny =
+      soucasny &&
+      soucasny.status === "draft" &&
+      soucasny.uploaded_by === user.id &&
+      soucasny.module_id === moduleId &&
+      soucasny.country_id === countryId &&
+      toDocumentKind(soucasny.kind) === druh;
+
+    if (stejny) {
+      const { data: updated, error } = await supabase
+        .from("document_versions")
+        .update({ file_url: fileUrl })
+        .eq("id", soucasny.id)
+        .eq("status", "draft")
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        return { error: await userError(t.saveFailedGeneric, error, "Koncept se nepodařilo upravit:") };
+      }
+      if (updated) return { draftId: soucasny.id, savedAt: new Date().toISOString() };
+      // Mezitím se zveřejnil nebo zmizel – založí se nový.
+    } else if (soucasny?.status === "draft" && soucasny.uploaded_by === user.id) {
+      opusteny = soucasny.id;
+    }
   }
 
   const { data, error } = await supabase
@@ -79,7 +92,7 @@ export async function ensureDraftVersion(
     .insert({
       module_id: moduleId,
       country_id: countryId,
-      kind: toDocumentKind(kind),
+      kind: druh,
       file_url: fileUrl,
       status: "draft",
       version_number: null,
@@ -88,7 +101,27 @@ export async function ensureDraftVersion(
     .select("id")
     .single();
 
-  if (error || !data) return { error: `${t.saveFailedDetail} ${error?.message ?? ""}` };
+  if (error || !data) {
+    return { error: await userError(t.saveFailedGeneric, error, "Koncept se nepodařilo založit:") };
+  }
+
+  // Koncept, od kterého záložka odešla (jiná lekce, země nebo druh), se
+  // uklidí – ale jen když je prázdný. S rámečky zůstává, nic se neztratí.
+  if (opusteny) {
+    const { count } = await supabase
+      .from("annotations")
+      .select("id", { count: "exact", head: true })
+      .eq("document_version_id", opusteny);
+    if (count === 0) {
+      await supabase
+        .from("document_versions")
+        .delete()
+        .eq("id", opusteny)
+        .eq("status", "draft")
+        .eq("uploaded_by", user.id);
+    }
+  }
+
   return { draftId: data.id, savedAt: new Date().toISOString() };
 }
 

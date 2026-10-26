@@ -159,6 +159,13 @@ export function UploadWorkspace({
     }
   }, [modules, firstPageText, fileName]);
 
+  // Koncept téhle záložky – server podle něj pozná, který koncept má
+  // doplnit, a cizí (z jiné záložky) nepřepíše.
+  const draftIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    draftIdRef.current = draftId;
+  }, [draftId]);
+
   // Jakmile je vyplněný modul, země a platný odkaz, založí se na pozadí
   // rozpracovaná verze, ke které se pak průběžně ukládají značky.
   useEffect(() => {
@@ -166,7 +173,13 @@ export function UploadWorkspace({
     let cancelled = false;
 
     (async () => {
-      const result = await ensureDraftVersion(moduleId, countryId, linkForPreview, kind);
+      const result = await ensureDraftVersion(
+        moduleId,
+        countryId,
+        linkForPreview,
+        kind,
+        draftIdRef.current
+      );
       if (cancelled) return;
       if ("error" in result) setSaveState((s) => ({ ...s, error: result.error }));
       else setDraftId(result.draftId);
