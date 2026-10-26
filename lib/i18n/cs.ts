@@ -145,7 +145,7 @@ export const cs = {
   demoLabel: "takhle",
   edit: "Upravit",
   delete: "Smazat",
-  needMarkOrSummary: "Označ aspoň jedno místo v dokumentu nebo napiš celkové shrnutí.",
+  needMark: "Označ v dokumentu aspoň jedno změněné místo a napiš k němu poznámku. Samotné shrnutí ostatním zemím nepřijde.",
   catContent: "Obsahová změna",
   catFix: "Oprava chyby",
   catLocalization: "Lokalizace",

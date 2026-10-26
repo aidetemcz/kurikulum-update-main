@@ -135,7 +135,7 @@ export const hu: Dictionary = {
   demoLabel: "így",
   edit: "Szerkesztés",
   delete: "Törlés",
-  needMarkOrSummary: "Jelölj meg legalább egy helyet a dokumentumban, vagy írj összefoglalót.",
+  needMark: "Jelölj meg legalább egy módosított helyet a dokumentumban, és írj hozzá megjegyzést. Az összefoglaló önmagában nem jut el a többi országhoz.",
   catContent: "Tartalmi változás",
   catFix: "Hibajavítás",
   catLocalization: "Lokalizáció",

@@ -240,7 +240,7 @@ export async function publishVersion(
 
   if (publishError || !vysledek) {
     const zprava = publishError?.message ?? "";
-    if (zprava.includes("publish_needs_mark")) return { error: t.needMarkOrSummary };
+    if (zprava.includes("publish_needs_mark")) return { error: t.needMark };
     if (zprava.includes("publish_not_draft")) return { error: t.draftNotEditable };
     return {
       error: await userError(t.saveFailedGeneric, publishError, "Zveřejnění verze se nepodařilo:"),

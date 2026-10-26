@@ -135,7 +135,7 @@ export const sk: Dictionary = {
   demoLabel: "takto",
   edit: "Upraviť",
   delete: "Zmazať",
-  needMarkOrSummary: "Označ aspoň jedno miesto v dokumente alebo napíš celkové zhrnutie.",
+  needMark: "Označ v dokumente aspoň jedno zmenené miesto a napíš k nemu poznámku. Samotné zhrnutie ostatným krajinám nepríde.",
   catContent: "Obsahová zmena",
   catFix: "Oprava chyby",
   catLocalization: "Lokalizácia",

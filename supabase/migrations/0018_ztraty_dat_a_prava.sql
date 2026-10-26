@@ -113,8 +113,9 @@ begin
   -- Rámečky bez poznámky se nezveřejňují (appka je ani neukládá).
   delete from annotations where document_version_id = v_draft.id and btrim(note) = '';
 
-  if v_summary is null
-     and not exists (select 1 from annotations where document_version_id = v_draft.id) then
+  -- Ostatní země dostávají jednotlivé rámečky; verze jen se shrnutím by
+  -- se jim nikde neukázala. Proto je potřeba aspoň jeden (viz A5 níž).
+  if not exists (select 1 from annotations where document_version_id = v_draft.id) then
     raise exception 'publish_needs_mark';
   end if;
 
@@ -195,3 +196,25 @@ $$;
 
 revoke all on function public.publish_version(uuid, text) from public;
 grant execute on function public.publish_version(uuid, text) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- A5. Shrnutí verze vidí i země, kterým změna přišla
+-- ---------------------------------------------------------------------
+-- Číst shrnutí směla jen země, která nahrávala, a admin. Příjemci proto
+-- měli ve zvonečku prázdnou poznámku a „Neznámý modul“.
+
+drop policy if exists "zmeny vidi i zeme, se kterou je verze sdilena" on changes;
+create policy "zmeny vidi i zeme, se kterou je verze sdilena" on changes
+  for select to authenticated
+  using (public.version_shared_with_me(document_version_id));
+
+-- Úprava shrnutí neměla žádné pravidlo, takže adminova oprava shrnutí
+-- tiše nic nezměnila (a do admin_edits se přesto zapsala). Překlady
+-- shrnutí zapisuje server přes service role.
+drop policy if exists "zmeny upravuje admin" on changes;
+create policy "zmeny upravuje admin" on changes
+  for update to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+grant update on changes to authenticated;

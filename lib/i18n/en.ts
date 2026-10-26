@@ -135,7 +135,7 @@ export const en: Dictionary = {
   demoLabel: "like this",
   edit: "Edit",
   delete: "Delete",
-  needMarkOrSummary: "Mark at least one place in the document or write an overall summary.",
+  needMark: "Mark at least one changed place in the document and add a note to it. A summary on its own doesn't reach the other countries.",
   catContent: "Content change",
   catFix: "Bug fix",
   catLocalization: "Localisation",

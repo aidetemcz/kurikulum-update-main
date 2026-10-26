@@ -248,7 +248,9 @@ export function UploadWorkspace({
   const countryName = countries.find((country) => country.id === countryId)?.name ?? "";
   // Server rámečky bez poznámky zahazuje, proto se nepočítají ani tady.
   const popsaneRamecky = describedMarks(marks).length;
-  const canPublish = Boolean(draftId) && (popsaneRamecky > 0 || summary.trim().length > 0);
+  // Ostatním zemím přicházejí jednotlivé rámečky, shrnutí jen doplňuje –
+  // verze bez rámečku by u nich nebyla vidět, proto jde zveřejnit až s ním.
+  const canPublish = Boolean(draftId) && popsaneRamecky > 0;
 
   if (draftChoice === "ask" && existingDraft) {
     const draftModule = modules.find((m) => m.id === existingDraft.module_id)?.name ?? "";
@@ -496,7 +498,7 @@ export function UploadWorkspace({
                     ? t.publishNeedsModule
                     : !draftId
                       ? saveState.error ?? t.publishPreparing
-                      : t.needMarkOrSummary}
+                      : t.needMark}
               </p>
             )}
 
