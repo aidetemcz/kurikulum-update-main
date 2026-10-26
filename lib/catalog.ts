@@ -154,7 +154,7 @@ export function parseCatalog(html: string, baseUrl: string = CATALOG_URL): Catal
 
   if (items.length === 0) {
     warnings.push(
-      "Na stránce se nenašly žádné odkazy na metodiky. Zkontroluj prosím adresu."
+      "Na stránce se nenašly žádné odkazy na metodiky. Zkontrolujte prosím adresu."
     );
   }
 

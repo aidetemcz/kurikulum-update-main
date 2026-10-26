@@ -16,14 +16,14 @@ import type { UserRole } from "@/lib/types";
 export type ActionState = { error: string } | { ok: string } | null;
 
 const RATE_LIMIT =
-  "Vyčerpaný hodinový limit odesílání e-mailů v Supabase (bez vlastního SMTP jen pár zpráv za hodinu, limit se mění v Authentication → Rate Limits). Zkus to prosím za hodinu znovu.";
+  "Vyčerpaný hodinový limit odesílání e-mailů v Supabase (bez vlastního SMTP jen pár zpráv za hodinu, limit se mění v Authentication → Rate Limits). Zkuste to prosím za hodinu znovu.";
 
 export async function addCountry(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
   const locale = String(formData.get("locale") ?? "").trim();
-  if (!name || !locale) return { error: "Vyplň prosím název země i jazykový kód." };
+  if (!name || !locale) return { error: "Vyplňte prosím název země i jazykový kód." };
 
   const supabase = await createClient();
   const { data: zeme, error } = await supabase
@@ -60,7 +60,7 @@ export async function inviteUser(_prev: ActionState, formData: FormData): Promis
   const countryIds = formData.getAll("countryIds").map(String).filter(Boolean);
   const role = formData.get("role") as UserRole;
   if (!email || countryIds.length === 0 || !role) {
-    return { error: "Vyplň prosím e-mail, aspoň jednu zemi i roli." };
+    return { error: "Vyplňte prosím e-mail, aspoň jednu zemi i roli." };
   }
 
   // Service role klíč je potřeba pro pozvání nového uživatele (vytvoří se
@@ -166,7 +166,7 @@ export async function startPreview(_prev: ActionState, formData: FormData): Prom
   await requireAdmin();
 
   const countryId = String(formData.get("countryId") ?? "");
-  if (!countryId) return { error: "Vyber prosím zemi." };
+  if (!countryId) return { error: "Vyberte prosím zemi." };
 
   (await cookies()).set(PREVIEW_COOKIE, countryId, { httpOnly: true, sameSite: "lax", path: "/" });
   revalidatePath("/", "layout");
@@ -195,7 +195,7 @@ export async function addModule(_prev: ActionState, formData: FormData): Promise
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const nameEn = String(formData.get("nameEn") ?? "").trim();
-  if (!name) return { error: "Vyplň prosím název metodiky." };
+  if (!name) return { error: "Vyplňte prosím název metodiky." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("modules").insert({
@@ -216,7 +216,7 @@ export async function updateModule(_prev: ActionState, formData: FormData): Prom
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const nameEn = String(formData.get("nameEn") ?? "").trim();
-  if (!id || !name) return { error: "Vyplň prosím název metodiky." };
+  if (!id || !name) return { error: "Vyplňte prosím název metodiky." };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -279,7 +279,7 @@ export async function deleteModule(_prev: ActionState, formData: FormData): Prom
     .select("id");
   if (error) return { error: `Smazání metodiky selhalo: ${error.message}` };
   if (!smazane || smazane.length === 0) {
-    return { error: "Metodika se nesmazala — nemáš k ní oprávnění, nebo už je pryč." };
+    return { error: "Metodika se nesmazala — nemáte k ní oprávnění, nebo už je pryč." };
   }
 
   obnovSeznamy();

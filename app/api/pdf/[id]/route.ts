@@ -75,7 +75,7 @@ export async function GET(
       `PDF ${id} se nepodařilo stáhnout z Drive: HTTP ${driveResponse.status}, typ ${contentType}`
     );
     return new NextResponse(
-      "Soubor se nepodařilo stáhnout z Google Drive. Zkontroluj, že je sdílený pro kohokoli s odkazem.",
+      "Soubor se nepodařilo stáhnout z Google Drive. Zkontrolujte, že je sdílený pro kohokoli s odkazem.",
       { status: 502 }
     );
   }

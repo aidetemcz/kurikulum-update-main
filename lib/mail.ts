@@ -166,13 +166,13 @@ export async function sendNewerVersionEmail(params: {
 
   return send({
     to,
-    subject: `K tvé verzi ${coJe} přibyla novější: ${params.moduleName}`,
+    subject: `K vaší verzi ${coJe} přibyla novější: ${params.moduleName}`,
     text:
-      `K tvé verzi v${theirVersion} modulu "${moduleName}" přibyla novější verze v${newVersion}.\n\n` +
+      `K vaší verzi v${theirVersion} modulu "${moduleName}" přibyla novější verze v${newVersion}.\n\n` +
       `Otevřít appku: ${url}`,
     html: emailLayout(
       `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${TMAVA}">` +
-        `K tvé verzi v${theirVersion} modulu <strong>${escapeHtml(moduleName)}</strong> ` +
+        `K vaší verzi v${theirVersion} modulu <strong>${escapeHtml(moduleName)}</strong> ` +
         `přibyla novější verze v${newVersion}.</p>`
     ),
   });
