@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LayoutGrid, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { isNavActive } from "@/lib/nav";
+import { canUpload } from "@/lib/permissions";
 import type { AppUser } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
@@ -122,7 +123,7 @@ function NavItems({
   t: Dictionary;
   supportUnread: number;
 }) {
-  const canManage = user.role === "admin" || user.role === "editor";
+  const canManage = canUpload(user);
 
   return (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">

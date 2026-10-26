@@ -22,10 +22,11 @@ export async function GET(request: Request) {
   // Řádek v public.users zakládá trigger v databázi (migrace 0001). Účty
   // založené dřív, než trigger existoval, ho ale nemají, a appka by je
   // pak nepustila dál. Doplníme ho tedy i tady – existující nepřepíšeme.
+  // Nový účet je editor bez země: nic nesmí, dokud mu admin zemi nepřiřadí.
   const { error: upsertError } = await createAdminClient()
     .from("users")
     .upsert(
-      { id: data.user.id, email: data.user.email },
+      { id: data.user.id, email: data.user.email, role: "editor" },
       { onConflict: "id", ignoreDuplicates: true }
     );
   if (upsertError) console.error("Nepodařilo se doplnit řádek v users:", upsertError);

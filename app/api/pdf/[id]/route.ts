@@ -30,19 +30,18 @@ export async function GET(
     return new NextResponse("Nepřihlášený uživatel", { status: 401 });
   }
 
-  const { data: appUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", authUser.id)
-    .single();
+  const [{ data: appUser }, { data: myCountries }] = await Promise.all([
+    supabase.from("users").select("role").eq("id", authUser.id).single(),
+    supabase.from("user_countries").select("country_id").eq("user_id", authUser.id).limit(1),
+  ]);
 
   // Admin a editor potřebují vidět náhled ještě předtím, než verzi uloží,
   // takže jim projde jakékoli ID. Ostatním pošleme soubor jen tehdy, když
   // k němu v databázi existuje verze, kterou smí vidět (o to se starají
   // pravidla Row Level Security). Jinak by se z appky stala otevřená proxy
   // na libovolný soubor na Drive.
-  const canPreviewAnything =
-    appUser?.role === "admin" || appUser?.role === "editor";
+  // Účet bez země (čerstvá registrace) mezi ně nepatří.
+  const canPreviewAnything = appUser?.role === "admin" || (myCountries ?? []).length > 0;
 
   if (!canPreviewAnything) {
     const { data: versions } = await supabase

@@ -10,6 +10,7 @@ import {
   updateUserRoleAndCountries,
 } from "@/app/admin/actions";
 import type { Country, AppUser, Module } from "@/lib/types";
+import { normalizeRole } from "@/lib/permissions";
 import type { Dictionary } from "@/lib/i18n";
 
 // Tabulky Administrace. Bydlí mimo stránku, aby šly vykreslit i samostatně
@@ -51,7 +52,7 @@ export function UsersTable({
                   <option value="en">en</option>
                   <option value="hu">hu</option>
                 </select>
-                <select name="role" defaultValue={u.role} className="input py-1">
+                <select name="role" defaultValue={normalizeRole(u.role)} className="input py-1">
                   <option value="editor">{t.roleEditor}</option>
                   <option value="admin">{t.roleAdmin}</option>
                 </select>

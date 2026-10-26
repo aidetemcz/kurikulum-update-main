@@ -3,8 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { readPreviewCountry } from "@/lib/preview";
 import type { AppUser } from "@/lib/types";
+import { canUpload, normalizeRole } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+
+export { canUpload };
 
 // Uživatel tak, jak je zapsaný v databázi – bez ohledu na náhled.
 // Používej jen tam, kde se o náhledu rozhoduje (pruh nahoře, jeho ukončení).
@@ -30,6 +33,7 @@ export const getRealUser = cache(async (): Promise<AppUser | null> => {
 
   return {
     ...appUser,
+    role: normalizeRole(appUser.role),
     country_ids: (countries ?? []).map((row) => row.country_id),
   } as AppUser;
 });
@@ -77,11 +81,6 @@ export async function requireAdmin(): Promise<AppUser> {
   const user = await requireUser();
   if (user.role !== "admin") redirect("/");
   return user;
-}
-
-// Nahrávat nové verze dokumentů může admin i editor.
-export function canUpload(user: AppUser): boolean {
-  return user.role === "admin" || user.role === "editor";
 }
 
 // Smí uživatel zapisovat za tuhle zemi?

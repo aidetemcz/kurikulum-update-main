@@ -9,7 +9,7 @@ import { isRateLimit } from "@/lib/auth-errors";
 import { versionMonth } from "@/lib/version-label";
 import { PREVIEW_COOKIE } from "@/lib/preview";
 import { setUserCountries, type UserCountriesClient } from "@/lib/user-countries";
-import type { UserRole } from "@/lib/types";
+import { normalizeRole } from "@/lib/permissions";
 
 // Akce v Administraci nikdy nevyhazují výjimku. Výjimka ze serverové akce
 // skončí bílou stránkou "Application error", na které se uživatel nedozví
@@ -59,9 +59,8 @@ export async function inviteUser(_prev: ActionState, formData: FormData): Promis
 
   const email = String(formData.get("email") ?? "").trim();
   const countryIds = formData.getAll("countryIds").map(String).filter(Boolean);
-  const role = formData.get("role") as UserRole;
-  if (!email || countryIds.length === 0 || !role) {
-    return { error: "Vyplňte prosím e-mail, aspoň jednu zemi i roli." };
+  if (!email || countryIds.length === 0) {
+    return { error: "Vyplňte prosím e-mail a aspoň jednu zemi." };
   }
 
   // Service role klíč je potřeba pro pozvání nového uživatele (vytvoří se
@@ -79,9 +78,11 @@ export async function inviteUser(_prev: ActionState, formData: FormData): Promis
 
   // Databázový trigger (viz supabase/migrations/0001_init.sql) při pozvání
   // automaticky založí řádek v public.users – tady mu jen doplníme roli a země.
+  // Zvaný je vždy editor; adminem ho jde udělat v seznamu uživatelů. Roli
+  // zapisujeme výslovně, dokud databáze bez migrace 0020 zakládá „viewer“.
   const { error: updateError } = await adminClient
     .from("users")
-    .update({ role })
+    .update({ role: "editor" })
     .eq("id", data.user.id);
 
   if (updateError) return { error: `Nastavení role selhalo: ${updateError.message}` };
@@ -109,7 +110,7 @@ export async function updateUserRoleAndCountries(
 
   const userId = String(formData.get("userId") ?? "");
   const countryIds = formData.getAll("countryIds").map(String).filter(Boolean);
-  const role = formData.get("role") as UserRole;
+  const role = normalizeRole(formData.get("role"));
   const locale = String(formData.get("locale") ?? "").trim();
   if (!userId) return { error: "Chybí uživatel." };
 

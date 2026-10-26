@@ -199,7 +199,7 @@ export function AnnotationWorkspace({
     }
   }
 
-  // Klik na značku i na kartičku otevře psaní popisu; čtenáři jen odroluje
+  // Klik na značku i na kartičku otevře psaní popisu; při čtení jen odroluje
   // dokument na dané místo.
   function openMark(id: string) {
     const mark = marks.find((item) => item.id === id);

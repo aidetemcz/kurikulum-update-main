@@ -38,7 +38,7 @@ export function MarkCard({
   dimmed: boolean;
   t: Dictionary;
   onHover: (id: string | null) => void;
-  /** Klik na kartičku: u editora otevře psaní, u čtenáře odroluje dokument. */
+  /** Klik na kartičku: při úpravách otevře psaní, při čtení odroluje dokument. */
   onOpen: () => void;
   onDelete: () => void;
   onSubmit: (note: string, category: string | null) => void;

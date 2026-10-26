@@ -69,7 +69,7 @@ export default async function DashboardPage({
       {!followed.chosen && <FollowPrompt t={t} />}
 
       <ChangesFromOthers
-        // Admin vyřizuje za kteroukoli zemi, editor za svou; čtenář jen čte.
+        // Admin vyřizuje za kteroukoli zemi, editor za svou.
         canResolve={user.role === "admin" || canWriteForCountry(user, activeCountryId)}
         pending={pending}
         dismissed={dismissed}

@@ -21,7 +21,7 @@ export async function dismissChange(
 ): Promise<{ error?: string }> {
   const user = await requireUser();
   const { t } = await resolveActiveCountry(user);
-  // Vyřizovat smí admin a editor; čtenář jen čte (hlídá to i databáze).
+  // Vyřizovat smí admin a editor své země (hlídá to i databáze).
   if (!canUpload(user)) return { error: t.changeNotAllowed };
   const supabase = await createClient();
 

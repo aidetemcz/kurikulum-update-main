@@ -1,7 +1,7 @@
 // Typy, které odpovídají tabulkám v Supabase (viz supabase/migrations/0001_init.sql).
 // Když přidáš/změníš sloupec v databázi, uprav ho i tady.
 
-export type UserRole = "admin" | "editor" | "viewer";
+export type UserRole = "admin" | "editor";
 
 export type Country = {
   id: string;

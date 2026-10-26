@@ -27,14 +27,14 @@ export async function GET(
     return NextResponse.json({ name: null }, { status: 401 });
   }
 
-  const { data: appUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", authUser.id)
-    .single();
+  const [{ data: appUser }, { data: myCountries }] = await Promise.all([
+    supabase.from("users").select("role").eq("id", authUser.id).single(),
+    supabase.from("user_countries").select("country_id").eq("user_id", authUser.id).limit(1),
+  ]);
 
   // Rozpoznávání běží jen na obrazovce nahrávání, kam se ostatní nedostanou.
-  if (appUser?.role !== "admin" && appUser?.role !== "editor") {
+  // Účet bez země (čerstvá registrace) nahrávat nesmí.
+  if (appUser?.role !== "admin" && (myCountries ?? []).length === 0) {
     return NextResponse.json({ name: null }, { status: 403 });
   }
 

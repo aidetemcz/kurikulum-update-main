@@ -26,10 +26,12 @@ spravují a překládají (malý počet lidí, žádní žáci ani učitelé).
 |---|---|
 | **admin** (AI dětem) | vše: země, uživatelé, katalog metodik, opravy cizích verzí, zprávy zemím, náhled appky „jako země X“ |
 | **editor** | nahrává a zveřejňuje nové verze za svou zemi (země přiřazené k účtu, může jich mít víc), odbavuje změny od ostatních |
-| **čtenář** | jen čte |
 
+Role čtenář už není (migrace 0020 převedla čtenáře na editory).
 Uživatel může mít přiřazených víc zemí (např. Česko i Velkou Británii), mezi nimi přepíná.
-Uživatel bez přiřazené země vidí jen výzvu a vlaječky pro volbu jazyka.
+Registrace je otevřená: nový účet je editor **bez země** – nic nevidí ani nesmí, jen výzvu,
+vlaječky pro volbu jazyka a zprávy adminovi. Práva získá, až mu admin přiřadí zemi.
+Pozvánka z administrace zakládá vždy editora; adminem ho jde udělat v seznamu uživatelů.
 
 ## Hlavní tok
 
@@ -63,7 +65,7 @@ Uživatel bez přiřazené země vidí jen výzvu a vlaječky pro volbu jazyka.
 | `/modules` **Metodiky** | všichni | katalog všech lekcí po sekcích, karta = název, aktuální verze, prezentace, semafory |
 | `/modules/[id]` detail metodiky | všichni | historie verzí země, náhled PDF s rámečky a panel změn, přejmenování lekce pro svou zemi (tužka), admin může verzi opravit |
 | `/changes/[id]` | všichni | jedna změna jiné země otevřená v dokumentu |
-| `/admin/upload` **Nahrát** | admin, editor | nahrání a vyznačení nové verze |
+| `/admin/upload` **Nahrát** | admin, editor se zemí | nahrání a vyznačení nové verze |
 | `/help` **Napsat adminovi** | ne-admin | chat s adminy (vlákno na uživatele), odpověď chodí i e-mailem |
 | `/admin` **Administrace** | admin | země, uživatelé (pozvání, role, země), import katalogu z webu, matice semaforů, náhled „jako země X“ |
 | `/admin/messages` **Zprávy** | admin | psaní zemím (všem lidem vybraných zemí) nebo jednomu člověku; pod tím konverzace s uživateli |

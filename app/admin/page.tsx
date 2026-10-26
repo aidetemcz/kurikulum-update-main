@@ -160,12 +160,6 @@ export default async function AdminPage({
             className="input min-w-0 flex-1 basis-56"
           />
           <CountryChecks countries={countries ?? []} selected={[]} />
-          {/* Role "čtenář" se nově nezvou – editor má práva jen ve své zemi.
-              Existující čtenáři zůstávají, jak jsou. */}
-          <select name="role" required defaultValue="editor" className="input">
-            <option value="editor">{t.roleEditor}</option>
-            <option value="admin">{t.roleAdmin}</option>
-          </select>
           <button
             type="submit"
             className="rounded-xl bg-coral px-4 py-2.5 font-medium text-white hover:opacity-90"
