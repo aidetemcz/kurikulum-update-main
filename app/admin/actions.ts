@@ -26,8 +26,28 @@ export async function addCountry(_prev: ActionState, formData: FormData): Promis
   if (!name || !locale) return { error: "Vyplň prosím název země i jazykový kód." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("countries").insert({ name, locale });
-  if (error) return { error: `Přidání země selhalo: ${error.message}` };
+  const { data: zeme, error } = await supabase
+    .from("countries")
+    .insert({ name, locale })
+    .select("id")
+    .single();
+  if (error || !zeme) return { error: `Přidání země selhalo: ${error?.message ?? ""}`.trim() };
+
+  // Nová země dostane i změny zveřejněné před jejím přidáním – jinak by
+  // je neviděla nikdy, změna se zemím rozesílá jen při zveřejnění.
+  const { data: znacky } = await supabase
+    .from("annotations")
+    .select("id, document_versions!inner (status)")
+    .eq("document_versions.status", "published");
+  if (znacky && znacky.length > 0) {
+    const { error: chyba } = await createAdminClient()
+      .from("annotation_country_status")
+      .upsert(
+        znacky.map((znacka) => ({ annotation_id: znacka.id, country_id: zeme.id })),
+        { onConflict: "annotation_id,country_id", ignoreDuplicates: true }
+      );
+    if (chyba) console.error("Dosavadní změny se nové zemi nepodařilo poslat:", chyba);
+  }
 
   revalidatePath("/admin");
   return { ok: "Uloženo." };
