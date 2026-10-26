@@ -2,10 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireUser } from "@/lib/current-user";
-
-const NEZMENENO =
-  "Změnu se nepodařilo uložit. Zkus stránku načíst znovu — možná ji mezitím změnil někdo jiný.";
+import { canUpload, requireUser } from "@/lib/current-user";
+import { resolveActiveCountry } from "@/lib/active-country";
+import { userError } from "@/lib/user-error";
 
 export type Resolution = "done" | "not_relevant";
 
@@ -21,6 +20,9 @@ export async function dismissChange(
   resolution: Resolution = "not_relevant"
 ): Promise<{ error?: string }> {
   const user = await requireUser();
+  const { t } = await resolveActiveCountry(user);
+  // Vyřizovat smí admin a editor; čtenář jen čte (hlídá to i databáze).
+  if (!canUpload(user)) return { error: t.changeNotAllowed };
   const supabase = await createClient();
 
   const zapis = {
@@ -43,11 +45,13 @@ export async function dismissChange(
     ({ data, error } = await uloz(zapis));
   }
 
-  if (error) return { error: error.message };
+  if (error) {
+    return { error: await userError(t.changeStateFailed, error, "Stav změny se nepodařilo uložit:") };
+  }
   // Nula změněných řádků bez chyby znamená, že zápis zastavila pravidla
   // v databázi nebo že už stav změnil někdo jiný. Tiše to spolknout
   // znamená tvrdit uživateli něco, co se nestalo.
-  if (!data) return { error: NEZMENENO };
+  if (!data) return { error: t.changeStateFailed };
 
   revalidatePath("/");
   return {};
@@ -56,7 +60,9 @@ export async function dismissChange(
 // Vrácení mezi aktuální. Stopy po skrytí se mažou, ať je řádek ve stejném
 // stavu, v jakém přišel – jinak by se ze semaforu nedalo poznat, co je nové.
 export async function restoreChange(statusId: string): Promise<{ error?: string }> {
-  await requireUser();
+  const user = await requireUser();
+  const { t } = await resolveActiveCountry(user);
+  if (!canUpload(user)) return { error: t.changeNotAllowed };
   const supabase = await createClient();
 
   const zapis = { status: "pending", dismissed_at: null, dismissed_by: null };
@@ -74,8 +80,10 @@ export async function restoreChange(statusId: string): Promise<{ error?: string 
     ({ data, error } = await uloz(zapis));
   }
 
-  if (error) return { error: error.message };
-  if (!data) return { error: NEZMENENO };
+  if (error) {
+    return { error: await userError(t.changeStateFailed, error, "Stav změny se nepodařilo uložit:") };
+  }
+  if (!data) return { error: t.changeStateFailed };
 
   revalidatePath("/");
   return {};

@@ -224,6 +224,8 @@ export const en: Dictionary = {
   showInDocument: "Show in document",
   changeDone: "Done",
   doneToast: "Marked as done.",
+  changeStateFailed: "The change couldn't be saved. Please reload the page – someone else may have changed it in the meantime.",
+  changeNotAllowed: "Only an editor of this country or an admin can resolve changes.",
   notRelevant: "Not relevant to us",
   dismissedToast: "Marked as not relevant to us.",
   fromCountryVersion: "{country}, version {version}",

@@ -224,6 +224,8 @@ export const sk: Dictionary = {
   showInDocument: "Zobraziť v dokumente",
   changeDone: "Hotovo",
   doneToast: "Označené ako hotové.",
+  changeStateFailed: "Zmenu sa nepodarilo uložiť. Načítaj prosím stránku znova – možno ju medzitým zmenil niekto iný.",
+  changeNotAllowed: "Zmeny môže vybavovať len editor danej krajiny alebo admin.",
   notRelevant: "Netýka sa nás",
   dismissedToast: "Označené ako netýkajúce sa nás.",
   fromCountryVersion: "{country}, verzia {version}",

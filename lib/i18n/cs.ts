@@ -237,6 +237,8 @@ export const cs = {
   showInDocument: "Zobrazit v dokumentu",
   changeDone: "Hotovo",
   doneToast: "Označeno jako hotové.",
+  changeStateFailed: "Změnu se nepodařilo uložit. Načti prosím stránku znovu – možná ji mezitím změnil někdo jiný.",
+  changeNotAllowed: "Změny může vyřizovat jen editor dané země nebo admin.",
   notRelevant: "Netýká se nás",
   dismissedToast: "Označeno jako netýkající se nás.",
   fromCountryVersion: "{country}, verze {version}",

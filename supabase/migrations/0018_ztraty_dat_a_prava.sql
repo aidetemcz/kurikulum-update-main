@@ -326,3 +326,40 @@ create policy "verzi upravuje admin nebo editor sve zeme" on document_versions
 
 drop policy if exists "stav zmeny zaklada admin nebo editor" on annotation_country_status;
 revoke insert on annotation_country_status from authenticated;
+
+-- ---------------------------------------------------------------------
+-- B3. Stav změny mění jen admin a editor, a jen tři sloupce
+-- ---------------------------------------------------------------------
+-- „Netýká se nás“ a „Hotovo“ mohl kliknout i čtenář a přes REST šlo
+-- přepsat jakýkoli sloupec řádku – třeba created_at (semafor by pak nikdy
+-- nezčervenal) nebo annotation_id.
+--
+-- Nově mění stav jen admin nebo editor dané země, a to jen sloupce
+-- status, dismissed_at, dismissed_by a resolution (důvod vyřízení
+-- z migrace 0017). Jako „kdo vyřídil“ jde zapsat jen sám sebe.
+
+-- Pojistka pro databázi, kde ještě neběžela 0017 (sloupec resolution).
+alter table annotation_country_status
+  add column if not exists resolution text;
+do $$
+begin
+  alter table annotation_country_status
+    add constraint annotation_country_status_resolution_check
+    check (resolution in ('done', 'not_relevant'));
+exception
+  when duplicate_object then null;
+end $$;
+
+drop policy if exists "stav zmeny meni jen jeji zeme nebo admin" on annotation_country_status;
+drop policy if exists "stav zmeny meni editor jeji zeme nebo admin" on annotation_country_status;
+create policy "stav zmeny meni editor jeji zeme nebo admin" on annotation_country_status
+  for update to authenticated
+  using (public.can_write_for_country(country_id))
+  with check (
+    public.can_write_for_country(country_id)
+    and (dismissed_by is null or dismissed_by = auth.uid())
+  );
+
+revoke update on annotation_country_status from authenticated;
+grant update (status, dismissed_at, dismissed_by, resolution)
+  on annotation_country_status to authenticated;

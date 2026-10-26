@@ -226,6 +226,8 @@ export const hu: Dictionary = {
   showInDocument: "Megjelenítés a dokumentumban",
   changeDone: "Kész",
   doneToast: "Késznek jelölve.",
+  changeStateFailed: "A változást nem sikerült menteni. Kérlek, töltsd újra az oldalt – lehet, hogy közben valaki más módosította.",
+  changeNotAllowed: "A változásokat csak az adott ország szerkesztője vagy egy admin intézheti.",
   notRelevant: "Minket nem érint",
   dismissedToast: "Megjelölve: minket nem érint.",
   fromCountryVersion: "{country}, {version}. verzió",

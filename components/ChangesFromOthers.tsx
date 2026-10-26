@@ -28,10 +28,13 @@ export function ChangesFromOthers({
   dismissed,
   focusModuleId,
   locale,
+  canResolve,
   t,
 }: {
   pending: PendingChange[];
   dismissed: PendingChange[];
+  /** Smí uživatel změny vyřizovat? Čtenář jen čte. */
+  canResolve: boolean;
   /** Metodika, na jejíž změnu se má hned po otevření odrolovat. */
   focusModuleId?: string;
   /** Jazyk zobrazené země – v něm se ukazují přeložené poznámky. */
@@ -164,6 +167,7 @@ export function ChangesFromOthers({
                 item={item}
                 hidden={stav(item) === "dismissed"}
                 resolution={duvody[item.id] ?? item.resolution}
+                canResolve={canResolve}
                 leaving={leavingId === item.id}
                 confirming={confirmingId === item.id}
                 focus={focusModuleId === item.moduleId}
@@ -226,6 +230,7 @@ function ChangeCard({
   item,
   hidden,
   resolution,
+  canResolve,
   leaving,
   confirming,
   focus,
@@ -240,6 +245,7 @@ function ChangeCard({
   item: PendingChange;
   hidden: boolean;
   resolution: Resolution | null;
+  canResolve: boolean;
   leaving: boolean;
   confirming: boolean;
   /** Na tuhle změnu se odrolovalo ze semaforu. */
@@ -308,13 +314,15 @@ function ChangeCard({
             {resolution === "done" && <Check size={12} strokeWidth={3} className="mr-1 inline" />}
             {resolution === "done" ? t.changeDone : t.notRelevant}
           </span>
-          <button
-            type="button"
-            onClick={onRestore}
-            className="rounded-xl border border-haze px-3 py-1.5 text-sm text-ink hover:border-coral hover:text-coral"
-          >
-            {t.restoreToCurrent}
-          </button>
+          {canResolve && (
+            <button
+              type="button"
+              onClick={onRestore}
+              className="rounded-xl border border-haze px-3 py-1.5 text-sm text-ink hover:border-coral hover:text-coral"
+            >
+              {t.restoreToCurrent}
+            </button>
+          )}
         </div>
       ) : (
         <div className="mt-auto flex flex-wrap gap-2 pt-3">
@@ -324,23 +332,28 @@ function ChangeCard({
           >
             {t.showInDocument}
           </Link>
-          {/* Hotovo se nepotvrzuje – jde vrátit z lišty i z Vyřízených. */}
-          <button
-            type="button"
-            onClick={onDone}
-            className="inline-flex items-center gap-1 rounded-xl border border-coral/40 px-3 py-1.5 text-sm font-medium text-coral hover:bg-coral/5"
-          >
-            <Check size={14} strokeWidth={3} />
-            {t.changeDone}
-          </button>
-          {/* Samostatná akce, ne odeslání formuláře. */}
-          <button
-            type="button"
-            onClick={onAskDismiss}
-            className="rounded-xl px-3 py-1.5 text-sm text-ink/60 hover:bg-haze"
-          >
-            {t.notRelevant}
-          </button>
+          {/* Hotovo se nepotvrzuje – jde vrátit z lišty i z Vyřízených.
+              Čtenáři se vyřizovací tlačítka neukazují vůbec. */}
+          {canResolve && (
+            <>
+              <button
+                type="button"
+                onClick={onDone}
+                className="inline-flex items-center gap-1 rounded-xl border border-coral/40 px-3 py-1.5 text-sm font-medium text-coral hover:bg-coral/5"
+              >
+                <Check size={14} strokeWidth={3} />
+                {t.changeDone}
+              </button>
+              {/* Samostatná akce, ne odeslání formuláře. */}
+              <button
+                type="button"
+                onClick={onAskDismiss}
+                className="rounded-xl px-3 py-1.5 text-sm text-ink/60 hover:bg-haze"
+              >
+                {t.notRelevant}
+              </button>
+            </>
+          )}
         </div>
       )}
 
