@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { isNavActive } from "@/lib/nav";
 import type { AppUser } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 
@@ -183,10 +184,15 @@ function SidebarLink({
   /** Počet nepřečtených; nula se nezobrazuje. */
   badge?: number;
 }) {
+  const aktivni = isNavActive(href, usePathname());
+
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink hover:bg-haze"
+      aria-current={aktivni ? "page" : undefined}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-ink hover:bg-haze ${
+        aktivni ? "bg-haze font-semibold" : "font-medium"
+      }`}
     >
       <span className="shrink-0">{icon}</span>
       {label}
