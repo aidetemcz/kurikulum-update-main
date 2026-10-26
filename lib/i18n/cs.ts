@@ -129,8 +129,6 @@ export const cs = {
   editShort: "upravit",
   deleteShort: "smazat",
   deleteFrame: "Smazat rámeček",
-  hintNoNote: "Rámeček bez popisu se neodešle.",
-  hintQuoteAuto: "Text pod rámečkem si appka přečte sama.",
   noNoteYet: "Zatím bez popisu",
   aiSuggested: "návrh AI",
   noCategory2: "Bez kategorie",

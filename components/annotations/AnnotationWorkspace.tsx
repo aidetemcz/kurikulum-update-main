@@ -384,13 +384,6 @@ export function AnnotationWorkspace({
           </div>
         )}
 
-        {editable && (
-          <ul className="mt-3 flex flex-col gap-0.5 text-xs text-ink/50">
-            <li>+ {t.hintNoNote}</li>
-            <li>+ {t.hintQuoteAuto}</li>
-          </ul>
-        )}
-
         {panelFooter && <div className="dashed-divider mt-5 pt-4">{panelFooter}</div>}
       </aside>
       </div>

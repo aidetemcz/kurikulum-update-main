@@ -119,8 +119,6 @@ export const hu: Dictionary = {
   editShort: "szerkesztés",
   deleteShort: "törlés",
   deleteFrame: "Keret törlése",
-  hintNoNote: "A leírás nélküli keret nem lesz elküldve.",
-  hintQuoteAuto: "A keret alatti szöveget az app magától beolvassa.",
   noNoteYet: "Még nincs leírás",
   aiSuggested: "MI-javaslat",
   noCategory2: "Nincs kategória",

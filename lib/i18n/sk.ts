@@ -119,8 +119,6 @@ export const sk: Dictionary = {
   editShort: "upraviť",
   deleteShort: "zmazať",
   deleteFrame: "Zmazať rámček",
-  hintNoNote: "Rámček bez popisu sa neodošle.",
-  hintQuoteAuto: "Text pod rámčekom si appka prečíta sama.",
   noNoteYet: "Zatiaľ bez popisu",
   aiSuggested: "návrh AI",
   noCategory2: "Bez kategórie",

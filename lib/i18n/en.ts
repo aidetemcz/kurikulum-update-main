@@ -119,8 +119,6 @@ export const en: Dictionary = {
   editShort: "edit",
   deleteShort: "delete",
   deleteFrame: "Delete frame",
-  hintNoNote: "A frame without a note won't be sent.",
-  hintQuoteAuto: "The app reads the text under the frame by itself.",
   noNoteYet: "No note yet",
   aiSuggested: "AI suggestion",
   noCategory2: "No category",
