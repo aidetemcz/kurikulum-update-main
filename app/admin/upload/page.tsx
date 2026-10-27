@@ -70,8 +70,7 @@ export default async function UploadPage({
     });
   }
 
-  // Za kterou zemi nahrával naposledy – ta se předvybere. Když takovou
-  // zemi mezitím ztratil, spadne se na první z jeho zemí.
+  // Za kterou zemi nahrával naposledy.
   const { data: posledni } = await supabase
     .from("document_versions")
     .select("country_id")
@@ -80,10 +79,12 @@ export default async function UploadPage({
     .limit(1)
     .maybeSingle();
 
-  const posledniVlastni = countries.some((c) => c.id === posledni?.country_id)
-    ? posledni!.country_id
-    : null;
-  const defaultCountryId = posledniVlastni ?? countries[0]?.id ?? null;
+  // Předvybere se země, na kterou je uživatel právě přepnutý – po přepnutí
+  // na Velkou Británii se má nahrávat za ni, ne za tu, kam nahrál naposledy.
+  const vlastni = (id: string | null | undefined) =>
+    id && countries.some((c) => c.id === id) ? id : null;
+  const defaultCountryId =
+    vlastni(activeCountryId) ?? vlastni(posledni?.country_id) ?? countries[0]?.id ?? null;
 
   // Rozdělaná práce z minulé návštěvy.
   const { data: draft } = await supabase
