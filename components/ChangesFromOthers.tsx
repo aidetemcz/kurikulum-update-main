@@ -225,8 +225,9 @@ function Tab({
   );
 }
 
-function ChangeCard({
+export function ChangeCard({
   item,
+  documentHref,
   hidden,
   resolution,
   canResolve,
@@ -239,6 +240,8 @@ function ChangeCard({
   onRestore,
 }: {
   item: PendingChange;
+  /** Kam vede „Zobrazit v dokumentu“; u příchozí změny její detail. */
+  documentHref?: string;
   hidden: boolean;
   resolution: Resolution | null;
   canResolve: boolean;
@@ -320,13 +323,13 @@ function ChangeCard({
       ) : (
         <div className="mt-auto flex flex-wrap gap-2 pt-3">
           <Link
-            href={`/changes/${item.id}`}
+            href={documentHref ?? `/changes/${item.id}`}
             className="rounded-xl bg-coral px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
           >
             {t.showInDocument}
           </Link>
           {/* Hotovo se nepotvrzuje – jde vrátit z lišty i z Vyřízených.
-              Čtenáři se vyřizovací tlačítka neukazují vůbec. */}
+              Bez práva vyřizovat (Odchozí změny) se tlačítka neukazují. */}
           {canResolve && (
             <>
               <button

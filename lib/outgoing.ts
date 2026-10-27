@@ -1,25 +1,22 @@
-// Odchozí změny: verze, které zobrazená země sama zveřejnila, i s rámečky.
+// Odchozí změny: rámečky z verzí, které zobrazená země sama zveřejnila.
 // Protějšek přehledu Příchozí změny – ať jde rychle najít, co a kdy země
-// ostatním poslala.
+// ostatním poslala. Tvar je stejný jako u příchozích, aby karty vypadaly
+// stejně.
 import { createClient } from "@/lib/supabase/server";
 import { getLocalNames } from "@/lib/local-names";
 import { versionLabel } from "@/lib/version-label";
-import { isNotesOnlySummary, sortMarks } from "@/lib/annotations";
-import type { NamedModule } from "@/lib/module-name";
-import { toDocumentKind, versionDate, type DocumentKind, type Mark } from "@/lib/types";
+import { sortMarks } from "@/lib/annotations";
+import { toDocumentKind, versionDate, type Mark, type PendingChange } from "@/lib/types";
 
-export type OutgoingVersion = {
-  id: string;
-  moduleId: string;
-  module: NamedModule;
-  kind: DocumentKind;
-  versionLabel: string;
-  publishedAt: string;
-  authorEmail: string | null;
-  /** Shrnutí, jen když ho autor opravdu napsal. */
-  summary: string | null;
-  /** V pořadí čtení. */
-  marks: Mark[];
+export type OutgoingChange = PendingChange & {
+  /** Otevře rovnou tu verzi v dokumentu. */
+  href: string;
+};
+
+type ModuleNames = {
+  name: string;
+  name_en: string | null;
+  name_translations: Record<string, string> | null;
 };
 
 type Row = {
@@ -31,9 +28,9 @@ type Row = {
   published_at: string | null;
   uploaded_at: string;
   users: { email: string } | { email: string }[] | null;
-  modules: NamedModule | NamedModule[] | null;
+  modules: ModuleNames | ModuleNames[] | null;
+  countries: { name: string } | { name: string }[] | null;
   annotations: Mark[] | null;
-  changes: { note: string; created_at: string }[] | null;
 };
 
 function one<T>(value: T | T[] | null): T | null {
@@ -41,12 +38,12 @@ function one<T>(value: T | T[] | null): T | null {
   return value;
 }
 
-/** Posledních 50 zveřejněných verzí země, od nejnovější. */
+/** Změny z posledních 50 zveřejněných verzí země, od nejnovější verze. */
 export async function getOutgoing(
   countryId: string,
   /** Jen verze, které nahrál tenhle uživatel. */
   authorId: string | null
-): Promise<OutgoingVersion[]> {
+): Promise<OutgoingChange[]> {
   const supabase = await createClient();
   let dotaz = supabase
     .from("document_versions")
@@ -54,8 +51,8 @@ export async function getOutgoing(
       `id, module_id, kind, version_number, version_label, published_at, uploaded_at,
        users:uploaded_by (email),
        modules (name, name_en, name_translations),
-       annotations (*),
-       changes (note, created_at)`
+       countries (name),
+       annotations (*)`
     )
     .eq("country_id", countryId)
     .eq("status", "published");
@@ -70,21 +67,41 @@ export async function getOutgoing(
   ]);
   if (error) console.error("Odchozí změny se nepodařilo načíst:", error);
 
-  return ((data ?? []) as unknown as Row[]).map((row) => {
-    const marks = sortMarks(row.annotations ?? []);
-    const shrnuti =
-      [...(row.changes ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at))[0]?.note ?? "";
-    const modul = one(row.modules) ?? { name: "" };
-    return {
-      id: row.id,
+  return ((data ?? []) as unknown as Row[]).flatMap((row) => {
+    const modul = one(row.modules);
+    const kind = toDocumentKind(row.kind);
+    const publishedAt = versionDate(row);
+    return sortMarks(row.annotations ?? []).map((mark) => ({
+      id: mark.id,
+      annotationId: mark.id,
+      createdAt: publishedAt,
+      dismissedAt: null,
+      resolution: null,
+      publishedAt,
+      // Vlastní poznámky se nepřekládají.
+      sourceLocale: null,
+      translations: {},
+      translationFailed: false,
       moduleId: row.module_id,
-      module: { ...modul, local_name: vlastniNazvy.get(row.module_id) ?? null },
-      kind: toDocumentKind(row.kind),
+      moduleName: modul?.name ?? "",
+      moduleNames: {
+        name: modul?.name ?? "",
+        name_en: modul?.name_en ?? null,
+        name_translations: modul?.name_translations ?? null,
+        local_name: vlastniNazvy.get(row.module_id) ?? null,
+      },
+      fromCountryName: one(row.countries)?.name ?? "",
+      uploadedByEmail: one(row.users)?.email ?? null,
+      versionNumber: row.version_number,
       versionLabel: versionLabel(row),
-      publishedAt: versionDate(row),
-      authorEmail: one(row.users)?.email ?? null,
-      summary: shrnuti.trim() && !isNotesOnlySummary(shrnuti, marks) ? shrnuti : null,
-      marks,
-    };
+      page: mark.page,
+      note: mark.note,
+      category: mark.category,
+      kind,
+      forMissingLesson: false,
+      quote: mark.quote ?? null,
+      quoteTranslations: {},
+      href: `/modules/${row.module_id}?country=${countryId}&kind=${kind}&version=${row.id}`,
+    }));
   });
 }

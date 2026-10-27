@@ -4,10 +4,10 @@ import { resolveActiveCountry } from "@/lib/active-country";
 import { getOutgoing } from "@/lib/outgoing";
 import { CountrySwitcher } from "@/components/CountrySwitcher";
 import { NoCountryNotice } from "@/components/NoCountryNotice";
-import { OutgoingVersionCard } from "@/components/OutgoingVersionCard";
+import { OutgoingChanges } from "@/components/OutgoingChanges";
 
-// Odchozí změny: co zobrazená země zveřejnila, od nejnovějšího. Každá verze
-// i s rámečky a odkazem rovnou do dokumentu.
+// Odchozí změny: rámečky z verzí, které zobrazená země zveřejnila, od
+// nejnovější verze. Karty vypadají stejně jako u příchozích změn.
 export default async function OutgoingPage({
   searchParams,
 }: {
@@ -15,14 +15,14 @@ export default async function OutgoingPage({
 }) {
   const user = await requireUser();
   const { country, mine } = await searchParams;
-  const { activeCountryId, countries, t } = await resolveActiveCountry(user, country);
+  const { activeCountryId, countries, t, locale } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
     return <NoCountryNotice isAdmin={user.role === "admin"} t={t} />;
   }
 
   const jenMoje = mine === "1";
-  const versions = await getOutgoing(activeCountryId, jenMoje ? user.id : null);
+  const changes = await getOutgoing(activeCountryId, jenMoje ? user.id : null);
   const odkaz = (moje: boolean) => `/outgoing?country=${activeCountryId}${moje ? "&mine=1" : ""}`;
 
   return (
@@ -49,16 +49,12 @@ export default async function OutgoingPage({
         ))}
       </div>
 
-      {versions.length === 0 ? (
+      {changes.length === 0 ? (
         <div className="rounded-2xl bg-haze/40 px-5 py-4">
           <p className="text-sm font-medium text-ink">{t.outgoingEmpty}</p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {versions.map((version) => (
-            <OutgoingVersionCard key={version.id} version={version} countryId={activeCountryId} t={t} />
-          ))}
-        </ul>
+        <OutgoingChanges changes={changes} locale={locale} t={t} />
       )}
     </div>
   );
