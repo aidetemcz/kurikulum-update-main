@@ -73,8 +73,9 @@ Pozvánka z administrace zakládá vždy editora; adminem ho jde udělat v sezna
 
 ## Jazyky
 
-- Rozhraní: čeština, slovenština, angličtina, maďarština. Jazyk = nastavení uživatele,
-  jinak jazyk jeho první země.
+- Rozhraní: čeština, slovenština, angličtina, maďarština. Jazyk = jazyk právě
+  prohlížené země (přepnutí na Velkou Británii = anglicky). Účet bez země má
+  jazyk podle vlaječky, jinak podle nastavení uživatele.
 - Názvy lekcí: česky (zdroj), anglicky (z anglického webu), slovensky a maďarsky
   (přeloženo). Každá země si může lekci **přejmenovat jen pro sebe**.
 - Poznámky ke změnám se překládají automaticky; co se při zveřejnění nepřeložilo

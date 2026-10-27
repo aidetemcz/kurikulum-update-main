@@ -62,19 +62,12 @@ export async function resolveActiveCountry(
     activeCountryId: active.id,
     // Přepínač se vykreslí, jen když je z čeho vybírat.
     countries: countries.length > 1 ? countries : [],
-    // Rozhraní mluví jazykem uživatele, ne prohlížené země. Kdo spravuje
-    // Česko i Slovensko, nechce si přepínat jazyk tím, kam se zrovna dívá.
-    t: getDictionary(uiLocale(user, countries)),
+    // Rozhraní mluví jazykem prohlížené země: po přepnutí na Velkou
+    // Británii je celé anglicky. Vlastní nastavení jazyka u uživatele platí
+    // jen pro účet bez země (viz výše).
+    t: getDictionary(locale),
     locale,
   };
-}
-
-// Jazyk rozhraní: vlastní nastavení uživatele, jinak podle jeho první země.
-function uiLocale(user: AppUser, countries: Country[]): Locale {
-  if (user.locale) return toLocale(user.locale);
-
-  const vlastni = countries.find((country) => user.country_ids.includes(country.id));
-  return toLocale(vlastni?.locale);
 }
 
 // Seznam zemí chce layout i stránka; v rámci jednoho načtení stačí jednou.
