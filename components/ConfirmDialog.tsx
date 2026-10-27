@@ -18,6 +18,8 @@ export function ConfirmDialog({
   closeLabel,
   onConfirm,
   onCancel,
+  secondaryLabel,
+  onSecondary,
   children,
 }: {
   open: boolean;
@@ -29,6 +31,9 @@ export function ConfirmDialog({
   closeLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Volitelná druhá akce mezi potvrzením a zrušením. */
+  secondaryLabel?: string;
+  onSecondary?: () => void;
   /** Podrobnosti o tom, čeho se potvrzení týká. */
   children?: ReactNode;
 }) {
@@ -138,6 +143,15 @@ export function ConfirmDialog({
           >
             {confirmLabel}
           </button>
+          {secondaryLabel && onSecondary && (
+            <button
+              type="button"
+              onClick={onSecondary}
+              className="rounded-xl border border-coral/40 px-4 py-2.5 text-sm font-medium text-coral hover:bg-coral/5"
+            >
+              {secondaryLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={onCancel}

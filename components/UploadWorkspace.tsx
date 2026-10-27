@@ -2,6 +2,7 @@
 
 import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   discardDraft,
   ensureDraftVersion,
@@ -278,6 +279,71 @@ export function UploadWorkspace({
     startTransition(() => formAction(formData));
   }
 
+  // Odchod ze stránky s rozdělaným konceptem: zeptat se, jestli ho
+  // zachovat, nebo zahodit. Zachycují se kliknutí na odkazy v aplikaci
+  // (menu, křížek nahoře). Zavření záložky zeptat se takhle nedá – koncept
+  // ale zůstane uložený a příště se aplikace zeptá, jestli na něj navázat.
+  const router = useRouter();
+  const [odchodNa, setOdchodNa] = useState<string | null>(null);
+  const odchazim = useRef(false);
+  useEffect(() => {
+    if (!draftId || isPending) return;
+
+    function onClick(event: MouseEvent) {
+      if (odchazim.current || event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const odkaz = (event.target as Element | null)?.closest?.("a[href]");
+      if (!(odkaz instanceof HTMLAnchorElement) || odkaz.target === "_blank") return;
+      const cil = new URL(odkaz.href, window.location.href);
+      if (cil.origin !== window.location.origin) return;
+      if (cil.pathname === window.location.pathname) return;
+
+      // Zachycení ještě před Next.js odkazem, ať se nikam nepřejde.
+      event.preventDefault();
+      event.stopPropagation();
+      setOdchodNa(cil.pathname + cil.search + cil.hash);
+    }
+
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [draftId, isPending]);
+
+  function odejit(kam: string) {
+    odchazim.current = true;
+    setOdchodNa(null);
+    router.push(kam);
+  }
+
+  async function zachovatAOdejit() {
+    if (!odchodNa) return;
+    const kam = odchodNa;
+    // Čekající uložení rámečků doběhne hned, ať se nic neztratí.
+    if (saveTimer.current !== null && draftId) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      savingNow.current = saveDraftMarks(draftId, marks);
+    }
+    await savingNow.current?.catch(() => {});
+    odejit(kam);
+  }
+
+  async function zahoditAOdejit() {
+    if (!odchodNa || !draftId) return;
+    const kam = odchodNa;
+    if (saveTimer.current !== null) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    await savingNow.current?.catch(() => {});
+    const chyba = await discardDraft(draftId);
+    if (chyba) {
+      setOdchodNa(null);
+      setSaveState((s) => ({ ...s, error: chyba.error }));
+      return;
+    }
+    odejit(kam);
+  }
+
   // Po zveřejnění (i s varováním o souběžné verzi) už koncept neexistuje.
   // Po chybě zůstává koncept konceptem a průběžné ukládání se vrací.
   useEffect(() => {
@@ -357,6 +423,25 @@ export function UploadWorkspace({
 
   return (
     <form action={zverejnit}>
+      <ConfirmDialog
+        open={odchodNa !== null}
+        title={t.leaveDraftTitle}
+        explanation={t.leaveDraftExplain}
+        confirmLabel={t.keepDraft}
+        secondaryLabel={t.discardDraftLeave}
+        cancelLabel={t.stayHere}
+        closeLabel={t.close}
+        onConfirm={zachovatAOdejit}
+        onSecondary={zahoditAOdejit}
+        onCancel={() => setOdchodNa(null)}
+      >
+        {vybranaLekce && (
+          <p className="text-sm font-medium text-ink">
+            {vybranaLekce}
+            {countryName && <> / {countryName}</>}
+          </p>
+        )}
+      </ConfirmDialog>
       <input type="hidden" name="draftId" value={draftId ?? ""} />
       <input type="hidden" name="knownLatest" value={latest?.version_number ?? 0} />
 
