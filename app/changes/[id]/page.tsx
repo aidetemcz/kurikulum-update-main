@@ -12,6 +12,7 @@ import { LocalDateTime } from "@/components/LocalDateTime";
 import { SharedVersionView } from "@/components/SharedVersionView";
 import { versionDate, type Mark } from "@/lib/types";
 import { versionLabel } from "@/lib/version-label";
+import { countryName } from "@/lib/country-name";
 
 type Nested<T> = T | T[] | null;
 
@@ -119,7 +120,7 @@ export default async function ChangeDetailPage({
       </h1>
       <p className="mb-6 mt-1 text-sm text-ink/50">
         {fill(t.fromCountryVersion, {
-          country: one(version.countries)?.name ?? "",
+          country: countryName(one(version.countries)?.name ?? "", t.locale),
           version: versionLabel(version),
         })}{" "}
         · <LocalDateTime value={versionDate(version)} locale={t.dateLocale} />

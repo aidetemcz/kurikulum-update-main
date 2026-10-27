@@ -11,6 +11,7 @@ import { getDictionary, toLocale, type Dictionary, type Locale } from "@/lib/i18
 import { VIEW_COUNTRY_COOKIE } from "@/lib/view-country";
 import { UI_LOCALE_COOKIE } from "@/lib/ui-locale";
 import type { AppUser, Country } from "@/lib/types";
+import { withCountryNames } from "@/lib/country-name";
 
 export type ActiveCountry = {
   activeCountryId: string | null;
@@ -60,8 +61,9 @@ export async function resolveActiveCountry(
 
   return {
     activeCountryId: active.id,
-    // Přepínač se vykreslí, jen když je z čeho vybírat.
-    countries: countries.length > 1 ? countries : [],
+    // Přepínač se vykreslí, jen když je z čeho vybírat. Názvy zemí
+    // v jazyce rozhraní.
+    countries: countries.length > 1 ? withCountryNames(countries, locale) : [],
     // Rozhraní mluví jazykem prohlížené země: po přepnutí na Velkou
     // Británii je celé anglicky. Vlastní nastavení jazyka u uživatele platí
     // jen pro účet bez země (viz výše).

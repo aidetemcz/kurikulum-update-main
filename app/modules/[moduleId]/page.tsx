@@ -11,6 +11,7 @@ import { CountrySwitcher } from "@/components/CountrySwitcher";
 import { NoCountryNotice } from "@/components/NoCountryNotice";
 import { moduleName } from "@/lib/module-name";
 import { DOCUMENT_KINDS, toDocumentKind } from "@/lib/types";
+import { countryName } from "@/lib/country-name";
 
 export default async function ModuleDetailPage({
   params,
@@ -80,7 +81,7 @@ export default async function ModuleDetailPage({
         standardName={moduleName({ ...module, local_name: null }, t)}
         localName={module.local_name ?? null}
         countryId={activeCountryId}
-        countryName={zobrazenaZeme?.name ?? ""}
+        countryName={countryName(zobrazenaZeme?.name ?? "", t.locale)}
         moduleId={moduleId}
         canRename={canWriteForCountry(user, activeCountryId)}
         t={t}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireUser, canUpload, writableCountries } from "@/lib/current-user";
+import { withCountryNames } from "@/lib/country-name";
 import { resolveActiveCountry } from "@/lib/active-country";
 import { createClient } from "@/lib/supabase/server";
 import { toDocumentKind, versionDate } from "@/lib/types";
@@ -35,7 +36,7 @@ export default async function UploadPage({
   // Nahrávat jde jen za zemi, kterou má uživatel přiřazenou – admin není
   // výjimka (hlídá to i server a databáze). Nabízet mu cizí země by vedlo
   // jen k chybě až po vyplnění celého formuláře.
-  const countries = writableCountries(user, vsechnyZeme ?? []);
+  const countries = withCountryNames(writableCountries(user, vsechnyZeme ?? []), t.locale);
 
   // Poslední zveřejněná verze pro každou dvojici modul + země, ať je vidět,
   // na co se navazuje a jaké číslo nová verze dostane.

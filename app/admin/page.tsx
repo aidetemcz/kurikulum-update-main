@@ -17,6 +17,7 @@ import {
 } from "@/components/admin/AdminTables";
 import { addCountry, addModule, inviteUser, startPreview } from "./actions";
 import type { Module } from "@/lib/types";
+import { withCountryNames } from "@/lib/country-name";
 
 export default async function AdminPage({
   searchParams,
@@ -28,7 +29,8 @@ export default async function AdminPage({
   const { t } = await resolveActiveCountry(user, country);
 
   const supabase = await createClient();
-  const { data: countries } = await supabase.from("countries").select("*").order("name");
+  const { data: zemeDb } = await supabase.from("countries").select("*").order("name");
+  const countries = withCountryNames(zemeDb ?? [], t.locale);
   const { data: users } = await supabase.from("users").select("*").order("email");
 
   // Přiřazení zemí k uživatelům (jeden uživatel jich může mít víc).

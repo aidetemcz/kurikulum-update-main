@@ -5,6 +5,7 @@ import { getThreads } from "@/lib/support";
 import { createClient } from "@/lib/supabase/server";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import { AdminCompose, type ComposeCountry } from "@/components/AdminCompose";
+import { countryName } from "@/lib/country-name";
 
 // Schránka admina: nahoře psaní zemím, pod tím konverzace – kdo napsal
 // a co naposledy, nepřečtené výrazněji.
@@ -21,7 +22,7 @@ export default async function MessagesPage() {
   ]);
   const zeme: ComposeCountry[] = (countries ?? []).map((country) => ({
     id: country.id,
-    name: country.name,
+    name: countryName(country.name, t.locale),
     userIds: (vazby ?? [])
       .filter((vazba) => vazba.country_id === country.id)
       .map((vazba) => vazba.user_id),

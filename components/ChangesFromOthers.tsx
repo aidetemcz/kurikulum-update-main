@@ -10,6 +10,7 @@ import { fill } from "@/lib/format";
 import { LocalDateTime } from "@/components/LocalDateTime";
 import type { PendingChange } from "@/lib/types";
 import type { Dictionary, Locale } from "@/lib/i18n";
+import { countryName } from "@/lib/country-name";
 
 // Jak dlouho je vidět lišta s vrácením zpět.
 const UNDO_MS = 8000;
@@ -287,7 +288,7 @@ export function ChangeCard({
 
       <p className="mt-1 text-xs text-ink/50">
         {fill(t.fromCountryVersion, {
-          country: item.fromCountryName,
+          country: countryName(item.fromCountryName, t.locale),
           version: item.versionLabel,
         })}{" "}
         · {t.publishedAt}{" "}
