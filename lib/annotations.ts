@@ -52,6 +52,15 @@ export function categoryLabels(raw: string | null | undefined, t: Dictionary): s
   return parseCategories(raw).map((key) => categoryLabel(key, t) ?? key);
 }
 
+// Když autor shrnutí nenapsal, uloží se místo něj očíslované poznámky
+// rámečků. Ty se ukazují zvlášť, takže by se shrnutí jen opakovalo.
+export function isNotesOnlySummary(summary: string, sorted: Mark[]): boolean {
+  return (
+    sorted.length > 0 &&
+    summary.trim() === sorted.map((mark, index) => `${index + 1}. ${mark.note}`).join("\n").trim()
+  );
+}
+
 // Pořadí čtení: stránka, pak shora dolů, pak zleva doprava.
 export function sortMarks(marks: Mark[]): Mark[] {
   return [...marks].sort((a, b) => a.page - b.page || a.y - b.y || a.x - b.x);

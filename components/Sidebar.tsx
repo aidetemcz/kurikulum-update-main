@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
+import { LayoutGrid, Send, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { isNavActive } from "@/lib/nav";
 import { canUpload } from "@/lib/permissions";
@@ -128,6 +128,9 @@ function NavItems({
   return (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
       <SidebarLink href="/" icon={<LayoutGrid size={18} />} label={t.overview} />
+      {canManage && (
+        <SidebarLink href="/outgoing" icon={<Send size={18} />} label={t.outgoing} />
+      )}
       <SidebarLink href="/modules" icon={<BookOpen size={18} />} label={t.methodologies} />
       {canManage && (
         <SidebarLink href="/admin/upload" icon={<UploadCloud size={18} />} label={t.upload} />

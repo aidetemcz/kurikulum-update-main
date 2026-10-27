@@ -201,6 +201,10 @@ export const en: Dictionary = {
   noCountriesYet: "No country has been created yet. Add one in Admin.",
 
   changesFromOthers: "Incoming changes",
+  outgoing: "Outgoing changes",
+  outgoingEmpty: "No published versions yet.",
+  outgoingAll: "All",
+  outgoingMine: "Only mine",
   followTitle: "Followed teaching materials",
   followCount: "You follow {count} of {total} teaching materials.",
   followNotChosen: "You follow all teaching materials.",

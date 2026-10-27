@@ -6,7 +6,7 @@ import { Download } from "lucide-react";
 import { MarkLayer } from "@/components/annotations/MarkLayer";
 import { MarkCard } from "@/components/annotations/MarkCard";
 import { MarkFilterBar, scrollToMarkPosition, useMarkFilter } from "@/components/annotations/MarkFilter";
-import { numberMarks, sortMarks } from "@/lib/annotations";
+import { isNotesOnlySummary, numberMarks, sortMarks } from "@/lib/annotations";
 import { driveViewUrl, extractDriveFileId } from "@/lib/drive";
 import { fill, pluralCount } from "@/lib/format";
 import { versionLabel } from "@/lib/version-label";
@@ -32,6 +32,7 @@ export function VersionBrowser({
   versions,
   marksByVersion,
   canEdit = false,
+  initialVersionId,
   t,
 }: {
   /** Seřazené od nejnovější. */
@@ -39,9 +40,13 @@ export function VersionBrowser({
   marksByVersion: Record<string, Mark[]>;
   /** Admin smí cizí nahrávku potichu opravit. */
   canEdit?: boolean;
+  /** Verze, která se má otevřít (odkaz z Odchozích změn). */
+  initialVersionId?: string;
   t: Dictionary;
 }) {
-  const [selectedId, setSelectedId] = useState(versions[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState(
+    versions.find((version) => version.id === initialVersionId)?.id ?? versions[0]?.id ?? ""
+  );
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   // Filtr podle druhu změny platí pro právě otevřenou verzi. Hook musí
@@ -63,9 +68,7 @@ export function VersionBrowser({
   const sorted = sortMarks(marks);
   const fileId = extractDriveFileId(selected.file_url);
   const summary = selected.changes[0]?.note ?? "";
-  const jenPoznamky =
-    sorted.length > 0 &&
-    summary.trim() === sorted.map((mark, index) => `${index + 1}. ${mark.note}`).join("\n").trim();
+  const jenPoznamky = isNotesOnlySummary(summary, sorted);
 
   function scrollToMark(mark: Mark) {
     document.getElementById(`pdf-page-${mark.page}`)?.scrollIntoView({

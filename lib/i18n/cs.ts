@@ -215,6 +215,10 @@ export const cs = {
 
   // změny od ostatních zemí a semafor rozpracovanosti
   changesFromOthers: "Příchozí změny",
+  outgoing: "Odchozí změny",
+  outgoingEmpty: "Zatím tu nejsou žádné zveřejněné verze.",
+  outgoingAll: "Všechny",
+  outgoingMine: "Jen moje",
   followTitle: "Sledované metodiky",
   followCount: "Sledujete {count} z {total} metodik.",
   followNotChosen: "Sledujete všechny metodiky.",

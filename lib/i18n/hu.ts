@@ -202,6 +202,10 @@ export const hu: Dictionary = {
   noCountriesYet: "Még nincs létrehozott ország. Add hozzá az Adminisztrációban.",
 
   changesFromOthers: "Beérkező változások",
+  outgoing: "Kimenő változások",
+  outgoingEmpty: "Még nincs közzétett verzió.",
+  outgoingAll: "Összes",
+  outgoingMine: "Csak az enyéim",
   followTitle: "Követett módszertanok",
   followCount: "Követett módszertanok: {count} / {total}.",
   followNotChosen: "Minden módszertant követtek.",

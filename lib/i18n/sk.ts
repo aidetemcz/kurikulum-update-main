@@ -201,6 +201,10 @@ export const sk: Dictionary = {
   noCountriesYet: "Zatiaľ nie je založená žiadna krajina. Pridajte ju v Administrácii.",
 
   changesFromOthers: "Prichádzajúce zmeny",
+  outgoing: "Odchádzajúce zmeny",
+  outgoingEmpty: "Zatiaľ tu nie sú žiadne zverejnené verzie.",
+  outgoingAll: "Všetky",
+  outgoingMine: "Len moje",
   followTitle: "Sledované metodiky",
   followCount: "Sledujete {count} z {total} metodík.",
   followNotChosen: "Sledujete všetky metodiky.",

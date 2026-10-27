@@ -17,11 +17,11 @@ export default async function ModuleDetailPage({
   searchParams,
 }: {
   params: Promise<{ moduleId: string }>;
-  searchParams: Promise<{ country?: string; kind?: string }>;
+  searchParams: Promise<{ country?: string; kind?: string; version?: string }>;
 }) {
   const user = await requireUser();
   const { moduleId } = await params;
-  const { country, kind: kindParam } = await searchParams;
+  const { country, kind: kindParam, version: versionParam } = await searchParams;
   const { activeCountryId, countries, t, locale } = await resolveActiveCountry(user, country);
 
   if (!activeCountryId) {
@@ -107,6 +107,7 @@ export default async function ModuleDetailPage({
       <VersionBrowser
         key={kind}
         canEdit={user.role === "admin"}
+        initialVersionId={versionParam}
         versions={zobrazene}
         marksByVersion={marksByVersion}
         t={t}
