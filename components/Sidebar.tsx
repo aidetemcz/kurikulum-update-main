@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Send, BookOpen, UploadCloud, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
+import { LayoutGrid, Send, BookOpen, Plus, Settings, LogOut, Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { isNavActive } from "@/lib/nav";
 import { canUpload } from "@/lib/permissions";
@@ -127,14 +127,14 @@ function NavItems({
 
   return (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+      {/* Nová verze je hlavní akce aplikace – stojí zvlášť nad menu jako
+          výrazné tlačítko, ne jako jedna z položek. */}
+      {canManage && <NewVersionButton label={t.upload} />}
       <SidebarLink href="/" icon={<LayoutGrid size={18} />} label={t.overview} />
       {canManage && (
         <SidebarLink href="/outgoing" icon={<Send size={18} />} label={t.outgoing} />
       )}
       <SidebarLink href="/modules" icon={<BookOpen size={18} />} label={t.methodologies} />
-      {canManage && (
-        <SidebarLink href="/admin/upload" icon={<UploadCloud size={18} />} label={t.upload} />
-      )}
       {user.role === "admin" && (
         <SidebarLink href="/admin" icon={<Settings size={18} />} label={t.admin} />
       )}
@@ -172,6 +172,25 @@ function SignOut({ user, t }: { user: AppUser; t: Dictionary }) {
           {t.logout}
         </button>
       </form>
+    </div>
+  );
+}
+
+function NewVersionButton({ label }: { label: string }) {
+  const aktivni = isNavActive("/admin/upload", usePathname());
+
+  return (
+    <div className="mb-3 border-b border-dashed border-mist pb-4">
+      <Link
+        href="/admin/upload"
+        aria-current={aktivni ? "page" : undefined}
+        className={`flex items-center justify-center gap-2 rounded-xl bg-coral px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 ${
+          aktivni ? "ring-2 ring-coral/30 ring-offset-2" : ""
+        }`}
+      >
+        <Plus size={18} strokeWidth={2.5} />
+        {label}
+      </Link>
     </div>
   );
 }
