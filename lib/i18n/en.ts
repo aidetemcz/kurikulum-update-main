@@ -45,6 +45,11 @@ export const en: Dictionary = {
 
   methodologies: "Teaching materials",
   noModules: "No teaching materials yet",
+  newModulesTitle: "New teaching materials",
+  newModulesEmpty: "No new teaching materials yet.",
+  newBadge: "New",
+  markModuleNew: "Mark as new",
+  unmarkModuleNew: "No longer new",
   currentVersion: "Current version",
   versionsCountForms: "version|versions",
   noVersionYet: "No version",

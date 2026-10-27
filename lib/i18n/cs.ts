@@ -53,6 +53,11 @@ export const cs = {
   // přehled modulů
   methodologies: "Metodiky",
   noModules: "Zatím žádné metodiky",
+  newModulesTitle: "Nové metodiky",
+  newModulesEmpty: "Zatím tu žádná nová metodika není.",
+  newBadge: "Nová",
+  markModuleNew: "Označit jako novou",
+  unmarkModuleNew: "Už není nová",
   currentVersion: "Aktuální verze",
   versionsCountForms: "verze|verze|verzí",
   noVersionYet: "Bez verze",

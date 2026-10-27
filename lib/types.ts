@@ -37,6 +37,8 @@ export type Module = {
   /** Vlastní název zobrazené země (migrace 0016); doplňuje ho server. */
   local_name?: string | null;
   order_index: number;
+  /** Nová metodika – stojí nahoře na stránce Metodiky (migrace 0021). */
+  is_new?: boolean;
   /** Metodika, která z webu zmizela. Nemaže se, jen se schová. */
   archived_at: string | null;
   created_at: string;

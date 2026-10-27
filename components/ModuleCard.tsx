@@ -74,11 +74,10 @@ export function ModuleCard({
   return (
     <div className="flex h-full flex-col gap-3 rounded-2xl border border-haze bg-white p-5 transition hover:border-coral">
       <div className="flex items-center justify-between gap-2">
-        {module.category ? (
-          <span className="badge-pill break-words">{module.category}</span>
-        ) : (
-          <span />
-        )}
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          {module.is_new && <span className="badge-pill bg-coral text-white">{t.newBadge}</span>}
+          {module.category && <span className="badge-pill break-words">{module.category}</span>}
+        </div>
         <div className="flex shrink-0 items-center gap-2">
           <DostupneZmeny count={available} moduleId={module.id} countryId={countryId} t={t} />
           <ModuleLightDot

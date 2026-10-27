@@ -65,6 +65,7 @@ Pozvánka z administrace zakládá vždy editora; adminem ho jde udělat v sezna
 | `/modules` **Metodiky** | všichni | katalog všech lekcí po sekcích, karta = název, aktuální verze, prezentace, semafory |
 | `/modules/[id]` detail metodiky | všichni | historie verzí země, náhled PDF s rámečky a panel změn, přejmenování lekce pro svou zemi (tužka), admin může verzi opravit |
 | `/changes/[id]` | všichni | jedna změna jiné země otevřená v dokumentu |
+| `/modules` – blok **Nové metodiky** | všichni | nahoře zvýrazněné metodiky označené jako nové (migrace 0021); nová metodika se označí sama, admin označení vypíná v administraci |
 | `/outgoing` **Odchozí změny** | admin, editor se zemí | rámečky z verzí, které země zveřejnila, ve stejných kartách jako příchozí změny; filtr „Jen moje“, odkaz rovnou na verzi |
 | `/admin/upload` **Nahrát** | admin, editor se zemí | nahrání a vyznačení nové verze |
 | `/help` **Napsat adminovi** | ne-admin | chat s adminy (vlákno na uživatele), odpověď chodí i e-mailem |

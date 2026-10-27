@@ -6,6 +6,7 @@ import { ActionForm } from "@/components/ActionForm";
 import {
   deleteModule,
   setModuleArchived,
+  setModuleNew,
   updateModule,
   updateUserRoleAndCountries,
 } from "@/app/admin/actions";
@@ -197,6 +198,15 @@ export function ModulesTable({
               <span className="badge-pill bg-mist/40 text-ink/70">{t.manualModule}</span>
             )}
             {archivovana && <span className="badge-pill">{t.archivedLabel}</span>}
+            {module.is_new && <span className="badge-pill bg-coral text-white">{t.newBadge}</span>}
+
+            <ActionForm action={setModuleNew}>
+              <input type="hidden" name="moduleId" value={module.id} />
+              <input type="hidden" name="isNew" value={module.is_new ? "0" : "1"} />
+              <button type="submit" className="text-sm text-ink/50 hover:text-ink">
+                {module.is_new ? t.unmarkModuleNew : t.markModuleNew}
+              </button>
+            </ActionForm>
 
             <ActionForm action={setModuleArchived}>
               <input type="hidden" name="moduleId" value={module.id} />

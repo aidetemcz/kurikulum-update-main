@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { SECTION_ORDER } from "@/lib/catalog";
 import { matchKey } from "@/lib/match-module";
 import { ModuleCard } from "@/components/ModuleCard";
@@ -70,8 +71,45 @@ export function ModulesCatalog({
     return <p className="text-sm text-ink/50">{t.noModules}</p>;
   }
 
+  const karta = (module: ModuleWithLatestVersion) => {
+    const light = lights[lightKey(module.id, "teaching_material")] ?? "none";
+    const presentationLight = lights[lightKey(module.id, "presentation")] ?? "none";
+    return (
+      <ModuleCard
+        key={module.id}
+        module={module}
+        countryId={countryId}
+        light={light}
+        lightTitle={lightLabel(light, t)}
+        presentationLight={presentationLight}
+        presentationLightTitle={lightLabel(presentationLight, t)}
+        available={available[lightKey(module.id, "teaching_material")] ?? 0}
+        presentationAvailable={available[lightKey(module.id, "presentation")] ?? 0}
+        t={t}
+      />
+    );
+  };
+  const nove = modules.filter((module) => module.is_new);
+
   return (
     <div>
+      {/* Nové metodiky nahoře a barevně, ať je nikdo nepřehlédne. V seznamu
+          pod tím jsou taky, se štítkem „Nová“. Prázdný blok zůstává, ať je
+          vidět, kam nové metodiky přibudou. */}
+      <section className="mb-8 rounded-2xl border-2 border-coral/40 bg-coral/5 p-5">
+        <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-ink">
+          <Sparkles size={20} className="text-coral" />
+          {t.newModulesTitle}
+        </h2>
+        {nove.length === 0 ? (
+          <p className="mt-2 text-sm text-ink/50">{t.newModulesEmpty}</p>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-5 nav:grid-cols-2 min-[1400px]:grid-cols-3">
+            {nove.map(karta)}
+          </div>
+        )}
+      </section>
+
       <input
         type="search"
         value={hledani}
@@ -96,25 +134,7 @@ export function ModulesCatalog({
               </h2>
 
               <div className="mt-4 grid grid-cols-1 gap-5 nav:grid-cols-2 min-[1400px]:grid-cols-3">
-                {seznam.map((module) => {
-                  const light = lights[lightKey(module.id, "teaching_material")] ?? "none";
-                  const presentationLight =
-                    lights[lightKey(module.id, "presentation")] ?? "none";
-                  return (
-                    <ModuleCard
-                      key={module.id}
-                      module={module}
-                      countryId={countryId}
-                      light={light}
-                      lightTitle={lightLabel(light, t)}
-                      presentationLight={presentationLight}
-                      presentationLightTitle={lightLabel(presentationLight, t)}
-                      available={available[lightKey(module.id, "teaching_material")] ?? 0}
-                      presentationAvailable={available[lightKey(module.id, "presentation")] ?? 0}
-                      t={t}
-                    />
-                  );
-                })}
+                {seznam.map(karta)}
               </div>
             </section>
           ))}

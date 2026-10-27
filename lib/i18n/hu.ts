@@ -45,6 +45,11 @@ export const hu: Dictionary = {
 
   methodologies: "Módszertanok",
   noModules: "Még nincs módszertan",
+  newModulesTitle: "Új módszertanok",
+  newModulesEmpty: "Még nincs új módszertan.",
+  newBadge: "Új",
+  markModuleNew: "Megjelölés újként",
+  unmarkModuleNew: "Már nem új",
   currentVersion: "Jelenlegi verzió",
   versionsCountForms: "verzió|verzió",
   noVersionYet: "Nincs verzió",

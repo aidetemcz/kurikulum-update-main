@@ -45,6 +45,11 @@ export const sk: Dictionary = {
 
   methodologies: "Metodiky",
   noModules: "Zatiaľ žiadne metodiky",
+  newModulesTitle: "Nové metodiky",
+  newModulesEmpty: "Zatiaľ tu nie je žiadna nová metodika.",
+  newBadge: "Nová",
+  markModuleNew: "Označiť ako novú",
+  unmarkModuleNew: "Už nie je nová",
   currentVersion: "Aktuálna verzia",
   versionsCountForms: "verzia|verzie|verzií",
   noVersionYet: "Bez verzie",

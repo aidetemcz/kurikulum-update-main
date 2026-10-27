@@ -1,4 +1,4 @@
--- Celá databáze appky najednou: migrace 0001–0020 za sebou.
+-- Celá databáze appky najednou: migrace 0001–0021 za sebou.
 -- Vlož do Supabase → SQL Editor → New query a klikni na Run.
 -- Je určená pro prázdný projekt. Kde už migrace běžely, pouštěj jen ty chybějící.
 
@@ -1534,3 +1534,20 @@ $$;
 alter table public.users drop constraint if exists users_role_check;
 alter table public.users
   add constraint users_role_check check (role in ('admin', 'editor'));
+
+-- ====================================================================
+-- 0021_nove_metodiky.sql
+-- ====================================================================
+-- Nové metodiky
+--
+-- Metodiky označené jako nové stojí na stránce Metodiky nahoře ve
+-- zvýrazněném bloku (a v seznamu mají štítek „Nová“). Admin označení
+-- zapíná a vypíná v administraci.
+--
+-- Stávající metodiky nové nejsou. Každá další – ručně přidaná i
+-- z importu katalogu – se jako nová označí sama.
+--
+-- Migraci lze spustit opakovaně.
+
+alter table public.modules add column if not exists is_new boolean not null default false;
+alter table public.modules alter column is_new set default true;

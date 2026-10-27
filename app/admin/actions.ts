@@ -231,6 +231,22 @@ export async function updateModule(_prev: ActionState, formData: FormData): Prom
   return { ok: "Uloženo." };
 }
 
+// Nová metodika stojí na stránce Metodiky nahoře ve zvýrazněném bloku.
+export async function setModuleNew(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+
+  const id = String(formData.get("moduleId") ?? "");
+  const isNew = formData.get("isNew") === "1";
+  if (!id) return null;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("modules").update({ is_new: isNew }).eq("id", id);
+  if (error) return { error: `Změna se nepodařila: ${error.message}` };
+
+  obnovSeznamy();
+  return { ok: "Uloženo." };
+}
+
 // Archivovaná metodika se nikde nenabízí, ale nic se jí nestane –
 // verze i vyznačené změny zůstávají.
 export async function setModuleArchived(
