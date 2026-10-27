@@ -240,7 +240,6 @@ export const en: Dictionary = {
 
   changesFromOthersCount: "Incoming changes ({count})",
   changesAvailableForms: "change available|changes available",
-  changesForMissingTitle: "Teaching materials without your version",
   tabCurrent: "To do",
   tabHidden: "Resolved",
   confirmDismissYes: "Yes, not relevant to us",

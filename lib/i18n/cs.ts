@@ -254,7 +254,6 @@ export const cs = {
 
   changesFromOthersCount: "Příchozí změny ({count})",
   changesAvailableForms: "změna k dispozici|změny k dispozici|změn k dispozici",
-  changesForMissingTitle: "Metodiky bez vaší verze",
   tabCurrent: "K vyřízení",
   tabHidden: "Vyřízené",
   confirmDismissYes: "Ano, netýká se nás",

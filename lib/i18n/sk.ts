@@ -240,7 +240,6 @@ export const sk: Dictionary = {
 
   changesFromOthersCount: "Prichádzajúce zmeny ({count})",
   changesAvailableForms: "zmena k dispozícii|zmeny k dispozícii|zmien k dispozícii",
-  changesForMissingTitle: "Metodiky bez vašej verzie",
   tabCurrent: "Na vybavenie",
   tabHidden: "Vybavené",
   confirmDismissYes: "Áno, netýka sa nás",

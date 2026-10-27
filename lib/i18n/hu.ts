@@ -241,7 +241,6 @@ export const hu: Dictionary = {
 
   changesFromOthersCount: "Beérkező változások ({count})",
   changesAvailableForms: "elérhető változás|elérhető változás",
-  changesForMissingTitle: "Módszertanok saját verzió nélkül",
   tabCurrent: "Teendő",
   tabHidden: "Lezárt",
   confirmDismissYes: "Igen, minket nem érint",

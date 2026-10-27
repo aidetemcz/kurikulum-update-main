@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { dismissChange, restoreChange, type Resolution } from "@/app/changes/actions";
@@ -63,15 +63,9 @@ export function ChangesFromOthers({
   const nevyrizene = vse
     .filter((item) => stav(item) === "pending")
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  // Změny k lekcím, ke kterým země nemá vlastní verzi, se nemíchají
-  // s ostatními: nejsou co zapracovat, jen k dispozici. Stojí ve vlastním
-  // sbaleném bloku a do počtu nevyřízených se nepočítají.
-  const current = nevyrizene.filter((item) => !item.forMissingLesson);
-  const bezVerze = nevyrizene.filter((item) => item.forMissingLesson);
-  // Když semafor u lekce bez verze odkázal sem, blok se rovnou rozbalí.
-  const [bezVerzeOpen, setBezVerzeOpen] = useState(() =>
-    pending.some((item) => item.forMissingLesson && item.moduleId === focusModuleId)
-  );
+  // I změny k metodikám, ke kterým země nemá vlastní verzi, stojí rovnou
+  // mezi ostatními – jsou stejně důležité.
+  const current = nevyrizene;
   const hidden = vse
     .filter((item) => stav(item) === "dismissed")
     .sort((a, b) => (b.dismissedAt ?? "").localeCompare(a.dismissedAt ?? ""));
@@ -124,7 +118,7 @@ export function ChangesFromOthers({
     setToastId((current) => (current === statusId ? null : current));
   }
 
-  if (current.length === 0 && hidden.length === 0 && bezVerze.length === 0) return null;
+  if (current.length === 0 && hidden.length === 0) return null;
 
   const karty = (seznam: PendingChange[]) =>
     seznam.map((item) => (
@@ -187,30 +181,6 @@ export function ChangesFromOthers({
             karty(zobrazit)
           )}
         </ul>
-      )}
-
-      {bezVerze.length > 0 && (
-        <div className="mt-8">
-          <button
-            type="button"
-            aria-expanded={bezVerzeOpen}
-            onClick={() => setBezVerzeOpen((open) => !open)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/60 hover:text-coral"
-          >
-            <ChevronDown
-              size={16}
-              className={`transition-transform ${bezVerzeOpen ? "" : "-rotate-90"}`}
-            />
-            {t.changesForMissingTitle} ({bezVerze.length})
-          </button>
-          {bezVerzeOpen && (
-            <>
-              <ul className="mt-4 grid grid-cols-1 gap-4 nav:grid-cols-2 min-[1400px]:grid-cols-3">
-                {karty(bezVerze)}
-              </ul>
-            </>
-          )}
-        </div>
       )}
 
       {toastId && (
